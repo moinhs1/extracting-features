@@ -1,0 +1,37 @@
+# Data files (178GB)
+Data/
+
+# Lock files
+*.~lock.*
+.~lock.*
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Large output files
+*.pkl
+outputs/*.csv
+!outputs/outcomes_test.csv
+
+# Log files
+*.log

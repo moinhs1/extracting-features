@@ -1,0 +1,324 @@
+File,File_Description,Column,Data_Type,Description,Unique_Values,Null_Count
+Bib,Billing/Insurance - Insurance billing codes and related information,Registry_Name,object,Name field,1,0
+Bib,Billing/Insurance - Insurance billing codes and related information,Subject_Id,int64,Identifier field,1000,0
+Bib,Billing/Insurance - Insurance billing codes and related information,EMPI,int64,Enterprise Master Patient Identifier - Unique patient ID,1000,0
+Bib,Billing/Insurance - Insurance billing codes and related information,EPIC_PMRN,int64,EPIC Patient Medical Record Number,1000,0
+Bib,Billing/Insurance - Insurance billing codes and related information,MGH_MRN,float64,Massachusetts General Hospital MRN,983,17
+Bib,Billing/Insurance - Insurance billing codes and related information,BWH_MRN,float64,Brigham and Women's Hospital MRN,960,40
+Bib,Billing/Insurance - Insurance billing codes and related information,FH_MRN,float64,Field specific to Bib file,615,385
+Bib,Billing/Insurance - Insurance billing codes and related information,SRH_MRN,float64,Field specific to Bib file,412,588
+Bib,Billing/Insurance - Insurance billing codes and related information,NWH_MRN,float64,Field specific to Bib file,812,188
+Bib,Billing/Insurance - Insurance billing codes and related information,NSMC_MRN,float64,Field specific to Bib file,377,623
+Bib,Billing/Insurance - Insurance billing codes and related information,MCL_MRN,float64,Field specific to Bib file,96,904
+Bib,Billing/Insurance - Insurance billing codes and related information,MEE_MRN,float64,Field specific to Bib file,671,329
+Bib,Billing/Insurance - Insurance billing codes and related information,DFC_MRN,float64,Field specific to Bib file,662,338
+Bib,Billing/Insurance - Insurance billing codes and related information,WDH_MRN,float64,Field specific to Bib file,88,912
+Car,"Cardiology - Cardiac-specific data including echocardiograms, catheterizations",EMPI,object,Enterprise Master Patient Identifier - Unique patient ID,711,0
+Car,"Cardiology - Cardiac-specific data including echocardiograms, catheterizations",EPIC_PMRN,float64,EPIC Patient Medical Record Number,3,976
+Car,"Cardiology - Cardiac-specific data including echocardiograms, catheterizations",MRN_Type,object,Field specific to Car file,2,976
+Car,"Cardiology - Cardiac-specific data including echocardiograms, catheterizations",MRN,float64,Field specific to Car file,3,976
+Car,"Cardiology - Cardiac-specific data including echocardiograms, catheterizations",Report_Number,float64,Identifier field,24,976
+Car,"Cardiology - Cardiac-specific data including echocardiograms, catheterizations",Report_Date_Time,object,Date field,24,976
+Car,"Cardiology - Cardiac-specific data including echocardiograms, catheterizations",Report_Description,object,Field specific to Car file,5,976
+Car,"Cardiology - Cardiac-specific data including echocardiograms, catheterizations",Report_Status,object,"Status of report (final, preliminary, etc.)",1,976
+Car,"Cardiology - Cardiac-specific data including echocardiograms, catheterizations",Report_Type,object,Field specific to Car file,7,976
+Car,"Cardiology - Cardiac-specific data including echocardiograms, catheterizations",Report_Text,object,Full text of report,12,976
+Dem,Demographics - Patient demographic information,EMPI,int64,Enterprise Master Patient Identifier - Unique patient ID,1000,0
+Dem,Demographics - Patient demographic information,EPIC_PMRN,int64,EPIC Patient Medical Record Number,1000,0
+Dem,Demographics - Patient demographic information,MRN_Type,object,Field specific to Dem file,166,0
+Dem,Demographics - Patient demographic information,MRN,object,Field specific to Dem file,1000,0
+Dem,Demographics - Patient demographic information,Gender_Legal_Sex,object,Field specific to Dem file,2,0
+Dem,Demographics - Patient demographic information,Date_of_Birth,object,Patient date of birth,978,0
+Dem,Demographics - Patient demographic information,Age,int64,Field specific to Dem file,77,0
+Dem,Demographics - Patient demographic information,Sex_At_Birth,object,Field specific to Dem file,3,0
+Dem,Demographics - Patient demographic information,Gender_Identity,object,Identifier field,5,0
+Dem,Demographics - Patient demographic information,Language,object,Field specific to Dem file,20,0
+Dem,Demographics - Patient demographic information,Language_group,object,Field specific to Dem file,3,0
+Dem,Demographics - Patient demographic information,Race1,object,Field specific to Dem file,9,0
+Dem,Demographics - Patient demographic information,Race2,object,Field specific to Dem file,2,994
+Dem,Demographics - Patient demographic information,Race_Group,object,Field specific to Dem file,8,0
+Dem,Demographics - Patient demographic information,Ethnic_Group,object,Patient ethnicity,4,0
+Dem,Demographics - Patient demographic information,Marital_status,object,Field specific to Dem file,8,0
+Dem,Demographics - Patient demographic information,Religion,object,Field specific to Dem file,33,6
+Dem,Demographics - Patient demographic information,Is_a_veteran,object,Field specific to Dem file,7,0
+Dem,Demographics - Patient demographic information,Zip_code,int64,Code identifier,290,0
+Dem,Demographics - Patient demographic information,Country,object,Field specific to Dem file,3,0
+Dem,Demographics - Patient demographic information,Vital_status,object,Field specific to Dem file,3,0
+Dem,Demographics - Patient demographic information,Date_Of_Death,object,Date field,438,473
+Dia,Diagnoses - ICD diagnosis codes and descriptions,EMPI,int64,Enterprise Master Patient Identifier - Unique patient ID,69,0
+Dia,Diagnoses - ICD diagnosis codes and descriptions,EPIC_PMRN,int64,EPIC Patient Medical Record Number,69,0
+Dia,Diagnoses - ICD diagnosis codes and descriptions,MRN_Type,object,Field specific to Dia file,6,0
+Dia,Diagnoses - ICD diagnosis codes and descriptions,MRN,int64,Field specific to Dia file,81,0
+Dia,Diagnoses - ICD diagnosis codes and descriptions,Date,object,Date field,713,0
+Dia,Diagnoses - ICD diagnosis codes and descriptions,Diagnosis_Name,object,Diagnosis description,106,0
+Dia,Diagnoses - ICD diagnosis codes and descriptions,Code_Type,object,"Type of code (ICD-9, ICD-10, CPT, etc.)",1,0
+Dia,Diagnoses - ICD diagnosis codes and descriptions,Code,float64,Code identifier,105,0
+Dia,Diagnoses - ICD diagnosis codes and descriptions,Diagnosis_Flag,object,Flag/indicator field,2,475
+Dia,Diagnoses - ICD diagnosis codes and descriptions,Provider,object,Identifier field,378,84
+Dia,Diagnoses - ICD diagnosis codes and descriptions,Clinic,object,Field specific to Dia file,205,20
+Dia,Diagnoses - ICD diagnosis codes and descriptions,Hospital,object,Field specific to Dia file,6,0
+Dia,Diagnoses - ICD diagnosis codes and descriptions,Inpatient_Outpatient,object,Visit type,5,0
+Dia,Diagnoses - ICD diagnosis codes and descriptions,Encounter_number,object,Identifier field,886,0
+Dis,Discharge - Discharge summaries and related notes,EMPI,object,Enterprise Master Patient Identifier - Unique patient ID,833,3
+Dis,Discharge - Discharge summaries and related notes,EPIC_PMRN,float64,EPIC Patient Medical Record Number,1,995
+Dis,Discharge - Discharge summaries and related notes,MRN_Type,object,Field specific to Dis file,1,995
+Dis,Discharge - Discharge summaries and related notes,MRN,float64,Field specific to Dis file,1,995
+Dis,Discharge - Discharge summaries and related notes,Report_Number,object,Identifier field,5,995
+Dis,Discharge - Discharge summaries and related notes,Report_Date_Time,object,Date field,4,995
+Dis,Discharge - Discharge summaries and related notes,Report_Description,object,Field specific to Dis file,1,995
+Dis,Discharge - Discharge summaries and related notes,Report_Status,object,"Status of report (final, preliminary, etc.)",1,995
+Dis,Discharge - Discharge summaries and related notes,Report_Type,object,Field specific to Dis file,2,995
+Dis,Discharge - Discharge summaries and related notes,Report_Text,object,Full text of report,1,998
+Enc,Encounters - Hospital encounters and visits,EMPI,int64,Enterprise Master Patient Identifier - Unique patient ID,9,0
+Enc,Encounters - Hospital encounters and visits,EPIC_PMRN,int64,EPIC Patient Medical Record Number,9,0
+Enc,Encounters - Hospital encounters and visits,MRN_Type,object,Field specific to Enc file,1,0
+Enc,Encounters - Hospital encounters and visits,MRN,int64,Field specific to Enc file,9,0
+Enc,Encounters - Hospital encounters and visits,Encounter_number,object,Identifier field,1000,0
+Enc,Encounters - Hospital encounters and visits,Encounter_Status,object,Field specific to Enc file,4,0
+Enc,Encounters - Hospital encounters and visits,Hospital,object,Field specific to Enc file,1,0
+Enc,Encounters - Hospital encounters and visits,Inpatient_Outpatient,object,Visit type,2,0
+Enc,Encounters - Hospital encounters and visits,Service_Line,object,Field specific to Enc file,26,561
+Enc,Encounters - Hospital encounters and visits,Attending_MD,object,Field specific to Enc file,283,158
+Enc,Encounters - Hospital encounters and visits,Admit_Date,object,Hospital admission date,796,0
+Enc,Encounters - Hospital encounters and visits,Discharge_Date,object,Hospital discharge date,802,0
+Enc,Encounters - Hospital encounters and visits,LOS_Days,int64,Field specific to Enc file,7,0
+Enc,Encounters - Hospital encounters and visits,Clinic_Name,object,Name field,48,0
+Enc,Encounters - Hospital encounters and visits,Admit_Source,object,Field specific to Enc file,4,990
+Enc,Encounters - Hospital encounters and visits,Discharge_Disposition,object,Field specific to Enc file,4,972
+Enc,Encounters - Hospital encounters and visits,Payor,object,Field specific to Enc file,44,14
+Enc,Encounters - Hospital encounters and visits,Admitting_Diagnosis,object,Field specific to Enc file,135,638
+Enc,Encounters - Hospital encounters and visits,Principal_Diagnosis,object,Field specific to Enc file,279,66
+Enc,Encounters - Hospital encounters and visits,Diagnosis_1,object,Field specific to Enc file,260,335
+Enc,Encounters - Hospital encounters and visits,Diagnosis_2,object,Field specific to Enc file,150,705
+Enc,Encounters - Hospital encounters and visits,Diagnosis_3,object,Field specific to Enc file,93,851
+Enc,Encounters - Hospital encounters and visits,Diagnosis_4,object,Field specific to Enc file,62,923
+Enc,Encounters - Hospital encounters and visits,Diagnosis_5,object,Field specific to Enc file,39,955
+Enc,Encounters - Hospital encounters and visits,Diagnosis_6,object,Field specific to Enc file,28,962
+Enc,Encounters - Hospital encounters and visits,Diagnosis_7,object,Field specific to Enc file,23,967
+Enc,Encounters - Hospital encounters and visits,Diagnosis_8,object,Field specific to Enc file,21,974
+Enc,Encounters - Hospital encounters and visits,Diagnosis_9,object,Field specific to Enc file,17,978
+Enc,Encounters - Hospital encounters and visits,Diagnosis_10,object,Field specific to Enc file,19,981
+Enc,Encounters - Hospital encounters and visits,DRG,object,Field specific to Enc file,22,972
+Enc,Encounters - Hospital encounters and visits,Patient_Type,float64,Field specific to Enc file,0,1000
+Enc,Encounters - Hospital encounters and visits,Referrer_Discipline,float64,Field specific to Enc file,0,1000
+Hnp,History & Physical - H&P notes and examinations,EMPI,object,Enterprise Master Patient Identifier - Unique patient ID,903,0
+Hnp,History & Physical - H&P notes and examinations,EPIC_PMRN,float64,EPIC Patient Medical Record Number,1,995
+Hnp,History & Physical - H&P notes and examinations,MRN_Type,object,Field specific to Hnp file,1,995
+Hnp,History & Physical - H&P notes and examinations,MRN,float64,Field specific to Hnp file,1,995
+Hnp,History & Physical - H&P notes and examinations,Report_Number,float64,Identifier field,5,995
+Hnp,History & Physical - H&P notes and examinations,Report_Date_Time,object,Date field,5,995
+Hnp,History & Physical - H&P notes and examinations,Report_Description,object,Field specific to Hnp file,1,995
+Hnp,History & Physical - H&P notes and examinations,Report_Status,object,"Status of report (final, preliminary, etc.)",2,995
+Hnp,History & Physical - H&P notes and examinations,Report_Type,object,Field specific to Hnp file,1,995
+Hnp,History & Physical - H&P notes and examinations,Report_Text,float64,Full text of report,0,1000
+Lab,Laboratory - Lab test results and values,EMPI,int64,Enterprise Master Patient Identifier - Unique patient ID,3,0
+Lab,Laboratory - Lab test results and values,EPIC_PMRN,int64,EPIC Patient Medical Record Number,3,0
+Lab,Laboratory - Lab test results and values,MRN_Type,object,Field specific to Lab file,1,0
+Lab,Laboratory - Lab test results and values,MRN,int64,Field specific to Lab file,3,0
+Lab,Laboratory - Lab test results and values,Seq_Date_Time,object,Date field,272,0
+Lab,Laboratory - Lab test results and values,Group_Id,object,Identifier field,30,50
+Lab,Laboratory - Lab test results and values,Loinc_Code,object,Code identifier,31,0
+Lab,Laboratory - Lab test results and values,Test_Id,object,Identifier field,47,0
+Lab,Laboratory - Lab test results and values,Test_Description,object,Field specific to Lab file,49,0
+Lab,Laboratory - Lab test results and values,Result,object,Result/value field,400,0
+Lab,Laboratory - Lab test results and values,Result_Text,object,Result/value field,23,18
+Lab,Laboratory - Lab test results and values,Abnormal_Flag,object,Indicates if result is abnormal,2,422
+Lab,Laboratory - Lab test results and values,Reference_Units,object,Field specific to Lab file,10,4
+Lab,Laboratory - Lab test results and values,Reference_Range,object,Normal reference range,49,4
+Lab,Laboratory - Lab test results and values,Toxic_Range,float64,Field specific to Lab file,0,1000
+Lab,Laboratory - Lab test results and values,Specimen_Type,float64,Field specific to Lab file,0,1000
+Lab,Laboratory - Lab test results and values,Specimen_Text,float64,Text/note field,0,1000
+Lab,Laboratory - Lab test results and values,Correction_Flag,float64,Flag/indicator field,0,1000
+Lab,Laboratory - Lab test results and values,Test_Status,float64,Field specific to Lab file,0,1000
+Lab,Laboratory - Lab test results and values,Ordering_Doc_Name,object,Name field,16,18
+Lab,Laboratory - Lab test results and values,Accession,object,Field specific to Lab file,317,0
+Lab,Laboratory - Lab test results and values,Source,object,Field specific to Lab file,1,0
+Lno,Lab Notes - Laboratory notes and comments,EMPI,object,Enterprise Master Patient Identifier - Unique patient ID,830,0
+Lno,Lab Notes - Laboratory notes and comments,EPIC_PMRN,float64,EPIC Patient Medical Record Number,1,980
+Lno,Lab Notes - Laboratory notes and comments,MRN_Type,float64,Field specific to Lno file,0,1000
+Lno,Lab Notes - Laboratory notes and comments,MRN,float64,Field specific to Lno file,0,1000
+Lno,Lab Notes - Laboratory notes and comments,LMRNote_Date,object,Date field,19,980
+Lno,Lab Notes - Laboratory notes and comments,Record_Id,float64,Identifier field,20,980
+Lno,Lab Notes - Laboratory notes and comments,Status,object,Field specific to Lno file,1,980
+Lno,Lab Notes - Laboratory notes and comments,Author,object,Field specific to Lno file,12,981
+Lno,Lab Notes - Laboratory notes and comments,COD,object,Field specific to Lno file,13,980
+Lno,Lab Notes - Laboratory notes and comments,Institution,object,Field specific to Lno file,1,980
+Lno,Lab Notes - Laboratory notes and comments,Author_MRN,float64,Field specific to Lno file,0,1000
+Lno,Lab Notes - Laboratory notes and comments,Subject,object,Field specific to Lno file,13,980
+Lno,Lab Notes - Laboratory notes and comments,Comments,object,Field specific to Lno file,3,994
+Log,Log - System log entries,Environment Settings:---------------------------------------------------------------------------,object,Field specific to Log file,425,0
+Med,Medications - Medication prescriptions and administrations,EMPI,int64,Enterprise Master Patient Identifier - Unique patient ID,9,0
+Med,Medications - Medication prescriptions and administrations,EPIC_PMRN,int64,EPIC Patient Medical Record Number,9,0
+Med,Medications - Medication prescriptions and administrations,MRN_Type,object,Field specific to Med file,1,0
+Med,Medications - Medication prescriptions and administrations,MRN,int64,Field specific to Med file,9,0
+Med,Medications - Medication prescriptions and administrations,Medication_Date,object,Date field,215,0
+Med,Medications - Medication prescriptions and administrations,Medication_Date_Detail,float64,Date field,0,1000
+Med,Medications - Medication prescriptions and administrations,Medication,object,Field specific to Med file,437,0
+Med,Medications - Medication prescriptions and administrations,Code_Type,object,"Type of code (ICD-9, ICD-10, CPT, etc.)",3,0
+Med,Medications - Medication prescriptions and administrations,Code,object,Code identifier,460,0
+Med,Medications - Medication prescriptions and administrations,Quantity,float64,Field specific to Med file,33,0
+Med,Medications - Medication prescriptions and administrations,Provider,object,Identifier field,109,12
+Med,Medications - Medication prescriptions and administrations,Clinic,object,Field specific to Med file,18,0
+Med,Medications - Medication prescriptions and administrations,Hospital,object,Field specific to Med file,1,0
+Med,Medications - Medication prescriptions and administrations,Inpatient_Outpatient,object,Visit type,2,0
+Med,Medications - Medication prescriptions and administrations,Encounter_number,object,Identifier field,135,0
+Med,Medications - Medication prescriptions and administrations,Additional_Info,object,Field specific to Med file,1,0
+Mic,Microbiology - Microbiology culture results,EMPI,object,Enterprise Master Patient Identifier - Unique patient ID,243,0
+Mic,Microbiology - Microbiology culture results,EPIC_PMRN,float64,EPIC Patient Medical Record Number,2,936
+Mic,Microbiology - Microbiology culture results,MRN_Type,object,Field specific to Mic file,2,936
+Mic,Microbiology - Microbiology culture results,MRN,float64,Field specific to Mic file,2,936
+Mic,Microbiology - Microbiology culture results,Microbiology_Number,object,Identifier field,47,936
+Mic,Microbiology - Microbiology culture results,Microbiology_Date_Time,object,Date field,45,936
+Mic,Microbiology - Microbiology culture results,Specimen_Type,object,Field specific to Mic file,13,936
+Mic,Microbiology - Microbiology culture results,Specimen_Comments,object,Field specific to Mic file,20,959
+Mic,Microbiology - Microbiology culture results,Test_Name,object,Name field,6,993
+Mic,Microbiology - Microbiology culture results,Test_Code,object,Code identifier,6,993
+Mic,Microbiology - Microbiology culture results,Test_Comments,object,Field specific to Mic file,6,993
+Mic,Microbiology - Microbiology culture results,Test_Status,object,Field specific to Mic file,2,936
+Mic,Microbiology - Microbiology culture results,Organism_Name,object,Name field,29,944
+Mic,Microbiology - Microbiology culture results,Organism_Code,object,Code identifier,33,944
+Mic,Microbiology - Microbiology culture results,Organism_Comment,object,Field specific to Mic file,11,984
+Mic,Microbiology - Microbiology culture results,Organism_Text,object,Text/note field,1,936
+Mrn,Medical Record Numbers - Patient MRN mappings,IncomingId,int64,Identifier field,1000,0
+Mrn,Medical Record Numbers - Patient MRN mappings,IncomingSite,object,Field specific to Mrn file,1,0
+Mrn,Medical Record Numbers - Patient MRN mappings,Status,object,Field specific to Mrn file,1,0
+Mrn,Medical Record Numbers - Patient MRN mappings,Enterprise_Master_Patient_Index,int64,Field specific to Mrn file,1000,0
+Mrn,Medical Record Numbers - Patient MRN mappings,EPIC_PMRN,int64,EPIC Patient Medical Record Number,1000,0
+Mrn,Medical Record Numbers - Patient MRN mappings,MGH_MRN,float64,Massachusetts General Hospital MRN,959,41
+Mrn,Medical Record Numbers - Patient MRN mappings,BWH_MRN,float64,Brigham and Women's Hospital MRN,879,121
+Mrn,Medical Record Numbers - Patient MRN mappings,FH_MRN,float64,Field specific to Mrn file,510,490
+Mrn,Medical Record Numbers - Patient MRN mappings,SRH_MRN,float64,Field specific to Mrn file,383,617
+Mrn,Medical Record Numbers - Patient MRN mappings,NWH_MRN,float64,Field specific to Mrn file,680,320
+Mrn,Medical Record Numbers - Patient MRN mappings,NSMC_MRN,float64,Field specific to Mrn file,333,667
+Mrn,Medical Record Numbers - Patient MRN mappings,MCL_MRN,float64,Field specific to Mrn file,87,913
+Mrn,Medical Record Numbers - Patient MRN mappings,MEE_MRN,float64,Field specific to Mrn file,707,293
+Mrn,Medical Record Numbers - Patient MRN mappings,DFC_MRN,float64,Field specific to Mrn file,564,436
+Mrn,Medical Record Numbers - Patient MRN mappings,WDH_MRN,float64,Field specific to Mrn file,48,952
+Opn,Operative Notes - Surgical and procedure notes,EMPI,object,Enterprise Master Patient Identifier - Unique patient ID,838,0
+Opn,Operative Notes - Surgical and procedure notes,EPIC_PMRN,float64,EPIC Patient Medical Record Number,2,984
+Opn,Operative Notes - Surgical and procedure notes,MRN_Type,object,Field specific to Opn file,3,984
+Opn,Operative Notes - Surgical and procedure notes,MRN,float64,Field specific to Opn file,3,984
+Opn,Operative Notes - Surgical and procedure notes,Report_Number,object,Identifier field,16,984
+Opn,Operative Notes - Surgical and procedure notes,Report_Date_Time,object,Date field,16,984
+Opn,Operative Notes - Surgical and procedure notes,Report_Description,object,Field specific to Opn file,4,984
+Opn,Operative Notes - Surgical and procedure notes,Report_Status,object,"Status of report (final, preliminary, etc.)",2,984
+Opn,Operative Notes - Surgical and procedure notes,Report_Type,object,Field specific to Opn file,4,984
+Opn,Operative Notes - Surgical and procedure notes,Report_Text,object,Full text of report,8,986
+Pat,Pathology - Pathology reports and results,EMPI,object,Enterprise Master Patient Identifier - Unique patient ID,795,0
+Pat,Pathology - Pathology reports and results,EPIC_PMRN,float64,EPIC Patient Medical Record Number,6,985
+Pat,Pathology - Pathology reports and results,MRN_Type,object,Field specific to Pat file,3,985
+Pat,Pathology - Pathology reports and results,MRN,float64,Field specific to Pat file,6,985
+Pat,Pathology - Pathology reports and results,Report_Number,object,Identifier field,15,985
+Pat,Pathology - Pathology reports and results,Report_Date_Time,object,Date field,15,985
+Pat,Pathology - Pathology reports and results,Report_Description,object,Field specific to Pat file,8,985
+Pat,Pathology - Pathology reports and results,Report_Status,object,"Status of report (final, preliminary, etc.)",1,985
+Pat,Pathology - Pathology reports and results,Report_Type,object,Field specific to Pat file,8,985
+Pat,Pathology - Pathology reports and results,Report_Text,object,Full text of report,15,985
+Phy,Physicians - Provider information,EMPI,int64,Enterprise Master Patient Identifier - Unique patient ID,2,0
+Phy,Physicians - Provider information,EPIC_PMRN,int64,EPIC Patient Medical Record Number,2,0
+Phy,Physicians - Provider information,MRN_Type,object,Field specific to Phy file,4,500
+Phy,Physicians - Provider information,MRN,float64,Field specific to Phy file,4,500
+Phy,Physicians - Provider information,Date,object,Date field,184,0
+Phy,Physicians - Provider information,Concept_Name,object,Name field,41,0
+Phy,Physicians - Provider information,Code_Type,object,"Type of code (ICD-9, ICD-10, CPT, etc.)",2,70
+Phy,Physicians - Provider information,Code,object,Code identifier,46,70
+Phy,Physicians - Provider information,Result,object,Result/value field,326,128
+Phy,Physicians - Provider information,Units,object,Field specific to Phy file,10,653
+Phy,Physicians - Provider information,Provider,object,Identifier field,68,72
+Phy,Physicians - Provider information,Clinic,object,Field specific to Phy file,30,0
+Phy,Physicians - Provider information,Hospital,object,Field specific to Phy file,4,48
+Phy,Physicians - Provider information,Inpatient_Outpatient,object,Visit type,3,0
+Phy,Physicians - Provider information,Encounter_number,object,Identifier field,391,0
+Prc,Procedures - CPT procedure codes,EMPI,int64,Enterprise Master Patient Identifier - Unique patient ID,95,0
+Prc,Procedures - CPT procedure codes,EPIC_PMRN,int64,EPIC Patient Medical Record Number,95,0
+Prc,Procedures - CPT procedure codes,MRN_Type,object,Field specific to Prc file,6,0
+Prc,Procedures - CPT procedure codes,MRN,int64,Field specific to Prc file,137,0
+Prc,Procedures - CPT procedure codes,Date,object,Date field,797,0
+Prc,Procedures - CPT procedure codes,Procedure_Name,object,Procedure description,257,0
+Prc,Procedures - CPT procedure codes,Code_Type,object,"Type of code (ICD-9, ICD-10, CPT, etc.)",1,0
+Prc,Procedures - CPT procedure codes,Code,object,Code identifier,257,0
+Prc,Procedures - CPT procedure codes,Procedure_Flag,float64,Flag/indicator field,0,1000
+Prc,Procedures - CPT procedure codes,Quantity,float64,Field specific to Prc file,32,8
+Prc,Procedures - CPT procedure codes,Provider,object,Identifier field,552,14
+Prc,Procedures - CPT procedure codes,Clinic,object,Field specific to Prc file,243,19
+Prc,Procedures - CPT procedure codes,Hospital,object,Field specific to Prc file,6,0
+Prc,Procedures - CPT procedure codes,Inpatient_Outpatient,object,Visit type,4,0
+Prc,Procedures - CPT procedure codes,Encounter_number,object,Identifier field,932,0
+Prg,Progress Notes - Clinical progress notes,EMPI,object,Enterprise Master Patient Identifier - Unique patient ID,782,0
+Prg,Progress Notes - Clinical progress notes,EPIC_PMRN,float64,EPIC Patient Medical Record Number,1,989
+Prg,Progress Notes - Clinical progress notes,MRN_Type,object,Field specific to Prg file,1,989
+Prg,Progress Notes - Clinical progress notes,MRN,float64,Field specific to Prg file,1,989
+Prg,Progress Notes - Clinical progress notes,Report_Number,float64,Identifier field,11,989
+Prg,Progress Notes - Clinical progress notes,Report_Date_Time,object,Date field,11,989
+Prg,Progress Notes - Clinical progress notes,Report_Description,object,Field specific to Prg file,1,989
+Prg,Progress Notes - Clinical progress notes,Report_Status,object,"Status of report (final, preliminary, etc.)",1,989
+Prg,Progress Notes - Clinical progress notes,Report_Type,object,Field specific to Prg file,1,989
+Prg,Progress Notes - Clinical progress notes,Report_Text,float64,Full text of report,0,1000
+Pul,Pulmonary - Pulmonary function tests,EMPI,object,Enterprise Master Patient Identifier - Unique patient ID,635,4
+Pul,Pulmonary - Pulmonary function tests,EPIC_PMRN,float64,EPIC Patient Medical Record Number,4,983
+Pul,Pulmonary - Pulmonary function tests,MRN_Type,object,Field specific to Pul file,3,983
+Pul,Pulmonary - Pulmonary function tests,MRN,float64,Field specific to Pul file,5,983
+Pul,Pulmonary - Pulmonary function tests,Report_Number,object,Identifier field,17,983
+Pul,Pulmonary - Pulmonary function tests,Report_Date_Time,object,Date field,10,983
+Pul,Pulmonary - Pulmonary function tests,Report_Description,object,Field specific to Pul file,3,983
+Pul,Pulmonary - Pulmonary function tests,Report_Status,object,"Status of report (final, preliminary, etc.)",1,983
+Pul,Pulmonary - Pulmonary function tests,Report_Type,object,Field specific to Pul file,1,983
+Pul,Pulmonary - Pulmonary function tests,Report_Text,object,Full text of report,8,990
+Rad,Radiology - Radiology reports and imaging results,EMPI,object,Enterprise Master Patient Identifier - Unique patient ID,735,0
+Rad,Radiology - Radiology reports and imaging results,EPIC_PMRN,float64,EPIC Patient Medical Record Number,2,960
+Rad,Radiology - Radiology reports and imaging results,MRN_Type,object,Field specific to Rad file,2,960
+Rad,Radiology - Radiology reports and imaging results,MRN,float64,Field specific to Rad file,2,960
+Rad,Radiology - Radiology reports and imaging results,Report_Number,object,Identifier field,40,960
+Rad,Radiology - Radiology reports and imaging results,Report_Date_Time,object,Date field,35,960
+Rad,Radiology - Radiology reports and imaging results,Report_Description,object,Field specific to Rad file,21,960
+Rad,Radiology - Radiology reports and imaging results,Report_Status,object,"Status of report (final, preliminary, etc.)",1,960
+Rad,Radiology - Radiology reports and imaging results,Report_Type,object,Field specific to Rad file,21,960
+Rad,Radiology - Radiology reports and imaging results,Report_Text,object,Full text of report,31,960
+Rdt,Radiology Details - Additional radiology information,EMPI,int64,Enterprise Master Patient Identifier - Unique patient ID,17,0
+Rdt,Radiology Details - Additional radiology information,EPIC_PMRN,int64,EPIC Patient Medical Record Number,17,0
+Rdt,Radiology Details - Additional radiology information,MRN_Type,object,Field specific to Rdt file,2,0
+Rdt,Radiology Details - Additional radiology information,MRN,int64,Field specific to Rdt file,20,0
+Rdt,Radiology Details - Additional radiology information,Date,object,Date field,654,0
+Rdt,Radiology Details - Additional radiology information,Mode,object,Field specific to Rdt file,15,0
+Rdt,Radiology Details - Additional radiology information,Group,object,Field specific to Rdt file,28,0
+Rdt,Radiology Details - Additional radiology information,Test_Code,object,Code identifier,332,0
+Rdt,Radiology Details - Additional radiology information,Test_Description,object,Field specific to Rdt file,317,0
+Rdt,Radiology Details - Additional radiology information,Accession_Number,object,Identifier field,999,1
+Rdt,Radiology Details - Additional radiology information,Provider,object,Identifier field,246,401
+Rdt,Radiology Details - Additional radiology information,Clinic,object,Field specific to Rdt file,14,220
+Rdt,Radiology Details - Additional radiology information,Hospital,object,Field specific to Rdt file,2,0
+Rdt,Radiology Details - Additional radiology information,Inpatient_Outpatient,object,Visit type,5,0
+Rfv,Reason for Visit - Chief complaints and visit reasons,EMPI,int64,Enterprise Master Patient Identifier - Unique patient ID,7,0
+Rfv,Reason for Visit - Chief complaints and visit reasons,EPIC_PMRN,int64,EPIC Patient Medical Record Number,7,0
+Rfv,Reason for Visit - Chief complaints and visit reasons,MRN_Type,float64,Field specific to Rfv file,0,1000
+Rfv,Reason for Visit - Chief complaints and visit reasons,MRN,float64,Field specific to Rfv file,0,1000
+Rfv,Reason for Visit - Chief complaints and visit reasons,Start_date,object,Date field,745,0
+Rfv,Reason for Visit - Chief complaints and visit reasons,End_date,object,Date field,745,0
+Rfv,Reason for Visit - Chief complaints and visit reasons,Provider,object,Identifier field,238,63
+Rfv,Reason for Visit - Chief complaints and visit reasons,Hospital,object,Field specific to Rfv file,7,0
+Rfv,Reason for Visit - Chief complaints and visit reasons,Clinic,object,Field specific to Rfv file,97,0
+Rfv,Reason for Visit - Chief complaints and visit reasons,Chief_complaint,object,Field specific to Rfv file,132,0
+Rfv,Reason for Visit - Chief complaints and visit reasons,Concept_id,object,Identifier field,133,0
+Rfv,Reason for Visit - Chief complaints and visit reasons,Comments,object,Field specific to Rfv file,112,872
+Rfv,Reason for Visit - Chief complaints and visit reasons,Encounter_number,object,Identifier field,947,0
+Trn,Transfusions - Blood product transfusions,EMPI,int64,Enterprise Master Patient Identifier - Unique patient ID,22,0
+Trn,Transfusions - Blood product transfusions,EPIC_PMRN,int64,EPIC Patient Medical Record Number,22,0
+Trn,Transfusions - Blood product transfusions,MRN_Type,object,Field specific to Trn file,6,0
+Trn,Transfusions - Blood product transfusions,MRN,int64,Field specific to Trn file,28,0
+Trn,Transfusions - Blood product transfusions,Transaction_Date_Time,object,Date field,365,0
+Trn,Transfusions - Blood product transfusions,Test_Description,object,Field specific to Trn file,81,55
+Trn,Transfusions - Blood product transfusions,Abnormal_Flag,object,Indicates if result is abnormal,1,995
+Trn,Transfusions - Blood product transfusions,Status_Flag,object,Flag/indicator field,6,166
+Trn,Transfusions - Blood product transfusions,Comments,object,Field specific to Trn file,41,513
+Trn,Transfusions - Blood product transfusions,Results,object,Result/value field,383,55
+Trn,Transfusions - Blood product transfusions,Accession,object,Field specific to Trn file,458,0
+Vis,Vital Signs - Vital sign measurements,EMPI,object,Enterprise Master Patient Identifier - Unique patient ID,822,2
+Vis,Vital Signs - Vital sign measurements,EPIC_PMRN,float64,EPIC Patient Medical Record Number,1,996
+Vis,Vital Signs - Vital sign measurements,MRN_Type,object,Field specific to Vis file,1,996
+Vis,Vital Signs - Vital sign measurements,MRN,float64,Field specific to Vis file,1,996
+Vis,Vital Signs - Vital sign measurements,Report_Number,object,Identifier field,4,996
+Vis,Vital Signs - Vital sign measurements,Report_Date_Time,object,Date field,4,996
+Vis,Vital Signs - Vital sign measurements,Report_Description,object,Field specific to Vis file,3,996
+Vis,Vital Signs - Vital sign measurements,Report_Status,object,"Status of report (final, preliminary, etc.)",1,996
+Vis,Vital Signs - Vital sign measurements,Report_Type,object,Field specific to Vis file,3,996
+Vis,Vital Signs - Vital sign measurements,Report_Text,float64,Full text of report,0,1000
