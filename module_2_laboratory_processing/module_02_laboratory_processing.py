@@ -222,3 +222,120 @@ def load_patient_timelines(test_mode=False, test_n=100):
     patient_empis = set(timelines.keys())
 
     return timelines, patient_empis
+
+
+# ============================================================================
+# PHASE 1: DISCOVERY & HARMONIZATION
+# ============================================================================
+
+def scan_lab_data(patient_empis, test_mode=False):
+    """
+    Scan Lab.txt file in chunks to build frequency table.
+
+    Args:
+        patient_empis: Set of patient EMPIs to filter
+        test_mode: Whether in test mode
+
+    Returns:
+        pd.DataFrame: Frequency table with columns:
+            - test_description
+            - loinc_code
+            - count (total measurements)
+            - patient_count (unique patients)
+            - pct_of_cohort
+            - reference_units (most common)
+            - sample_values (5 examples)
+    """
+    print(f"\n{'='*80}")
+    print("PHASE 1: SCANNING LAB DATA")
+    print(f"{'='*80}\n")
+    print(f"  Lab file: {LAB_FILE}")
+    print(f"  Filtering to {len(patient_empis)} patient EMPIs")
+    print(f"  Processing in chunks (1M rows per chunk)...\n")
+
+    # Accumulate statistics
+    test_stats = defaultdict(lambda: {
+        'count': 0,
+        'patients': set(),
+        'loinc_codes': set(),
+        'units': defaultdict(int),
+        'sample_values': []
+    })
+
+    chunk_num = 0
+    total_rows_scanned = 0
+    cohort_rows = 0
+
+    # Read in chunks
+    chunksize = 1_000_000
+    for chunk in pd.read_csv(LAB_FILE, sep='|', chunksize=chunksize, dtype={'EMPI': str}):
+        chunk_num += 1
+        total_rows_scanned += len(chunk)
+
+        # Filter to cohort patients
+        cohort_chunk = chunk[chunk['EMPI'].isin(patient_empis)].copy()
+        cohort_rows += len(cohort_chunk)
+
+        if len(cohort_chunk) == 0:
+            print(f"  Chunk {chunk_num}: {len(chunk):,} rows → 0 cohort rows")
+            continue
+
+        print(f"  Chunk {chunk_num}: {len(chunk):,} rows → {len(cohort_chunk):,} cohort rows")
+
+        # Accumulate statistics for each test
+        for _, row in cohort_chunk.iterrows():
+            test_desc = str(row.get('Test_Description', '')).strip().upper()
+            if not test_desc or test_desc == 'NAN':
+                continue
+
+            test_stats[test_desc]['count'] += 1
+            test_stats[test_desc]['patients'].add(str(row['EMPI']))
+
+            loinc = str(row.get('Loinc_Code', '')).strip()
+            if loinc and loinc != 'nan':
+                test_stats[test_desc]['loinc_codes'].add(loinc)
+
+            units = str(row.get('Reference_Units', '')).strip()
+            if units and units != 'nan':
+                test_stats[test_desc]['units'][units] += 1
+
+            # Collect sample values
+            if len(test_stats[test_desc]['sample_values']) < 5:
+                result = str(row.get('Result', '')).strip()
+                if result and result != 'nan':
+                    test_stats[test_desc]['sample_values'].append(result)
+
+    print(f"\n  Total rows scanned: {total_rows_scanned:,}")
+    print(f"  Cohort rows: {cohort_rows:,}")
+    print(f"  Unique test descriptions: {len(test_stats):,}\n")
+
+    # Convert to DataFrame
+    frequency_data = []
+    total_patients = len(patient_empis)
+
+    for test_desc, stats in test_stats.items():
+        patient_count = len(stats['patients'])
+        pct_of_cohort = (patient_count / total_patients) * 100
+
+        # Get most common unit
+        if stats['units']:
+            most_common_unit = max(stats['units'].items(), key=lambda x: x[1])[0]
+        else:
+            most_common_unit = ''
+
+        frequency_data.append({
+            'test_description': test_desc,
+            'loinc_code': '|'.join(sorted(stats['loinc_codes'])) if stats['loinc_codes'] else '',
+            'count': stats['count'],
+            'patient_count': patient_count,
+            'pct_of_cohort': round(pct_of_cohort, 2),
+            'reference_units': most_common_unit,
+            'sample_values': '|'.join(stats['sample_values'])
+        })
+
+    frequency_df = pd.DataFrame(frequency_data)
+    frequency_df = frequency_df.sort_values('patient_count', ascending=False).reset_index(drop=True)
+
+    print(f"  Frequency table created: {len(frequency_df)} unique tests")
+
+    return frequency_df
