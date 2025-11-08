@@ -1,19 +1,32 @@
 # Session Brief: PE Trajectory Pipeline - Module 1 Core Infrastructure
-*Last Updated: 2025-11-02*
+*Last Updated: 2025-11-07*
 
 ---
 
-## 🎯 Active TODO List
+## ✅ MODULE 1 STATUS: COMPLETE
 
-**All tasks for Module 1 refinement completed!**
+**Implementation Dates:** 2025-11-02 (V2.0), 2025-11-07 (patient_timelines.pkl added)
+**Current Version:** 2.0 with PatientTimeline objects
 
-**Next Major Milestones:**
+### What's Complete
+- ✅ Core infrastructure with 4-tier encounter matching
+- ✅ Comprehensive outcome extraction (113 columns)
+- ✅ Mortality extraction from demographics
+- ✅ Inpatient-only readmission logic
+- ✅ **PatientTimeline objects** (`patient_timelines.pkl`)
+- ✅ Test mode support
+- ✅ All documentation updated
+
+---
+
+## 🎯 Next Steps
+
+**Ready for Module 2: Laboratory Processing!**
+
+**Optional (can do later):**
 1. Run full cohort (3,565 patients) - estimated 2-3 hours runtime
 2. Validate mortality rates on full cohort
-3. Investigate 0% mortality in test subset
-4. Generate QC report with visualizations
-5. Create patient timeline objects (patient_timelines.pkl)
-6. Proceed to Module 2: Laboratory Processing
+3. Generate QC report with visualizations
 
 ---
 
@@ -50,10 +63,26 @@ Refined and executed implementation plan to fix 3 critical issues in Module 1 (C
 - Calculates: 30d, 90d, 1-year, and in-hospital mortality
 - **Result:** Function working correctly (0% in test subset - needs full cohort validation)
 
-#### 4. **Testing & Validation**
-- Ran test on 100 patients successfully
+#### 4. **Added PatientTimeline Objects (2025-11-07)**
+- Created `create_patient_timelines()` function
+- Converts outcomes DataFrame to PatientTimeline dataclass objects
+- Adds validation for time_zero, window boundaries, duplicate EMPIs
+- Serializes to `patient_timelines.pkl` for Module 2+ consumption
+- Structure includes:
+  - patient_id, time_zero, window_start, window_end
+  - phase_boundaries (BASELINE, ACUTE, SUBACUTE, RECOVERY)
+  - encounter_info (match method, confidence, LOS)
+  - outcomes dict (all 106 outcome fields)
+  - metadata (timestamps, version, quality flags)
+- **Result:** 10 patients → 59KB pkl file, validated loading
+- **Ready for:** Module 2 (Lab Processing) to use for fast temporal lookups
+
+#### 5. **Testing & Validation**
+- Ran test on 100 patients successfully (V2.0)
+- Ran test on 10 patients successfully (pkl implementation)
 - Validated all outcome metrics against literature
 - Generated comprehensive comparison report
+- All temporal windows validated
 
 ---
 
