@@ -586,8 +586,545 @@ def run_phase1(test_mode=False, test_n=100):
 
 
 # ============================================================================
+# PHASE 2: FEATURE ENGINEERING
+# ============================================================================
+
+def create_default_harmonization_map(loinc_df, fuzzy_df):
+    """
+    Create a default harmonization map from LOINC and fuzzy match results.
+    This is a starting point - users should review and customize.
+
+    Args:
+        loinc_df: LOINC groups DataFrame
+        fuzzy_df: Fuzzy match suggestions DataFrame
+
+    Returns:
+        dict: Harmonization mapping
+    """
+    harmonization_map = {}
+
+    # Add LOINC-based groups
+    for _, row in loinc_df.iterrows():
+        canonical_name = row['canonical_name']
+
+        # Get test descriptions
+        test_descriptions = str(row['test_descriptions']).split('|')
+        loinc_codes = str(row['loinc_codes']).split('|')
+
+        # Get forward-fill limit
+        forward_fill_hours = FORWARD_FILL_LIMITS.get(canonical_name,
+                                                      FORWARD_FILL_LIMITS['default'])
+
+        # Get QC thresholds
+        qc_thresholds = QC_THRESHOLDS.get(canonical_name, {
+            'impossible_low': 0,
+            'impossible_high': 999999
+        })
+
+        # Get clinical thresholds
+        clinical_thresholds = CLINICAL_THRESHOLDS.get(canonical_name, {})
+
+        # Extract common unit (simplified - would need more logic in production)
+        common_units = str(row.get('common_units', '')).split('|')
+        canonical_unit = common_units[0] if common_units and common_units[0] else ''
+
+        harmonization_map[canonical_name] = {
+            'canonical_name': canonical_name,
+            'variants': test_descriptions,
+            'loinc_codes': loinc_codes,
+            'canonical_unit': canonical_unit,
+            'unit_conversions': {},  # User should fill this in
+            'forward_fill_max_hours': forward_fill_hours,
+            'qc_thresholds': qc_thresholds,
+            'clinical_thresholds': clinical_thresholds
+        }
+
+    # Add fuzzy match groups (if approved)
+    for _, row in fuzzy_df.iterrows():
+        if not row.get('needs_review', True):  # Only auto-add if doesn't need review
+            canonical_name = row['suggested_group']
+            test_descriptions = str(row['matched_tests']).split('|')
+
+            harmonization_map[canonical_name] = {
+                'canonical_name': canonical_name,
+                'variants': test_descriptions,
+                'loinc_codes': [],
+                'canonical_unit': '',
+                'unit_conversions': {},
+                'forward_fill_max_hours': FORWARD_FILL_LIMITS['default'],
+                'qc_thresholds': {'impossible_low': 0, 'impossible_high': 999999},
+                'clinical_thresholds': {}
+            }
+
+    return harmonization_map
+
+
+def load_harmonization_map(output_prefix):
+    """
+    Load user-approved harmonization map from JSON.
+    If not found, create default from discovery files.
+
+    Args:
+        output_prefix: Filename prefix
+
+    Returns:
+        dict: Harmonization mapping
+    """
+    print(f"\n{'='*80}")
+    print("LOADING HARMONIZATION MAP")
+    print(f"{'='*80}\n")
+
+    map_file = OUTPUT_DIR / f"{output_prefix}_lab_harmonization_map.json"
+
+    if map_file.exists():
+        print(f"  Loading existing map: {map_file}")
+        with open(map_file, 'r') as f:
+            harmonization_map = json.load(f)
+        print(f"  Loaded {len(harmonization_map)} harmonized tests\n")
+    else:
+        print(f"  No existing map found at: {map_file}")
+        print(f"  Creating default map from discovery files...\n")
+
+        # Load discovery files
+        loinc_file = DISCOVERY_DIR / f"{output_prefix}_loinc_groups.csv"
+        fuzzy_file = DISCOVERY_DIR / f"{output_prefix}_fuzzy_suggestions.csv"
+
+        if not loinc_file.exists():
+            raise FileNotFoundError(
+                f"Discovery files not found. Run Phase 1 first with: "
+                f"python module_02_laboratory_processing.py --phase1 --test --n=10"
+            )
+
+        loinc_df = pd.read_csv(loinc_file)
+
+        if fuzzy_file.exists():
+            fuzzy_df = pd.read_csv(fuzzy_file)
+        else:
+            fuzzy_df = pd.DataFrame()
+
+        harmonization_map = create_default_harmonization_map(loinc_df, fuzzy_df)
+
+        # Save default map
+        with open(map_file, 'w') as f:
+            json.dump(harmonization_map, f, indent=2)
+
+        print(f"  ✓ Created default harmonization map: {map_file}")
+        print(f"  ✓ Contains {len(harmonization_map)} harmonized tests")
+        print(f"\n  NOTE: Review and customize this file before re-running Phase 2\n")
+
+    return harmonization_map
+
+
+def extract_lab_sequences(patient_timelines, patient_empis, harmonization_map,
+                          test_mode=False):
+    """
+    Extract lab sequences with triple encoding (values, masks, timestamps).
+
+    Args:
+        patient_timelines: Dict of PatientTimeline objects
+        patient_empis: Set of patient EMPIs
+        harmonization_map: Harmonization mapping
+        test_mode: Whether in test mode
+
+    Returns:
+        dict: {patient_id: {test_name: {
+            'timestamps': list,
+            'values': list,
+            'masks': list,
+            'qc_flags': list,
+            'original_units': list
+        }}}
+    """
+    print(f"\n{'='*80}")
+    print("PHASE 2: EXTRACTING LAB SEQUENCES")
+    print(f"{'='*80}\n")
+    print(f"  Processing {len(patient_empis)} patients")
+    print(f"  Harmonized tests: {len(harmonization_map)}")
+    print(f"  Processing in chunks (1M rows per chunk)...\n")
+
+    # Initialize storage structure
+    sequences = {pid: defaultdict(lambda: {
+        'timestamps': [],
+        'values': [],
+        'masks': [],
+        'qc_flags': [],
+        'original_units': []
+    }) for pid in patient_timelines.keys()}
+
+    # Create reverse mapping: test_description -> canonical_name
+    test_to_canonical = {}
+    for canonical_name, info in harmonization_map.items():
+        for variant in info['variants']:
+            test_to_canonical[variant.upper()] = canonical_name
+
+    # Read lab data in chunks
+    chunk_num = 0
+    total_measurements = 0
+
+    chunksize = 1_000_000
+    for chunk in pd.read_csv(LAB_FILE, sep='|', chunksize=chunksize, dtype={'EMPI': str}):
+        chunk_num += 1
+
+        # Filter to cohort
+        cohort_chunk = chunk[chunk['EMPI'].isin(patient_empis)].copy()
+
+        if len(cohort_chunk) == 0:
+            continue
+
+        print(f"  Chunk {chunk_num}: {len(cohort_chunk):,} cohort rows")
+
+        # Parse timestamps
+        cohort_chunk['Seq_Date_Time'] = pd.to_datetime(
+            cohort_chunk['Seq_Date_Time'], errors='coerce'
+        )
+
+        # Process each row
+        for _, row in cohort_chunk.iterrows():
+            patient_id = str(row['EMPI'])
+            test_desc = str(row.get('Test_Description', '')).strip().upper()
+
+            # Check if this test is harmonized
+            canonical_name = test_to_canonical.get(test_desc)
+            if not canonical_name:
+                continue
+
+            # Get timestamp
+            timestamp = row['Seq_Date_Time']
+            if pd.isna(timestamp):
+                continue
+
+            # Get value
+            try:
+                value = float(row['Result'])
+            except (ValueError, TypeError):
+                continue  # Skip non-numeric results
+
+            # Get unit
+            original_unit = str(row.get('Reference_Units', '')).strip()
+
+            # Apply QC
+            qc_thresholds = harmonization_map[canonical_name]['qc_thresholds']
+            qc_flag = 0  # 0=valid
+
+            if 'impossible_low' in qc_thresholds and value < qc_thresholds['impossible_low']:
+                qc_flag = 3  # Impossible
+                value = np.nan
+            elif 'impossible_high' in qc_thresholds and value > qc_thresholds['impossible_high']:
+                qc_flag = 3  # Impossible
+                value = np.nan
+            elif 'extreme_high' in qc_thresholds and value > qc_thresholds['extreme_high']:
+                qc_flag = 1  # Extreme
+            elif 'extreme_low' in qc_thresholds and value < qc_thresholds['extreme_low']:
+                qc_flag = 1  # Extreme
+
+            # Store measurement
+            sequences[patient_id][canonical_name]['timestamps'].append(timestamp)
+            sequences[patient_id][canonical_name]['values'].append(value)
+            sequences[patient_id][canonical_name]['masks'].append(1)  # Observed
+            sequences[patient_id][canonical_name]['qc_flags'].append(qc_flag)
+            sequences[patient_id][canonical_name]['original_units'].append(original_unit)
+
+            total_measurements += 1
+
+    print(f"\n  Total measurements extracted: {total_measurements:,}")
+
+    # Sort sequences by timestamp
+    print(f"  Sorting sequences by timestamp...\n")
+    for patient_id in sequences:
+        for test_name in sequences[patient_id]:
+            data = sequences[patient_id][test_name]
+
+            # Sort by timestamp
+            sorted_indices = np.argsort(data['timestamps'])
+            data['timestamps'] = [data['timestamps'][i] for i in sorted_indices]
+            data['values'] = [data['values'][i] for i in sorted_indices]
+            data['masks'] = [data['masks'][i] for i in sorted_indices]
+            data['qc_flags'] = [data['qc_flags'][i] for i in sorted_indices]
+            data['original_units'] = [data['original_units'][i] for i in sorted_indices]
+
+    return sequences
+
+
+def calculate_temporal_features(sequences, patient_timelines, harmonization_map):
+    """
+    Calculate 18 temporal features per test per phase.
+
+    Args:
+        sequences: Lab sequences dict from extract_lab_sequences
+        patient_timelines: Dict of PatientTimeline objects
+        harmonization_map: Harmonization mapping
+
+    Returns:
+        pd.DataFrame: Features with one row per patient
+    """
+    print(f"\n{'='*80}")
+    print("CALCULATING TEMPORAL FEATURES")
+    print(f"{'='*80}\n")
+    print(f"  Processing {len(patient_timelines)} patients")
+    print(f"  Features: 18 per test per phase × 4 phases = 72 per test\n")
+
+    all_features = []
+
+    for patient_id, timeline in patient_timelines.items():
+        patient_features = {'patient_id': patient_id}
+
+        # Get phase boundaries
+        phase_boundaries = timeline.phase_boundaries
+
+        # Process each test
+        for test_name, test_data in sequences[patient_id].items():
+            if len(test_data['values']) == 0:
+                continue
+
+            # Convert to numpy arrays
+            timestamps = np.array(test_data['timestamps'])
+            values = np.array(test_data['values'])
+            masks = np.array(test_data['masks'])
+            qc_flags = np.array(test_data['qc_flags'])
+
+            # Get clinical thresholds
+            clinical_thresholds = harmonization_map[test_name].get('clinical_thresholds', {})
+
+            # Process each temporal phase
+            for phase in TEMPORAL_PHASES:
+                phase_start = phase_boundaries[f'{phase}_start']
+                phase_end = phase_boundaries[f'{phase}_end']
+
+                # Filter to measurements in this phase
+                in_phase = (timestamps >= phase_start) & (timestamps <= phase_end)
+                phase_values = values[in_phase]
+                phase_timestamps = timestamps[in_phase]
+                phase_qc_flags = qc_flags[in_phase]
+
+                # Filter out impossible values (qc_flag=3)
+                valid_mask = phase_qc_flags != 3
+                valid_values = phase_values[valid_mask]
+                valid_timestamps = phase_timestamps[valid_mask]
+
+                prefix = f"{test_name}_{phase}"
+
+                # 1. Basic Statistics (7 features)
+                if len(valid_values) > 0:
+                    patient_features[f"{prefix}_first"] = valid_values[0]
+                    patient_features[f"{prefix}_last"] = valid_values[-1]
+                    patient_features[f"{prefix}_min"] = np.nanmin(valid_values)
+                    patient_features[f"{prefix}_max"] = np.nanmax(valid_values)
+                    patient_features[f"{prefix}_mean"] = np.nanmean(valid_values)
+                    patient_features[f"{prefix}_median"] = np.nanmedian(valid_values)
+                    patient_features[f"{prefix}_std"] = np.nanstd(valid_values)
+                else:
+                    patient_features[f"{prefix}_first"] = np.nan
+                    patient_features[f"{prefix}_last"] = np.nan
+                    patient_features[f"{prefix}_min"] = np.nan
+                    patient_features[f"{prefix}_max"] = np.nan
+                    patient_features[f"{prefix}_mean"] = np.nan
+                    patient_features[f"{prefix}_median"] = np.nan
+                    patient_features[f"{prefix}_std"] = np.nan
+
+                # 2. Temporal Dynamics (4 features)
+                # Delta from baseline
+                baseline_mean = patient_features.get(f"{test_name}_BASELINE_mean", np.nan)
+                current_mean = patient_features[f"{prefix}_mean"]
+                patient_features[f"{prefix}_delta_from_baseline"] = current_mean - baseline_mean
+
+                # Time to peak/nadir
+                if len(valid_values) > 0 and not np.all(np.isnan(valid_values)):
+                    peak_idx = np.nanargmax(valid_values)
+                    nadir_idx = np.nanargmin(valid_values)
+
+                    phase_duration_hours = (phase_end - phase_start).total_seconds() / 3600
+                    time_to_peak = (valid_timestamps[peak_idx] - phase_start).total_seconds() / 3600
+                    time_to_nadir = (valid_timestamps[nadir_idx] - phase_start).total_seconds() / 3600
+
+                    patient_features[f"{prefix}_time_to_peak"] = time_to_peak
+                    patient_features[f"{prefix}_time_to_nadir"] = time_to_nadir
+
+                    # Rate of change
+                    if len(valid_values) > 1:
+                        time_diff = (valid_timestamps[-1] - valid_timestamps[0]).total_seconds() / 3600
+                        if time_diff > 0:
+                            rate = (valid_values[-1] - valid_values[0]) / time_diff
+                            patient_features[f"{prefix}_rate_of_change"] = rate
+                        else:
+                            patient_features[f"{prefix}_rate_of_change"] = 0
+                    else:
+                        patient_features[f"{prefix}_rate_of_change"] = 0
+                else:
+                    patient_features[f"{prefix}_time_to_peak"] = np.nan
+                    patient_features[f"{prefix}_time_to_nadir"] = np.nan
+                    patient_features[f"{prefix}_rate_of_change"] = np.nan
+
+                # 3. Threshold Crossings (2 features)
+                crosses_high = 0
+                crosses_low = 0
+
+                if len(valid_values) > 0:
+                    if 'high' in clinical_thresholds:
+                        crosses_high = int(np.any(valid_values > clinical_thresholds['high']))
+                    if 'low' in clinical_thresholds:
+                        crosses_low = int(np.any(valid_values < clinical_thresholds['low']))
+
+                patient_features[f"{prefix}_crosses_high_threshold"] = crosses_high
+                patient_features[f"{prefix}_crosses_low_threshold"] = crosses_low
+
+                # 4. Missing Data Patterns (3 features)
+                patient_features[f"{prefix}_count"] = len(phase_values)  # All measurements (including invalid)
+
+                # Calculate % missing (hours with no measurement)
+                phase_duration_hours = (phase_end - phase_start).total_seconds() / 3600
+                if phase_duration_hours > 0:
+                    pct_missing = 100 * (1 - (len(valid_timestamps) / phase_duration_hours))
+                    pct_missing = max(0, min(100, pct_missing))  # Clamp to [0, 100]
+                else:
+                    pct_missing = 100
+
+                patient_features[f"{prefix}_pct_missing"] = pct_missing
+
+                # Longest gap between measurements
+                if len(valid_timestamps) > 1:
+                    gaps = np.diff(valid_timestamps).astype('timedelta64[h]').astype(float)
+                    longest_gap = np.max(gaps)
+                else:
+                    longest_gap = phase_duration_hours
+
+                patient_features[f"{prefix}_longest_gap_hours"] = longest_gap
+
+                # 5. Area Under Curve (1 feature)
+                if len(valid_values) > 1:
+                    # Convert timestamps to hours from phase start
+                    hours_from_start = [(t - phase_start).total_seconds() / 3600
+                                       for t in valid_timestamps]
+                    auc = trapezoid(valid_values, hours_from_start)
+                    patient_features[f"{prefix}_auc"] = auc
+                else:
+                    patient_features[f"{prefix}_auc"] = np.nan
+
+                # 6. Cross-Phase Dynamics (1 feature)
+                # Peak in this phase - mean in RECOVERY phase
+                recovery_mean = patient_features.get(f"{test_name}_RECOVERY_mean", np.nan)
+                current_max = patient_features[f"{prefix}_max"]
+                patient_features[f"{prefix}_peak_to_recovery_delta"] = current_max - recovery_mean
+
+        all_features.append(patient_features)
+
+    features_df = pd.DataFrame(all_features)
+    print(f"  ✓ Calculated features for {len(features_df)} patients")
+    print(f"  ✓ Total features: {len(features_df.columns) - 1}\n")  # -1 for patient_id
+
+    return features_df
+
+
+def save_outputs(features_df, sequences, harmonization_map, output_prefix):
+    """
+    Save Phase 2 outputs (CSV + HDF5).
+
+    Args:
+        features_df: Temporal features DataFrame
+        sequences: Lab sequences dict
+        harmonization_map: Harmonization mapping
+        output_prefix: Filename prefix
+    """
+    print(f"\n{'='*80}")
+    print("SAVING OUTPUTS")
+    print(f"{'='*80}\n")
+
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+    # 1. Save features CSV
+    features_file = OUTPUT_DIR / f"{output_prefix}_lab_features.csv"
+    features_df.to_csv(features_file, index=False)
+    file_size_mb = features_file.stat().st_size / (1024 * 1024)
+    print(f"  ✓ Saved: {features_file}")
+    print(f"    Rows: {len(features_df)}, Columns: {len(features_df.columns)}")
+    print(f"    Size: {file_size_mb:.2f} MB\n")
+
+    # 2. Save sequences HDF5
+    h5_file = OUTPUT_DIR / f"{output_prefix}_lab_sequences.h5"
+
+    with h5py.File(h5_file, 'w') as f:
+        # Create groups
+        sequences_group = f.create_group('sequences')
+        metadata_group = f.create_group('metadata')
+
+        # Save sequences
+        for patient_id, patient_tests in sequences.items():
+            patient_group = sequences_group.create_group(str(patient_id))
+
+            for test_name, test_data in patient_tests.items():
+                if len(test_data['values']) == 0:
+                    continue
+
+                test_group = patient_group.create_group(test_name)
+
+                # Convert timestamps to integer (milliseconds since epoch)
+                timestamps_list = test_data['timestamps']
+                timestamps_ms = np.array([(pd.Timestamp(t).value // 10**6) for t in timestamps_list], dtype=np.int64)
+                values_np = np.array(test_data['values'], dtype=np.float64)
+                masks_np = np.array(test_data['masks'], dtype=np.uint8)
+                qc_flags_np = np.array(test_data['qc_flags'], dtype=np.uint8)
+
+                # Store arrays
+                test_group.create_dataset('timestamps', data=timestamps_ms)
+                test_group.create_dataset('values', data=values_np)
+                test_group.create_dataset('masks', data=masks_np)
+                test_group.create_dataset('qc_flags', data=qc_flags_np)
+
+                # Store units as string array
+                units_np = np.array(test_data['original_units'], dtype=h5py.string_dtype())
+                test_group.create_dataset('original_units', data=units_np)
+
+        # Save metadata
+        metadata_group.attrs['harmonization_map'] = json.dumps(harmonization_map)
+        metadata_group.attrs['qc_thresholds'] = json.dumps(QC_THRESHOLDS)
+        metadata_group.attrs['processing_timestamp'] = datetime.now().isoformat()
+        metadata_group.attrs['module_version'] = '2.0'
+
+    file_size_mb = h5_file.stat().st_size / (1024 * 1024)
+    print(f"  ✓ Saved: {h5_file}")
+    print(f"    Patients: {len(sequences)}")
+    print(f"    Size: {file_size_mb:.2f} MB\n")
+
+    print(f"{'='*80}")
+    print("PHASE 2 COMPLETE!")
+    print(f"{'='*80}\n")
+    print("Outputs:")
+    print(f"  - Features: {features_file}")
+    print(f"  - Sequences: {h5_file}")
+    print(f"\nNext steps:")
+    print("  - Review lab_features.csv")
+    print("  - Validate sequences with test script")
+    print("  - Proceed to Module 3 (Vitals)\n")
+
+
+# ============================================================================
 # MAIN
 # ============================================================================
+
+def run_phase2(test_mode=False, test_n=100):
+    """Execute Phase 2: Feature Engineering."""
+
+    # Determine output prefix
+    if test_mode:
+        output_prefix = f"test_n{test_n}"
+    else:
+        output_prefix = "full"
+
+    # Load patient timelines
+    timelines, patient_empis = load_patient_timelines(test_mode, test_n)
+
+    # Load harmonization map
+    harmonization_map = load_harmonization_map(output_prefix)
+
+    # Extract lab sequences
+    sequences = extract_lab_sequences(timelines, patient_empis,
+                                      harmonization_map, test_mode)
+
+    # Calculate temporal features
+    features_df = calculate_temporal_features(sequences, timelines, harmonization_map)
+
+    # Save outputs
+    save_outputs(features_df, sequences, harmonization_map, output_prefix)
+
 
 def main():
     """Main execution function."""
@@ -604,8 +1141,7 @@ def main():
     if args.phase1:
         run_phase1(test_mode=args.test, test_n=args.n)
     elif args.phase2:
-        print("Phase 2 not yet implemented. Run Phase 1 first.")
-        print("Usage: python module_02_laboratory_processing.py --phase1 --test --n=10")
+        run_phase2(test_mode=args.test, test_n=args.n)
 
 
 if __name__ == '__main__':
