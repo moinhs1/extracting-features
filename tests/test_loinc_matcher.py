@@ -20,3 +20,32 @@ class TestLoincMatcher:
         matcher = LoincMatcher('Loinc/LoincTable/Loinc.csv')
         assert matcher.loinc_csv_path == Path('Loinc/LoincTable/Loinc.csv')
         assert matcher.cache_dir == Path('cache')
+
+    def test_load_from_cache(self, tmp_path):
+        """Test loading LOINC from cache."""
+        # Create a small mock LOINC CSV
+        loinc_csv = tmp_path / "Loinc.csv"
+        loinc_csv.write_text(
+            '"LOINC_NUM","COMPONENT","PROPERTY","SYSTEM","CLASS","EXAMPLE_UNITS","LONG_COMMON_NAME","SHORTNAME"\n'
+            '"2093-3","Cholesterol","MCnc","Ser/Plas","LABORATORY","mg/dL","Cholesterol [Mass/volume] in Serum or Plasma","Cholesterol SerPl-mCnc"\n'
+        )
+
+        cache_dir = tmp_path / "cache"
+        cache_dir.mkdir()
+
+        # First load - should parse CSV
+        matcher = LoincMatcher(str(loinc_csv), cache_dir=str(cache_dir))
+        result = matcher.load()
+
+        assert result is not None
+        assert '2093-3' in result
+        assert result['2093-3']['component'] == 'Cholesterol'
+
+        # Cache file should exist
+        assert (cache_dir / 'loinc_database.pkl').exists()
+
+        # Second load - should use cache
+        matcher2 = LoincMatcher(str(loinc_csv), cache_dir=str(cache_dir))
+        result2 = matcher2.load()
+
+        assert result2 == result
