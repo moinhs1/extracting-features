@@ -413,3 +413,92 @@ def group_by_loinc(frequency_df):
     unmapped_df['reason_unmapped'] = 'No LOINC match'
 
     return loinc_df, unmapped_df, matched_tests
+
+
+def fuzzy_match_orphans(unmapped_df, matched_tests, frequency_df):
+    """
+    Use fuzzy string matching to group similar test names.
+
+    Args:
+        unmapped_df: Tests not matched by LOINC
+        matched_tests: Set of already matched test descriptions
+        frequency_df: Full frequency table
+
+    Returns:
+        pd.DataFrame: Fuzzy match suggestions
+    """
+    print(f"\n{'='*80}")
+    print("FUZZY MATCHING UNMAPPED TESTS")
+    print(f"{'='*80}\n")
+    print(f"  Unmapped tests to process: {len(unmapped_df)}")
+    print(f"  Fuzzy matching threshold: {FUZZY_MATCH_THRESHOLD}%\n")
+
+    # Only process tests above frequency threshold
+    cohort_size = frequency_df['patient_count'].max()
+    threshold_count = int((FREQUENCY_THRESHOLD_PCT / 100) * cohort_size)
+
+    candidates = unmapped_df[unmapped_df['patient_count'] >= threshold_count].copy()
+    print(f"  Candidates above {FREQUENCY_THRESHOLD_PCT}% threshold: {len(candidates)}\n")
+
+    if len(candidates) == 0:
+        print("  No unmapped tests above frequency threshold\n")
+        return pd.DataFrame()
+
+    # Find similar test names
+    suggestions = []
+    processed = set()
+
+    for idx, row in candidates.iterrows():
+        test_name = row['test_description']
+
+        if test_name in processed:
+            continue
+
+        # Find similar tests
+        similar_tests = [test_name]
+        similarity_scores = [100]
+
+        for _, other_row in candidates.iterrows():
+            other_name = other_row['test_description']
+
+            if other_name == test_name or other_name in processed:
+                continue
+
+            # Calculate similarity
+            score = fuzz.ratio(test_name, other_name)
+
+            if score >= FUZZY_MATCH_THRESHOLD:
+                similar_tests.append(other_name)
+                similarity_scores.append(score)
+                processed.add(other_name)
+
+        if len(similar_tests) > 1:
+            # Found a group
+            suggested_group = test_name.lower().replace(' ', '_')
+
+            # Aggregate patient counts
+            group_patient_count = max(
+                candidates[candidates['test_description'].isin(similar_tests)]['patient_count']
+            )
+
+            suggestions.append({
+                'suggested_group': suggested_group,
+                'matched_tests': '|'.join(similar_tests),
+                'similarity_scores': '|'.join(map(str, similarity_scores)),
+                'test_count': len(similar_tests),
+                'patient_count': group_patient_count,
+                'needs_review': min(similarity_scores) < 90  # Flag if any match <90%
+            })
+
+        processed.add(test_name)
+
+    fuzzy_df = pd.DataFrame(suggestions)
+
+    if len(fuzzy_df) > 0:
+        fuzzy_df = fuzzy_df.sort_values('patient_count', ascending=False).reset_index(drop=True)
+        print(f"  Fuzzy match groups found: {len(fuzzy_df)}")
+        print(f"  Groups needing review: {fuzzy_df['needs_review'].sum()}\n")
+    else:
+        print("  No fuzzy match groups found\n")
+
+    return fuzzy_df
