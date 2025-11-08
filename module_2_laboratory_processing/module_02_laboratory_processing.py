@@ -9,6 +9,7 @@ import h5py
 import pickle
 import json
 import argparse
+import sys
 from pathlib import Path
 from datetime import datetime, timedelta
 from typing import Dict, List, Tuple, Any
@@ -17,6 +18,10 @@ from fuzzywuzzy import fuzz
 from scipy.integrate import trapezoid
 import warnings
 warnings.filterwarnings('ignore')
+
+# Import PatientTimeline from Module 1
+sys.path.insert(0, str(Path(__file__).parent.parent / 'module_1_core_infrastructure'))
+from module_01_core_infrastructure import PatientTimeline
 
 # ============================================================================
 # CONSTANTS & CONFIGURATION
@@ -134,3 +139,86 @@ FREQUENCY_THRESHOLD_PCT = 5.0
 FUZZY_MATCH_THRESHOLD = 85
 
 print("Constants and configuration loaded successfully.")
+
+
+# ============================================================================
+# ARGUMENT PARSING
+# ============================================================================
+
+def parse_arguments():
+    """Parse command-line arguments."""
+    parser = argparse.ArgumentParser(
+        description='Module 2: Laboratory Processing',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Phase 1: Discovery (test mode, 10 patients)
+  python module_02_laboratory_processing.py --phase1 --test --n=10
+
+  # Phase 1: Discovery (full cohort)
+  python module_02_laboratory_processing.py --phase1
+
+  # Phase 2: Processing (test mode, 10 patients)
+  python module_02_laboratory_processing.py --phase2 --test --n=10
+
+  # Phase 2: Processing (full cohort)
+  python module_02_laboratory_processing.py --phase2
+        """
+    )
+
+    parser.add_argument('--phase1', action='store_true',
+                        help='Run Phase 1: Discovery & Harmonization')
+    parser.add_argument('--phase2', action='store_true',
+                        help='Run Phase 2: Feature Engineering')
+    parser.add_argument('--test', action='store_true',
+                        help='Test mode (subset of patients)')
+    parser.add_argument('--n', type=int, default=100,
+                        help='Number of patients for test mode (default: 100)')
+
+    args = parser.parse_args()
+
+    # Validation
+    if not args.phase1 and not args.phase2:
+        parser.error("Must specify either --phase1 or --phase2")
+    if args.phase1 and args.phase2:
+        parser.error("Cannot specify both --phase1 and --phase2")
+
+    return args
+
+
+# ============================================================================
+# DATA LOADING
+# ============================================================================
+
+def load_patient_timelines(test_mode=False, test_n=100):
+    """
+    Load patient timelines from Module 1.
+
+    Returns:
+        dict: {patient_id: PatientTimeline object}
+        set: Set of patient EMPIs for filtering
+    """
+    print(f"\n{'='*80}")
+    print("LOADING PATIENT TIMELINES FROM MODULE 1")
+    print(f"{'='*80}\n")
+
+    # Ensure PatientTimeline is available in __main__ for unpickling
+    import __main__
+    if not hasattr(__main__, 'PatientTimeline'):
+        __main__.PatientTimeline = PatientTimeline
+
+    with open(PATIENT_TIMELINES_FILE, 'rb') as f:
+        timelines = pickle.load(f)
+
+    print(f"  Loaded {len(timelines)} patient timelines")
+
+    if test_mode:
+        # Get first N patients
+        patient_ids = list(timelines.keys())[:test_n]
+        timelines = {pid: timelines[pid] for pid in patient_ids}
+        print(f"  *** TEST MODE: Limited to {len(timelines)} patients ***")
+
+    # Extract EMPIs for filtering
+    patient_empis = set(timelines.keys())
+
+    return timelines, patient_empis
