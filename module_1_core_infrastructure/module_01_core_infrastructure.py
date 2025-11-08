@@ -1184,6 +1184,97 @@ def extract_readmissions_shock(pe_df: pd.DataFrame, enc_df: pd.DataFrame, dia_df
     return pe_df
 
 
+def create_patient_timelines(pe_df: pd.DataFrame) -> Dict[str, PatientTimeline]:
+    """
+    Convert outcomes DataFrame to dictionary of PatientTimeline objects.
+
+    Args:
+        pe_df: DataFrame with patient outcomes and temporal windows
+
+    Returns:
+        Dictionary mapping EMPI -> PatientTimeline object
+    """
+    print("\nCreating PatientTimeline objects...")
+
+    timelines = {}
+
+    for idx, row in pe_df.iterrows():
+        empi = row['EMPI']
+
+        # Build phase boundaries
+        phase_boundaries = {}
+        time_zero = row['time_zero']
+
+        # Validate time_zero
+        if pd.isna(time_zero) or time_zero is None:
+            raise ValueError(f"Invalid time_zero for patient EMPI={empi}: time_zero is NaT/None")
+
+        # Validate window boundaries
+        window_start = row['window_start']
+        window_end = row['window_end']
+        if pd.isna(window_start) or window_start is None:
+            raise ValueError(f"Invalid window_start for patient EMPI={empi}: window_start is NaT/None")
+        if pd.isna(window_end) or window_end is None:
+            raise ValueError(f"Invalid window_end for patient EMPI={empi}: window_end is NaT/None")
+
+        for phase, (start_h, end_h) in TEMPORAL_WINDOWS.items():
+            phase_boundaries[f"{phase}_start"] = time_zero + pd.Timedelta(hours=start_h)
+            phase_boundaries[f"{phase}_end"] = time_zero + pd.Timedelta(hours=end_h)
+
+        # Build encounter info
+        encounter_info = {
+            'encounter_number': row.get('Encounter_number'),
+            'encounter_match_method': row.get('encounter_match_method'),
+            'encounter_match_confidence': row.get('encounter_match_confidence'),
+            'hospital_los_days': row.get('hospital_los_days'),
+        }
+
+        # Build outcomes dict (all columns not in the core temporal/encounter fields)
+        core_fields = {'EMPI', 'time_zero', 'window_start', 'window_end',
+                      'Encounter_number', 'encounter_match_method',
+                      'encounter_match_confidence', 'hospital_los_days'}
+
+        outcomes = {}
+        for col in pe_df.columns:
+            if col not in core_fields:
+                value = row[col]
+                # Convert NaT and NaN to None for JSON serialization
+                if pd.isna(value):
+                    outcomes[col] = None
+                else:
+                    outcomes[col] = value
+
+        # Build metadata
+        metadata = {
+            'created_timestamp': datetime.now(),
+            'module_version': '2.0',
+            'has_encounter_match': pd.notna(row.get('Encounter_number')),
+        }
+
+        # Create PatientTimeline object
+        timeline = PatientTimeline(
+            patient_id=empi,
+            time_zero=time_zero,
+            window_start=row['window_start'],
+            window_end=row['window_end'],
+            phase_boundaries=phase_boundaries,
+            encounter_info=encounter_info,
+            outcomes=outcomes,
+            metadata=metadata
+        )
+
+        # Check for duplicate EMPI before adding
+        if empi in timelines:
+            raise ValueError(f"Duplicate EMPI found in outcomes DataFrame: EMPI={empi}. "
+                           f"Each patient should appear only once in the cohort.")
+
+        timelines[empi] = timeline
+
+    print(f"  Created {len(timelines)} PatientTimeline objects")
+
+    return timelines
+
+
 # ============================================================================
 # MAIN EXECUTION
 # ============================================================================
@@ -1259,7 +1350,7 @@ def main(test_mode=False, test_n_patients=100):
 
     # 4. Save outcomes CSV
     print("\n" + "="*80)
-    print("STEP 4: SAVING OUTPUTS")
+    print("STEP 4: SAVING OUTPUTS (CSV + PKL)")
     print("="*80)
 
     output_filename = "outcomes_test.csv" if test_mode else "outcomes.csv"
@@ -1268,6 +1359,19 @@ def main(test_mode=False, test_n_patients=100):
     print(f"  Saved outcomes to: {outcomes_file}")
     print(f"  Total patients: {len(pe_df)}")
     print(f"  Total columns: {len(pe_df.columns)}")
+
+    # 5. Create and save patient timelines
+    timelines = create_patient_timelines(pe_df)
+
+    pkl_filename = "patient_timelines_test.pkl" if test_mode else "patient_timelines.pkl"
+    pkl_file = OUTPUT_DIR / pkl_filename
+
+    with open(pkl_file, 'wb') as f:
+        pickle.dump(timelines, f, protocol=pickle.HIGHEST_PROTOCOL)
+
+    print(f"  Saved patient timelines to: {pkl_file}")
+    print(f"  Total timeline objects: {len(timelines)}")
+    print(f"  File size: {pkl_file.stat().st_size / (1024*1024):.2f} MB")
 
     print("\n" + "="*80)
     print("MODULE 1 COMPLETE!")

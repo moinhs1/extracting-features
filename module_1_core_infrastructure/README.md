@@ -471,7 +471,7 @@ module_01_core_infrastructure.py
 
 ---
 
-### 2. patient_timelines.pkl (TODO)
+### 2. patient_timelines.pkl ✅
 **Location:** `module_1_core_infrastructure/outputs/patient_timelines.pkl`
 
 **Content:**
@@ -640,15 +640,15 @@ python module_01_core_infrastructure.py
 ✅ **Inpatient-only readmissions** - Proper separation from outpatient visits
 ✅ **Healthcare utilization tracking** - 8 new metrics added
 ✅ **Test mode** - Enables rapid development/testing
+✅ **Patient timeline objects** - PatientTimeline pkl for downstream modules
 
 ### Current Limitations (Post-V2)
 
 1. **Mortality validation:** 0% observed in test subset (needs full cohort run to validate)
 2. **Intubation capture:** Only 3-10% vs 10-20% expected (missing ICD-10-PCS codes)
-3. **Patient timeline objects:** Not yet created (outcomes.csv only)
-4. **QC report:** Not yet generated
-5. **Gap analysis:** Not yet implemented
-6. **Composite outcomes:** Not yet calculated (e.g., "clinical deterioration")
+3. **QC report:** Not yet generated
+4. **Gap analysis:** Not yet implemented
+5. **Composite outcomes:** Not yet calculated (e.g., "clinical deterioration")
 
 ### TODO for Next Iteration
 
@@ -662,26 +662,22 @@ python module_01_core_infrastructure.py
    - Update extract_ventilation() function
    - Expected improvement: 3% → 10-15%
 
-3. **Create PatientTimeline objects:**
-   - Convert outcomes.csv rows to PatientTimeline instances
-   - Save as patient_timelines.pkl
-
-4. **Generate cohort_metadata.json:**
+3. **Generate cohort_metadata.json:**
    - Aggregate outcome prevalence
    - Calculate temporal coverage statistics
    - Generate data quality flags
 
-5. **Implement gap analysis:**
+4. **Implement gap analysis:**
    - Compare outcome capture rates to expected prevalence
    - Flag low-capture outcomes (<50% expected)
    - Generate nlp_priority_outcomes.json
 
-6. **Create QC report:**
+5. **Create QC report:**
    - Generate HTML report with visualizations
    - Include sample patient timelines
    - Add comparison tables vs published cohorts
 
-7. **Add composite outcomes:**
+6. **Add composite outcomes:**
    - Clinical deterioration: (ICU OR intubation OR vasopressors OR ECMO)
    - Major adverse events: (Death OR major_bleeding OR cardiac_arrest)
    - Renal failure: (Dialysis OR Cr >2x baseline)
