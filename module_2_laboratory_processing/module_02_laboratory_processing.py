@@ -339,3 +339,77 @@ def scan_lab_data(patient_empis, test_mode=False):
     print(f"  Frequency table created: {len(frequency_df)} unique tests")
 
     return frequency_df
+
+
+def group_by_loinc(frequency_df):
+    """
+    Group tests by LOINC code families.
+
+    Args:
+        frequency_df: Frequency table from scan_lab_data
+
+    Returns:
+        pd.DataFrame: LOINC groups with columns:
+            - canonical_name
+            - loinc_codes
+            - test_descriptions
+            - test_count
+            - patient_count
+            - pct_of_cohort
+            - common_units
+    """
+    print(f"\n{'='*80}")
+    print("GROUPING TESTS BY LOINC CODE FAMILIES")
+    print(f"{'='*80}\n")
+
+    loinc_groups = []
+    matched_tests = set()
+
+    for canonical_name, loinc_codes in LOINC_FAMILIES.items():
+        # Find all tests that match these LOINC codes
+        matching_rows = []
+
+        for _, row in frequency_df.iterrows():
+            test_loinc_codes = str(row['loinc_code']).split('|')
+
+            # Check if any of the test's LOINC codes match this family
+            if any(lc in loinc_codes for lc in test_loinc_codes if lc):
+                matching_rows.append(row)
+                matched_tests.add(row['test_description'])
+
+        if matching_rows:
+            # Aggregate statistics
+            total_count = sum(r['count'] for r in matching_rows)
+            total_patients = len(set().union(*[set(str(r['patient_count']).split('|'))
+                                                for r in matching_rows]))
+
+            # Get actual patient count (max across matching tests)
+            max_patient_count = max(r['patient_count'] for r in matching_rows)
+            pct_of_cohort = max(r['pct_of_cohort'] for r in matching_rows)
+
+            # Collect all descriptions and units
+            descriptions = sorted(set(r['test_description'] for r in matching_rows))
+            units = sorted(set(r['reference_units'] for r in matching_rows if r['reference_units']))
+
+            loinc_groups.append({
+                'canonical_name': canonical_name,
+                'loinc_codes': '|'.join(loinc_codes),
+                'test_descriptions': '|'.join(descriptions[:10]),  # Limit to 10
+                'test_count': len(matching_rows),
+                'patient_count': max_patient_count,
+                'pct_of_cohort': round(pct_of_cohort, 2),
+                'common_units': '|'.join(units[:5])  # Limit to 5
+            })
+
+    loinc_df = pd.DataFrame(loinc_groups)
+    loinc_df = loinc_df.sort_values('patient_count', ascending=False).reset_index(drop=True)
+
+    print(f"  LOINC families matched: {len(loinc_df)}")
+    print(f"  Tests matched: {len(matched_tests)}")
+    print(f"  Tests unmapped: {len(frequency_df) - len(matched_tests)}\n")
+
+    # Create unmapped tests DataFrame
+    unmapped_df = frequency_df[~frequency_df['test_description'].isin(matched_tests)].copy()
+    unmapped_df['reason_unmapped'] = 'No LOINC match'
+
+    return loinc_df, unmapped_df, matched_tests
