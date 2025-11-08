@@ -502,3 +502,111 @@ def fuzzy_match_orphans(unmapped_df, matched_tests, frequency_df):
         print("  No fuzzy match groups found\n")
 
     return fuzzy_df
+
+
+def generate_discovery_reports(frequency_df, loinc_df, fuzzy_df, unmapped_df,
+                               output_prefix, test_mode):
+    """
+    Save Phase 1 discovery outputs to CSV files.
+
+    Args:
+        frequency_df: Full frequency table
+        loinc_df: LOINC groups
+        fuzzy_df: Fuzzy match suggestions
+        unmapped_df: Unmapped tests
+        output_prefix: Filename prefix (e.g., 'test_n10' or 'full')
+        test_mode: Whether in test mode
+    """
+    print(f"\n{'='*80}")
+    print("SAVING DISCOVERY REPORTS")
+    print(f"{'='*80}\n")
+
+    DISCOVERY_DIR.mkdir(parents=True, exist_ok=True)
+
+    # Save frequency report
+    freq_file = DISCOVERY_DIR / f"{output_prefix}_test_frequency_report.csv"
+    frequency_df.to_csv(freq_file, index=False)
+    print(f"  ✓ Saved: {freq_file}")
+    print(f"    Rows: {len(frequency_df)}")
+
+    # Save LOINC groups
+    loinc_file = DISCOVERY_DIR / f"{output_prefix}_loinc_groups.csv"
+    loinc_df.to_csv(loinc_file, index=False)
+    print(f"  ✓ Saved: {loinc_file}")
+    print(f"    Rows: {len(loinc_df)}")
+
+    # Save fuzzy suggestions (if any)
+    if len(fuzzy_df) > 0:
+        fuzzy_file = DISCOVERY_DIR / f"{output_prefix}_fuzzy_suggestions.csv"
+        fuzzy_df.to_csv(fuzzy_file, index=False)
+        print(f"  ✓ Saved: {fuzzy_file}")
+        print(f"    Rows: {len(fuzzy_df)}")
+    else:
+        print(f"  ⊘ No fuzzy suggestions to save")
+
+    # Save unmapped tests
+    unmapped_file = DISCOVERY_DIR / f"{output_prefix}_unmapped_tests.csv"
+    unmapped_df.to_csv(unmapped_file, index=False)
+    print(f"  ✓ Saved: {unmapped_file}")
+    print(f"    Rows: {len(unmapped_df)}")
+
+    print(f"\n{'='*80}")
+    print("PHASE 1 COMPLETE!")
+    print(f"{'='*80}\n")
+    print("Next steps:")
+    print("1. Review files in outputs/discovery/")
+    print("2. Create lab_harmonization_map.json with approved groupings")
+    print("3. Run Phase 2 with --phase2 flag\n")
+
+
+def run_phase1(test_mode=False, test_n=100):
+    """Execute Phase 1: Discovery & Harmonization."""
+
+    # Determine output prefix
+    if test_mode:
+        output_prefix = f"test_n{test_n}"
+    else:
+        output_prefix = "full"
+
+    # Load patient timelines
+    timelines, patient_empis = load_patient_timelines(test_mode, test_n)
+
+    # Scan lab data
+    frequency_df = scan_lab_data(patient_empis, test_mode)
+
+    # LOINC grouping
+    loinc_df, unmapped_df, matched_tests = group_by_loinc(frequency_df)
+
+    # Fuzzy matching
+    fuzzy_df = fuzzy_match_orphans(unmapped_df, matched_tests, frequency_df)
+
+    # Generate reports
+    generate_discovery_reports(frequency_df, loinc_df, fuzzy_df, unmapped_df,
+                               output_prefix, test_mode)
+
+
+# ============================================================================
+# MAIN
+# ============================================================================
+
+def main():
+    """Main execution function."""
+    args = parse_arguments()
+
+    print(f"\n{'='*80}")
+    print("MODULE 2: LABORATORY PROCESSING")
+    if args.test:
+        print(f"*** TEST MODE: {args.n} patients ***")
+    else:
+        print("*** FULL COHORT MODE ***")
+    print(f"{'='*80}\n")
+
+    if args.phase1:
+        run_phase1(test_mode=args.test, test_n=args.n)
+    elif args.phase2:
+        print("Phase 2 not yet implemented. Run Phase 1 first.")
+        print("Usage: python module_02_laboratory_processing.py --phase1 --test --n=10")
+
+
+if __name__ == '__main__':
+    main()
