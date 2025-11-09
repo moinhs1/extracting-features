@@ -77,3 +77,64 @@ class TestDistanceMetrics:
         # Unit incompatibility: 0.0 (same unit)
         # Combined: 0.6 * 0.5 + 0.4 * 0.0 = 0.3
         assert abs(dist - 0.3) < 0.01
+
+
+class TestHierarchicalClustering:
+    """Test hierarchical clustering algorithm."""
+
+    def test_cluster_similar_tests(self):
+        """Test clustering groups similar tests together."""
+        from hierarchical_clustering import perform_hierarchical_clustering
+
+        # Sample tests: glucose variants and cholesterol variants
+        tests = [
+            {'name': 'GLUCOSE', 'unit': 'mg/dL'},
+            {'name': 'GLUCOSE BLOOD', 'unit': 'mg/dL'},
+            {'name': 'GLUCOSE POC', 'unit': 'mg/dL'},
+            {'name': 'CHOLESTEROL', 'unit': 'mg/dL'},
+            {'name': 'CHOLESTEROL TOTAL', 'unit': 'mg/dL'},
+        ]
+
+        clusters, linkage_matrix, distances = perform_hierarchical_clustering(
+            tests,
+            threshold=0.9
+        )
+
+        # Should have 2 clusters: glucose group and cholesterol group
+        assert len(clusters) >= 2
+
+        # Glucose tests should be in same cluster
+        glucose_indices = {0, 1, 2}  # First 3 tests
+        cholesterol_indices = {3, 4}  # Last 2 tests
+
+        # Find which cluster contains glucose tests
+        glucose_cluster_id = None
+        for cluster_id, test_indices in clusters.items():
+            if 0 in test_indices:
+                glucose_cluster_id = cluster_id
+                # Should contain all glucose tests
+                assert set(test_indices) & glucose_indices == glucose_indices
+                break
+
+        assert glucose_cluster_id is not None
+
+    def test_singleton_cluster(self):
+        """Test that dissimilar test creates singleton cluster."""
+        from hierarchical_clustering import perform_hierarchical_clustering
+
+        tests = [
+            {'name': 'GLUCOSE', 'unit': 'mg/dL'},
+            {'name': 'GLUCOSE BLOOD', 'unit': 'mg/dL'},
+            {'name': 'COMPLETELY DIFFERENT TEST', 'unit': '%'},  # Very different
+        ]
+
+        clusters, _, _ = perform_hierarchical_clustering(tests, threshold=0.9)
+
+        # Third test should be in its own cluster
+        singleton_found = False
+        for cluster_id, test_indices in clusters.items():
+            if len(test_indices) == 1 and 2 in test_indices:
+                singleton_found = True
+                break
+
+        assert singleton_found

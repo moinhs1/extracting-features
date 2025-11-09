@@ -5,6 +5,8 @@ Hierarchical clustering for unmapped lab tests.
 import numpy as np
 import re
 from typing import Dict, List, Tuple, Set
+from scipy.cluster.hierarchy import linkage, fcluster
+from scipy.spatial.distance import squareform
 
 
 def calculate_token_similarity(name1: str, name2: str) -> float:
@@ -124,3 +126,66 @@ def calculate_combined_distance(
     combined = (1 - unit_weight) * name_distance + unit_weight * unit_distance
 
     return combined
+
+
+def perform_hierarchical_clustering(
+    unmapped_tests: List[Dict],
+    threshold: float = 0.9,
+    unit_weight: float = 0.4
+) -> Tuple[Dict, np.ndarray, np.ndarray]:
+    """
+    Cluster unmapped tests using Ward's method with combined distance metric.
+
+    Args:
+        unmapped_tests: List of test dictionaries with 'name', 'unit', etc.
+        threshold: Similarity threshold for cutting dendrogram (0-1)
+        unit_weight: Weight for unit compatibility in distance (default 0.4)
+
+    Returns:
+        clusters: Dict mapping cluster_id to list of test indices
+        linkage_matrix: Linkage matrix for dendrogram plotting
+        distances: Full distance matrix for heatmap
+    """
+    n = len(unmapped_tests)
+
+    if n == 0:
+        return {}, None, None
+
+    if n == 1:
+        return {0: [0]}, None, None
+
+    # Calculate pairwise distance matrix
+    distances = np.zeros((n, n))
+    for i in range(n):
+        for j in range(i+1, n):
+            dist = calculate_combined_distance(
+                unmapped_tests[i],
+                unmapped_tests[j],
+                unit_weight=unit_weight
+            )
+            distances[i, j] = dist
+            distances[j, i] = dist
+
+    # Convert to condensed distance matrix for scipy
+    condensed_dist = squareform(distances)
+
+    # Perform hierarchical clustering (Ward's method)
+    linkage_matrix = linkage(condensed_dist, method='ward')
+
+    # Cut dendrogram at threshold
+    # Threshold is a similarity threshold (0-1), convert to distance threshold
+    # At threshold=0.9, we want to accept distances up to ~0.5 (generous)
+    # At threshold=0.5, we want to accept distances up to the max
+    distance_threshold = (1 - threshold) * 5.0  # Scale factor for Ward distance
+
+    # Get cluster labels
+    cluster_labels = fcluster(linkage_matrix, distance_threshold, criterion='distance')
+
+    # Group tests by cluster
+    clusters = {}
+    for idx, label in enumerate(cluster_labels):
+        if label not in clusters:
+            clusters[label] = []
+        clusters[label].append(idx)
+
+    return clusters, linkage_matrix, distances
