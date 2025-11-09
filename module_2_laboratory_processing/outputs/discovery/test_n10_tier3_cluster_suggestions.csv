@@ -1,0 +1,7 @@
+group_name,loinc_code,component,system,standard_unit,source_units,conversion_factors,tier,needs_review,review_reason,matched_tests,patient_count,measurement_count
+glu-poc_test_bc1-1428,,,,MG/DL,MG/DL,{},3,True,singleton,GLU-POC (TEST:BC1-1428),7,1164
+c-reactive_protein_test_bc1-262,,,,mg/L,mg/L,{},3,False,,C-REACTIVE PROTEIN (TEST:BC1-262)|C-REACTIVE PROTEIN (TEST:MCSQ-CRPX),6,53
+glu_poc_test_bcglupoc,,,,mg/dL,mg/dL,{},3,True,singleton,GLU POC (TEST:BCGLUPOC),3,159
+c_reactive_protein_test_el_5200003806,,,,mg/L,mg/L,{},3,False,,C REACTIVE PROTEIN (TEST:EL:5200003806)|C REACTIVE PROTEIN (TEST:BCCRPT)|C REACTIVE PROTEIN (TEST:MCSQ-CRPT),3,14
+whole_blood_glucose_test_mcsq-glu7,,,,mg/dL,mg/dL,{},3,False,,WHOLE BLOOD GLUCOSE (TEST:MCSQ-GLU7)|WHOLE BLOOD GLUCOSE (TEST:DCSQE-GLU7)|WHOLE BLOOD GLUCOSE (TEST:EL:5200006314),2,16
+creatinine-poc_test_dcsqe-cre7,,,,mg/dl,mg/dl,{},3,True,singleton,CREATININE-POC (TEST:DCSQE-CRE7),1,1

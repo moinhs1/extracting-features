@@ -1566,6 +1566,14 @@ def save_outputs(features_df, sequences, harmonization_map, output_prefix):
     # 2. Save sequences HDF5
     h5_file = OUTPUT_DIR / f"{output_prefix}_lab_sequences.h5"
 
+    def sanitize_hdf5_name(name):
+        """Sanitize test names for use as HDF5 group names.
+
+        HDF5 treats '/' as a group separator, so we replace it with '__'
+        Also replace other problematic characters.
+        """
+        return name.replace('/', '__').replace('(', '_').replace(')', '_').replace(' ', '_')
+
     with h5py.File(h5_file, 'w') as f:
         # Create groups
         sequences_group = f.create_group('sequences')
@@ -1579,7 +1587,12 @@ def save_outputs(features_df, sequences, harmonization_map, output_prefix):
                 if len(test_data['values']) == 0:
                     continue
 
-                test_group = patient_group.create_group(test_name)
+                # Sanitize test name for HDF5 group naming
+                safe_test_name = sanitize_hdf5_name(test_name)
+                test_group = patient_group.create_group(safe_test_name)
+
+                # Store original test name as attribute
+                test_group.attrs['original_name'] = test_name
 
                 # Convert timestamps to integer (milliseconds since epoch)
                 timestamps_list = test_data['timestamps']

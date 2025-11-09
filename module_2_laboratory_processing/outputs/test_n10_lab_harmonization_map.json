@@ -1,0 +1,810 @@
+{
+  "glucose": {
+    "canonical_name": "glucose",
+    "variants": [
+      "GLUCOSE (STAT LAB) (TEST:MCSQ-XGLU)"
+    ],
+    "loinc_codes": [
+      "2345-7"
+    ],
+    "canonical_unit": "mg/dL",
+    "unit_conversions": {},
+    "forward_fill_max_hours": 12,
+    "qc_thresholds": {
+      "impossible_low": 0,
+      "impossible_high": 1000,
+      "extreme_high": 600,
+      "extreme_low": 20
+    },
+    "clinical_thresholds": {},
+    "tier": 1,
+    "needs_review": false
+  },
+  "c_reactive_protein": {
+    "canonical_name": "c_reactive_protein",
+    "variants": [
+      "CRP, HIGH SENSITIVITY (TEST:MCSQ-HSCRP)"
+    ],
+    "loinc_codes": [
+      "30522-7"
+    ],
+    "canonical_unit": "mcg/mL; mg/dL; mg/L",
+    "unit_conversions": {},
+    "forward_fill_max_hours": 12,
+    "qc_thresholds": {
+      "impossible_low": 0.0,
+      "impossible_high": 9999.0,
+      "extreme_low": 0.0,
+      "extreme_high": 9999.0
+    },
+    "clinical_thresholds": {},
+    "tier": 1,
+    "needs_review": false
+  },
+  "creatinine": {
+    "canonical_name": "creatinine",
+    "variants": [
+      "CREATININE (STAT LAB) (TEST:MCSQ-XCRE)"
+    ],
+    "loinc_codes": [
+      "2160-0"
+    ],
+    "canonical_unit": "mg/dL",
+    "unit_conversions": {},
+    "forward_fill_max_hours": 12,
+    "qc_thresholds": {
+      "impossible_low": 0,
+      "impossible_high": 30,
+      "extreme_high": 10
+    },
+    "clinical_thresholds": {
+      "high": 1.5
+    },
+    "tier": 1,
+    "needs_review": false
+  },
+  "chloride": {
+    "canonical_name": "chloride",
+    "variants": [
+      "CHLORIDE (TEST:WC331.0300)"
+    ],
+    "loinc_codes": [
+      "2075-0"
+    ],
+    "canonical_unit": "mmol/L",
+    "unit_conversions": {},
+    "forward_fill_max_hours": 12,
+    "qc_thresholds": {
+      "impossible_low": 0.0,
+      "impossible_high": 9999.0,
+      "extreme_low": 0.0,
+      "extreme_high": 9999.0
+    },
+    "clinical_thresholds": {},
+    "tier": 1,
+    "needs_review": false
+  },
+  "glomerular_filtration_rate": {
+    "canonical_name": "glomerular_filtration_rate",
+    "variants": [
+      "EGFR (TEST:SCEGFR)"
+    ],
+    "loinc_codes": [
+      "69405-9"
+    ],
+    "canonical_unit": "mL/min",
+    "unit_conversions": {},
+    "forward_fill_max_hours": 12,
+    "qc_thresholds": {
+      "impossible_low": 0.0,
+      "impossible_high": 9999.0,
+      "extreme_low": 0.0,
+      "extreme_high": 9999.0
+    },
+    "clinical_thresholds": {},
+    "tier": 1,
+    "needs_review": false
+  },
+  "urea_nitrogen": {
+    "canonical_name": "urea_nitrogen",
+    "variants": [
+      "UREA NITROGEN (TEST:FCBUN)"
+    ],
+    "loinc_codes": [
+      "3094-0"
+    ],
+    "canonical_unit": "mg/dL",
+    "unit_conversions": {},
+    "forward_fill_max_hours": 12,
+    "qc_thresholds": {
+      "impossible_low": 0.0,
+      "impossible_high": 9999.0,
+      "extreme_low": 0.0,
+      "extreme_high": 9999.0
+    },
+    "clinical_thresholds": {},
+    "tier": 1,
+    "needs_review": false
+  },
+  "anion_gap": {
+    "canonical_name": "anion_gap",
+    "variants": [
+      "ANION GAP (TEST:FCANION)"
+    ],
+    "loinc_codes": [
+      "10466-1"
+    ],
+    "canonical_unit": "mmol/L",
+    "unit_conversions": {},
+    "forward_fill_max_hours": 12,
+    "qc_thresholds": {
+      "impossible_low": 0.0,
+      "impossible_high": 9999.0,
+      "extreme_low": 0.0,
+      "extreme_high": 9999.0
+    },
+    "clinical_thresholds": {},
+    "tier": 1,
+    "needs_review": false
+  },
+  "protein": {
+    "canonical_name": "protein",
+    "variants": [
+      "TOTAL PROTEIN (TEST:MCTP)"
+    ],
+    "loinc_codes": [
+      "2885-2"
+    ],
+    "canonical_unit": "g/L;g/dL",
+    "unit_conversions": {},
+    "forward_fill_max_hours": 12,
+    "qc_thresholds": {
+      "impossible_low": 0.0,
+      "impossible_high": 9999.0,
+      "extreme_low": 0.0,
+      "extreme_high": 9999.0
+    },
+    "clinical_thresholds": {},
+    "tier": 1,
+    "needs_review": false
+  },
+  "albumin": {
+    "canonical_name": "albumin",
+    "variants": [
+      "ALBUMIN (TEST:FCALB)"
+    ],
+    "loinc_codes": [
+      "1751-7"
+    ],
+    "canonical_unit": "g/L;g/dL; mg/dL",
+    "unit_conversions": {},
+    "forward_fill_max_hours": 12,
+    "qc_thresholds": {
+      "impossible_low": 0.0,
+      "impossible_high": 9999.0,
+      "extreme_low": 0.0,
+      "extreme_high": 9999.0
+    },
+    "clinical_thresholds": {},
+    "tier": 1,
+    "needs_review": false
+  },
+  "calcium": {
+    "canonical_name": "calcium",
+    "variants": [
+      "CALCIUM (TEST:MC.CA)"
+    ],
+    "loinc_codes": [
+      "17861-6"
+    ],
+    "canonical_unit": "mg/dL",
+    "unit_conversions": {},
+    "forward_fill_max_hours": 12,
+    "qc_thresholds": {
+      "impossible_low": 0.0,
+      "impossible_high": 9999.0,
+      "extreme_low": 0.0,
+      "extreme_high": 9999.0
+    },
+    "clinical_thresholds": {},
+    "tier": 1,
+    "needs_review": false
+  },
+  "sodium": {
+    "canonical_name": "sodium",
+    "variants": [
+      "SODIUM (TEST:WC331.0100)"
+    ],
+    "loinc_codes": [
+      "2951-2"
+    ],
+    "canonical_unit": "mmol/L",
+    "unit_conversions": {},
+    "forward_fill_max_hours": 12,
+    "qc_thresholds": {
+      "impossible_low": 100,
+      "impossible_high": 200,
+      "extreme_high": 170,
+      "extreme_low": 110
+    },
+    "clinical_thresholds": {
+      "high": 145,
+      "low": 135
+    },
+    "tier": 1,
+    "needs_review": false
+  },
+  "potassium": {
+    "canonical_name": "potassium",
+    "variants": [
+      "HEPARINIZED K (TEST:NCHEPK)"
+    ],
+    "loinc_codes": [
+      "2823-3"
+    ],
+    "canonical_unit": "mmol/L",
+    "unit_conversions": {},
+    "forward_fill_max_hours": 12,
+    "qc_thresholds": {
+      "impossible_low": 1.0,
+      "impossible_high": 10,
+      "extreme_high": 7,
+      "extreme_low": 2
+    },
+    "clinical_thresholds": {
+      "high": 5.5,
+      "low": 3.5
+    },
+    "tier": 1,
+    "needs_review": false
+  },
+  "hemoglobin": {
+    "canonical_name": "hemoglobin",
+    "variants": [
+      "CBC - HGB (TEST:MH110HGB)"
+    ],
+    "loinc_codes": [
+      "718-7"
+    ],
+    "canonical_unit": "g/dL",
+    "unit_conversions": {},
+    "forward_fill_max_hours": 12,
+    "qc_thresholds": {
+      "impossible_low": 0,
+      "impossible_high": 25,
+      "extreme_high": 20,
+      "extreme_low": 3
+    },
+    "clinical_thresholds": {
+      "low": 7.0
+    },
+    "tier": 1,
+    "needs_review": false
+  },
+  "erythrocyte/blood": {
+    "canonical_name": "erythrocyte/blood",
+    "variants": [
+      "HCT (TEST:MHHCT)"
+    ],
+    "loinc_codes": [
+      "4544-3"
+    ],
+    "canonical_unit": "L/L;%",
+    "unit_conversions": {},
+    "forward_fill_max_hours": 12,
+    "qc_thresholds": {
+      "impossible_low": 0.0,
+      "impossible_high": 9999.0,
+      "extreme_low": 0.0,
+      "extreme_high": 9999.0
+    },
+    "clinical_thresholds": {},
+    "tier": 1,
+    "needs_review": false
+  },
+  "platelets": {
+    "canonical_name": "platelets",
+    "variants": [
+      "PLATELETS (TEST:MH112)"
+    ],
+    "loinc_codes": [
+      "777-3"
+    ],
+    "canonical_unit": "10*9/L",
+    "unit_conversions": {},
+    "forward_fill_max_hours": 12,
+    "qc_thresholds": {
+      "impossible_low": 0.0,
+      "impossible_high": 9999.0,
+      "extreme_low": 0.0,
+      "extreme_high": 9999.0
+    },
+    "clinical_thresholds": {},
+    "tier": 1,
+    "needs_review": false
+  },
+  "carbon_dioxide": {
+    "canonical_name": "carbon_dioxide",
+    "variants": [
+      "CO2 (STAT LAB) (TEST:MCSQ-XCO2)"
+    ],
+    "loinc_codes": [
+      "2028-9"
+    ],
+    "canonical_unit": "mmol/L",
+    "unit_conversions": {},
+    "forward_fill_max_hours": 12,
+    "qc_thresholds": {
+      "impossible_low": 0.0,
+      "impossible_high": 9999.0,
+      "extreme_low": 0.0,
+      "extreme_high": 9999.0
+    },
+    "clinical_thresholds": {},
+    "tier": 1,
+    "needs_review": false
+  },
+  "cholesterol_in_vldl": {
+    "canonical_name": "cholesterol_in_vldl",
+    "variants": [
+      "VLDL BLOOD (TEST:EL:5200015348)"
+    ],
+    "loinc_codes": [
+      "2091-7"
+    ],
+    "canonical_unit": "mg/dL",
+    "unit_conversions": {},
+    "forward_fill_max_hours": 12,
+    "qc_thresholds": {
+      "impossible_low": 0.0,
+      "impossible_high": 9999.0,
+      "extreme_low": 0.0,
+      "extreme_high": 9999.0
+    },
+    "clinical_thresholds": {},
+    "tier": 1,
+    "needs_review": false
+  },
+  "cholesterol": {
+    "canonical_name": "cholesterol",
+    "variants": [
+      "CHOLESTEROL (TEST:NCCHOL)"
+    ],
+    "loinc_codes": [
+      "2093-3"
+    ],
+    "canonical_unit": "mg/dL",
+    "unit_conversions": {},
+    "forward_fill_max_hours": 12,
+    "qc_thresholds": {
+      "impossible_low": 0.0,
+      "impossible_high": 9999.0,
+      "extreme_low": 0.0,
+      "extreme_high": 9999.0
+    },
+    "clinical_thresholds": {},
+    "tier": 1,
+    "needs_review": false
+  },
+  "cholesterol_in_hdl": {
+    "canonical_name": "cholesterol_in_hdl",
+    "variants": [
+      "HDL (TEST:NCHDLR)"
+    ],
+    "loinc_codes": [
+      "2085-9"
+    ],
+    "canonical_unit": "mg/dL",
+    "unit_conversions": {},
+    "forward_fill_max_hours": 12,
+    "qc_thresholds": {
+      "impossible_low": 0.0,
+      "impossible_high": 9999.0,
+      "extreme_low": 0.0,
+      "extreme_high": 9999.0
+    },
+    "clinical_thresholds": {},
+    "tier": 1,
+    "needs_review": false
+  },
+  "cholesterol_in_ldl": {
+    "canonical_name": "cholesterol_in_ldl",
+    "variants": [
+      "LDL (TEST:NCLDLR)"
+    ],
+    "loinc_codes": [
+      "13457-7"
+    ],
+    "canonical_unit": "mg/dL",
+    "unit_conversions": {},
+    "forward_fill_max_hours": 12,
+    "qc_thresholds": {
+      "impossible_low": 0.0,
+      "impossible_high": 9999.0,
+      "extreme_low": 0.0,
+      "extreme_high": 9999.0
+    },
+    "clinical_thresholds": {},
+    "tier": 1,
+    "needs_review": false
+  },
+  "triglyceride": {
+    "canonical_name": "triglyceride",
+    "variants": [
+      "TRIGLYCERIDES (TEST:MC.TRIG)"
+    ],
+    "loinc_codes": [
+      "2571-8"
+    ],
+    "canonical_unit": "mg/dL",
+    "unit_conversions": {},
+    "forward_fill_max_hours": 12,
+    "qc_thresholds": {
+      "impossible_low": 0.0,
+      "impossible_high": 9999.0,
+      "extreme_low": 0.0,
+      "extreme_high": 9999.0
+    },
+    "clinical_thresholds": {},
+    "tier": 1,
+    "needs_review": false
+  },
+  "troponin_t_cardiac": {
+    "canonical_name": "troponin_t_cardiac",
+    "variants": [
+      "TROPONIN-T, HS GEN5 (TEST:BCTNTHS)"
+    ],
+    "loinc_codes": [
+      "67151-1"
+    ],
+    "canonical_unit": "ng/L",
+    "unit_conversions": {},
+    "forward_fill_max_hours": 12,
+    "qc_thresholds": {
+      "impossible_low": 0.0,
+      "impossible_high": 9999.0,
+      "extreme_low": 0.0,
+      "extreme_high": 9999.0
+    },
+    "clinical_thresholds": {},
+    "tier": 1,
+    "needs_review": false
+  },
+  "troponin_i_cardiac": {
+    "canonical_name": "troponin_i_cardiac",
+    "variants": [
+      "TROPONIN-I (TEST:MCSQ-TNI6)"
+    ],
+    "loinc_codes": [
+      "10839-9"
+    ],
+    "canonical_unit": "ug/L;ng/mL",
+    "unit_conversions": {},
+    "forward_fill_max_hours": 12,
+    "qc_thresholds": {
+      "impossible_low": 0.0,
+      "impossible_high": 9999.0,
+      "extreme_low": 0.0,
+      "extreme_high": 9999.0
+    },
+    "clinical_thresholds": {},
+    "tier": 1,
+    "needs_review": false
+  },
+  "lactate_dehydrogenase": {
+    "canonical_name": "lactate_dehydrogenase",
+    "variants": [
+      "LDH (TEST:DCSQE-LDH)"
+    ],
+    "loinc_codes": [
+      "2532-0"
+    ],
+    "canonical_unit": "arb U/L",
+    "unit_conversions": {},
+    "forward_fill_max_hours": 12,
+    "qc_thresholds": {
+      "impossible_low": 0.0,
+      "impossible_high": 9999.0,
+      "extreme_low": 0.0,
+      "extreme_high": 9999.0
+    },
+    "clinical_thresholds": {},
+    "tier": 1,
+    "needs_review": false
+  },
+  "phosphate": {
+    "canonical_name": "phosphate",
+    "variants": [
+      "PHOSPHORUS (TEST:FC10.0240)"
+    ],
+    "loinc_codes": [
+      "2777-1"
+    ],
+    "canonical_unit": "mg/dL",
+    "unit_conversions": {},
+    "forward_fill_max_hours": 12,
+    "qc_thresholds": {
+      "impossible_low": 0.0,
+      "impossible_high": 9999.0,
+      "extreme_low": 0.0,
+      "extreme_high": 9999.0
+    },
+    "clinical_thresholds": {},
+    "tier": 1,
+    "needs_review": false
+  },
+  "lactate": {
+    "canonical_name": "lactate",
+    "variants": [
+      "PLASMA LACTIC ACID (TEST:MCSQ-PLACT)"
+    ],
+    "loinc_codes": [
+      "2524-7"
+    ],
+    "canonical_unit": "mmol/L",
+    "unit_conversions": {},
+    "forward_fill_max_hours": 4,
+    "qc_thresholds": {
+      "impossible_low": 0,
+      "impossible_high": 50,
+      "extreme_high": 20
+    },
+    "clinical_thresholds": {
+      "high": 4.0
+    },
+    "tier": 1,
+    "needs_review": false
+  },
+  "natriuretic_peptide_b_prohormone_n-terminal": {
+    "canonical_name": "natriuretic_peptide_b_prohormone_n-terminal",
+    "variants": [
+      "NT-PROBNP (TEST:MCSQ-PRBNP)"
+    ],
+    "loinc_codes": [
+      "33762-6"
+    ],
+    "canonical_unit": "pg/mL",
+    "unit_conversions": {},
+    "forward_fill_max_hours": 12,
+    "qc_thresholds": {
+      "impossible_low": 0.0,
+      "impossible_high": 9999.0,
+      "extreme_low": 0.0,
+      "extreme_high": 9999.0
+    },
+    "clinical_thresholds": {},
+    "tier": 1,
+    "needs_review": false
+  },
+  "calcium_ionized": {
+    "canonical_name": "calcium_ionized",
+    "variants": [
+      "OIOCA (TEST:BC1-1314)"
+    ],
+    "loinc_codes": [
+      "1994-3"
+    ],
+    "canonical_unit": "mmol/L",
+    "unit_conversions": {},
+    "forward_fill_max_hours": 12,
+    "qc_thresholds": {
+      "impossible_low": 0.0,
+      "impossible_high": 9999.0,
+      "extreme_low": 0.0,
+      "extreme_high": 9999.0
+    },
+    "clinical_thresholds": {},
+    "tier": 1,
+    "needs_review": false
+  },
+  "cholesterol_total/cholesterol_in_hdl": {
+    "canonical_name": "cholesterol_total/cholesterol_in_hdl",
+    "variants": [
+      "CHOL/HDL (TEST:NCCHHDL)"
+    ],
+    "loinc_codes": [
+      "9830-1"
+    ],
+    "canonical_unit": "ratio",
+    "unit_conversions": {},
+    "forward_fill_max_hours": 12,
+    "qc_thresholds": {
+      "impossible_low": 0.0,
+      "impossible_high": 9999.0,
+      "extreme_low": 0.0,
+      "extreme_high": 9999.0
+    },
+    "clinical_thresholds": {},
+    "tier": 1,
+    "needs_review": false
+  },
+  "prealbumin": {
+    "canonical_name": "prealbumin",
+    "variants": [
+      "PREALBUMIN (NSMC) (TEST:SC400.2751)"
+    ],
+    "loinc_codes": [
+      "14338-8"
+    ],
+    "canonical_unit": "g/L;mg/dL",
+    "unit_conversions": {},
+    "forward_fill_max_hours": 12,
+    "qc_thresholds": {
+      "impossible_low": 0.0,
+      "impossible_high": 9999.0,
+      "extreme_low": 0.0,
+      "extreme_high": 9999.0
+    },
+    "clinical_thresholds": {},
+    "tier": 1,
+    "needs_review": false
+  },
+  "lactate_dehydrogenase_3/lactate_dehydrogenase_total": {
+    "canonical_name": "lactate_dehydrogenase_3/lactate_dehydrogenase_total",
+    "variants": [
+      "LDH3 (TEST:BC1-34)"
+    ],
+    "loinc_codes": [
+      "2542-9"
+    ],
+    "canonical_unit": "%",
+    "unit_conversions": {},
+    "forward_fill_max_hours": 12,
+    "qc_thresholds": {
+      "impossible_low": 0.0,
+      "impossible_high": 9999.0,
+      "extreme_low": 0.0,
+      "extreme_high": 9999.0
+    },
+    "clinical_thresholds": {},
+    "tier": 1,
+    "needs_review": false
+  },
+  "lactate_dehydrogenase_5/lactate_dehydrogenase_total": {
+    "canonical_name": "lactate_dehydrogenase_5/lactate_dehydrogenase_total",
+    "variants": [
+      "LDH5 (TEST:BC1-36)"
+    ],
+    "loinc_codes": [
+      "2548-6"
+    ],
+    "canonical_unit": "%",
+    "unit_conversions": {},
+    "forward_fill_max_hours": 12,
+    "qc_thresholds": {
+      "impossible_low": 0.0,
+      "impossible_high": 9999.0,
+      "extreme_low": 0.0,
+      "extreme_high": 9999.0
+    },
+    "clinical_thresholds": {},
+    "tier": 1,
+    "needs_review": false
+  },
+  "lactate_dehydrogenase_2/lactate_dehydrogenase_total": {
+    "canonical_name": "lactate_dehydrogenase_2/lactate_dehydrogenase_total",
+    "variants": [
+      "LDH2 (TEST:BC1-33)"
+    ],
+    "loinc_codes": [
+      "2539-5"
+    ],
+    "canonical_unit": "%",
+    "unit_conversions": {},
+    "forward_fill_max_hours": 12,
+    "qc_thresholds": {
+      "impossible_low": 0.0,
+      "impossible_high": 9999.0,
+      "extreme_low": 0.0,
+      "extreme_high": 9999.0
+    },
+    "clinical_thresholds": {},
+    "tier": 1,
+    "needs_review": false
+  },
+  "lactate_dehydrogenase_1/lactate_dehydrogenase_total": {
+    "canonical_name": "lactate_dehydrogenase_1/lactate_dehydrogenase_total",
+    "variants": [
+      "LDH1 (TEST:BC1-32)"
+    ],
+    "loinc_codes": [
+      "2536-1"
+    ],
+    "canonical_unit": "%",
+    "unit_conversions": {},
+    "forward_fill_max_hours": 12,
+    "qc_thresholds": {
+      "impossible_low": 0.0,
+      "impossible_high": 9999.0,
+      "extreme_low": 0.0,
+      "extreme_high": 9999.0
+    },
+    "clinical_thresholds": {},
+    "tier": 1,
+    "needs_review": false
+  },
+  "lactate_dehydrogenase_4/lactate_dehydrogenase_total": {
+    "canonical_name": "lactate_dehydrogenase_4/lactate_dehydrogenase_total",
+    "variants": [
+      "LDH4 (TEST:BC1-35)"
+    ],
+    "loinc_codes": [
+      "2545-2"
+    ],
+    "canonical_unit": "%",
+    "unit_conversions": {},
+    "forward_fill_max_hours": 12,
+    "qc_thresholds": {
+      "impossible_low": 0.0,
+      "impossible_high": 9999.0,
+      "extreme_low": 0.0,
+      "extreme_high": 9999.0
+    },
+    "clinical_thresholds": {},
+    "tier": 1,
+    "needs_review": false
+  },
+  "apolipoprotein_a-i_&_a-ii_&_b_&_c_panel": {
+    "canonical_name": "apolipoprotein_a-i_&_a-ii_&_b_&_c_panel",
+    "variants": [
+      "APOLIPO A1+B (TEST:BC1-544)"
+    ],
+    "loinc_codes": [
+      "55724-9"
+    ],
+    "canonical_unit": "",
+    "unit_conversions": {},
+    "forward_fill_max_hours": 12,
+    "qc_thresholds": {
+      "impossible_low": 0.0,
+      "impossible_high": 9999.0,
+      "extreme_low": 0.0,
+      "extreme_high": 9999.0
+    },
+    "clinical_thresholds": {},
+    "tier": 1,
+    "needs_review": false
+  },
+  "cholesterol_non_hdl": {
+    "canonical_name": "cholesterol_non_hdl",
+    "variants": [
+      "NON-HDL CHOLESTEROL BLOOD (TEST:EL:5200016045)"
+    ],
+    "loinc_codes": [
+      "43396-1"
+    ],
+    "canonical_unit": "mg/dL",
+    "unit_conversions": {},
+    "forward_fill_max_hours": 12,
+    "qc_thresholds": {
+      "impossible_low": 0.0,
+      "impossible_high": 9999.0,
+      "extreme_low": 0.0,
+      "extreme_high": 9999.0
+    },
+    "clinical_thresholds": {},
+    "tier": 1,
+    "needs_review": false
+  },
+  "natriuretic_peptide_b": {
+    "canonical_name": "natriuretic_peptide_b",
+    "variants": [
+      "BRAIN NATRIURETIC PEPTIDE (TEST:BC1-1287)"
+    ],
+    "loinc_codes": [
+      "30934-4"
+    ],
+    "canonical_unit": "ng/L;pg/mL",
+    "unit_conversions": {},
+    "forward_fill_max_hours": 12,
+    "qc_thresholds": {
+      "impossible_low": 0.0,
+      "impossible_high": 9999.0,
+      "extreme_low": 0.0,
+      "extreme_high": 9999.0
+    },
+    "clinical_thresholds": {},
+    "tier": 1,
+    "needs_review": false
+  }
+}

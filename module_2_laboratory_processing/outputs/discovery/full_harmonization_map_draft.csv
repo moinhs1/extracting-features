@@ -1,0 +1,961 @@
+group_name,loinc_code,component,system,standard_unit,source_units,conversion_factors,impossible_low,impossible_high,extreme_low,extreme_high,tier,needs_review,review_reason,matched_tests,patient_count,measurement_count
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,MG/DL|mg/dL|mg/dl,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GLU POC (TEST:BCGLUPOC)|GLU POC (TEST:NCSQE-GLUPOC)|GLU POC (TEST:SCGLUPOC)|GLU-POC (TEST:BC1-1428)|GLUCOSE (ISTAT) (TEST:NCGLUIS)|GLUCOSE POC (TEST:NCANESG)|GLUCOSE POC (TEST:NCCATHG)|GLUCOSE POC (TEST:NCCSUG)|GLUCOSE POC (TEST:NCD6G)|GLUCOSE POC (TEST:NCD7G)|GLUCOSE POC (TEST:NCD8G)|GLUCOSE POC (TEST:NCD9G)|GLUCOSE POC (TEST:NCDAV5GL)|GLUCOSE POC (TEST:NCENDOG)|GLUCOSE POC (TEST:NCESG)|GLUCOSE POC (TEST:NCICUG)|GLUCOSE POC (TEST:NCLABG)|GLUCOSE POC (TEST:NCORHG)|GLUCOSE POC (TEST:NCPACUG)|GLUCOSE POC (TEST:NCPH6GL)|GLUCOSE POC (TEST:NCPH7GL)|GLUCOSE POC (TEST:NCRADG)|GLUCOSE POC (TEST:NCSGCHG)|GLUCOSE POC (TEST:NCSK2G)|GLUCOSE POC (TEST:NCSK3G)|GLUCOSE POC (TEST:NCSK4G)|GLUCOSE POC (TEST:NCSK5G)|GLUCOSE POC (TEST:NCUE3G)|GLUCOSE POC (TEST:NCUENDOG)|GLUCOSE POC (TEST:NCUESG)|GLUCOSE POC (TEST:NCUICUG)|GLUCOSE POC (TEST:NCULABG)|GLUCOSE POC (TEST:NCURECG)|GLUCOSE POC (TEST:NCUS1TG)|GLUCOSE POC (TEST:NCUSGCG)|GLUCOSE POC (TEST:NCUW1G)|GLUCOSE POC (TEST:NCUW2G)|GLUCOSE POC (TEST:NCUWGRG)|GLUCOSE POINT OF CARE (TEST:NCGLUPOC)|ISTAT WB GLUCOSE (TEST:MCSQ-GLUI7)|PLASMA GLUCOSE (TEST:MCSQ-PGLU)|POINT OF CARE GLUCOSE (TEST:FC600.0010)|WHOLE BLOOD GLUCOSE (TEST:DCSQE-GLU7)|WHOLE BLOOD GLUCOSE (TEST:EL:5200006314)|WHOLE BLOOD GLUCOSE (TEST:FCGLU7)|WHOLE BLOOD GLUCOSE (TEST:MCSQ-GLU7)|WHOLE BLOOD GLUCOSE (TEST:VCSQE-GLU7),4439,432509
+creatinine,2160-0,Creatinine,Ser/Plas,mg/dL,MG/DL|mg/dL|mg/dl,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CRE POC (TEST:BCCREPOC)|CRE POC (TEST:EL:5200003782)|CRE-POC (TEST:BC1-1449)|CREAT (ISTAT) (TEST:NCCREACT)|CREAT (ISTAT) (TEST:NCCREMRI)|CREATININE ISTAT (TEST:NCCREAIS)|CREATININE-POC (TEST:DCSQE-CRE7)|CREATININE-POC (TEST:FCCRE7)|CREATININE-POC (TEST:MCSQ-CRE7)|CREATININE-POC (TEST:NCSQE-CRE7)|CREATININE-POC (TEST:VCSQE-CRE7)|PLASMA CREATININE (TEST:MCSQ-PCRE),2580,168584
+glomerular_filtration_rate,69405-9,Glomerular filtration rate,Ser/Plas/Bld,mL/min,mL/min/1.73m2,{'mL/min/1.73m2': 1.0},0.0,9999.0,0.0,9999.0,1,False,,EGFR (TEST:MCSQ-PEGFR)|EGFR POC (TEST:BCGFRPOC)|EGFR POC (TEST:EL:5200006227)|EGFR-POC (TEST:BC1-1450),2016,158687
+platelets,777-3,Platelets,Bld,10*9/L,K/uL,{'K/uL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLT (TEST:MHSQ-PLT)|POST PLT CT. (TEST:DHSQE-PLTP)|POST PLT CT. BLOOD (TEST:EL:5200010814),2000,166545
+hemoglobin,718-7,Hemoglobin,Bld,g/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HGB (TEST:MHSQ-HGB),1993,166506
+erythrocyte/blood,4544-3,Erythrocyte/Blood,Bld,L/L;%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HCT (TEST:MHSQ-HCT),1993,166500
+calcium,17861-6,Calcium,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CALCIUM (TEST:MCSQ-CA),1953,158922
+carbon_dioxide,2028-9,Carbon dioxide,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLASMA CARBON DIOXIDE (TEST:MCSQ-PLCO2)|TOTAL CO2-POC (TEST:MCSQ-TCO27)|TOTAL CO2-POC (TEST:NCSQE-TCO27),1950,164278
+sodium,2951-2,Sodium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLASMA SODIUM (TEST:MCSQ-PNA)|SODIUM (TEST:EL:5200009660)|SODIUM-POC (TEST:MCSQ-NA7)|SODIUM-POC (TEST:NCSQE-NA7),1948,166054
+urea_nitrogen,3094-0,Urea nitrogen,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLASMA UREA NITROGEN (TEST:MCSQ-PBUN),1937,166715
+potassium,2823-3,Potassium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLASMA POTASSIUM (TEST:MCSQ-PK)|POTASSIUM-POC (TEST:MCSQ-K7)|POTASSIUM-POC (TEST:NCSQE-K7),1936,167747
+chloride,2075-0,Chloride,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLASMA CHLORIDE (TEST:MCSQ-PCL),1928,164552
+calcium,17861-6,Calcium,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CALCIUM BLOOD (TEST:EL:5200002558),1903,131767
+c_reactive_protein,30522-7,C reactive protein,Ser/Plas,mcg/mL; mg/dL; mg/L,MG/DL|MG/L|mg/L,{'mg/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"C REACTIVE PROTEIN (TEST:BCCRPT)|C REACTIVE PROTEIN (TEST:DCSQE-CRPT)|C REACTIVE PROTEIN (TEST:DHSQE-CRPT)|C REACTIVE PROTEIN (TEST:EL:5200003806)|C REACTIVE PROTEIN (TEST:FCCRPT)|C REACTIVE PROTEIN (TEST:MCSQ-CRPT)|C REACTIVE PROTEIN (TEST:NCSQE-CRPT)|C REACTIVE PROTEIN (TEST:SCCRPT)|C REACTIVE PROTEIN (TEST:VCSQE-CRPT)|C REACTIVE PROTEIN (TEST:WCCRPT)|C REACTIVE PROTEIN,MP (TEST:MCCRP)|C-REACTIVE PROTEIN (MGH) (TEST:SC800.3301)|C-REACTIVE PROTEIN (TEST:BC1-262)|C-REACTIVE PROTEIN (TEST:DCSQE-CRPRTN)|C-REACTIVE PROTEIN (TEST:DHSQE-CRPRTN)|C-REACTIVE PROTEIN (TEST:FC50.1215)|C-REACTIVE PROTEIN (TEST:MCSQ-CRPX)|CRP (TEST:FC500.9650)|CRP (TEST:FC500.9700)|CRP, HIGH SENSITIVITY (TEST:BCHSCRP)",1895,20807
+platelets,777-3,Platelets,Bld,10*9/L,K/uL,{'K/uL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLT BLOOD (TEST:EL:5200010788),1887,119340
+erythrocyte/blood,4544-3,Erythrocyte/Blood,Bld,L/L;%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HCT BLOOD (TEST:EL:5200006601),1887,119570
+hemoglobin,718-7,Hemoglobin,Bld,g/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HGB BLOOD (TEST:EL:5200006739),1887,119569
+anion_gap,10466-1,Anion gap,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLASMA ANION GAP (TEST:MCSQ-PANION),1884,156275
+albumin,1751-7,Albumin,Ser/Plas,g/L;g/dL; mg/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ALBUMIN (TEST:MCSQ-ALB),1874,87308
+protein,2885-2,Protein,Ser/Plas,g/L;g/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TOTAL PROTEIN (TEST:MCSQ-TP),1868,84365
+albumin,1751-7,Albumin,Ser/Plas,g/L;g/dL; mg/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ALBUMIN BLOOD (TEST:EL:5200001121),1852,74940
+protein,2885-2,Protein,Ser/Plas,g/L;g/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TOTAL PROTEIN BLOOD (TEST:EL:5200013990),1852,74101
+phosphate,2777-1,Phosphate,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PHOSPHORUS (TEST:MCSQ-PHOS),1767,85911
+creatinine,2160-0,Creatinine,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CREATININE BLOOD (TEST:EL:5200010498),1754,108896
+glomerular_filtration_rate,69405-9,Glomerular filtration rate,Ser/Plas/Bld,mL/min,mL/min/1.73m2,{'mL/min/1.73m2': 1.0},0.0,9999.0,0.0,9999.0,1,False,,EGFR BLOOD (TEST:EL:5200010525),1754,108884
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GLUCOSE BLOOD (TEST:EL:5200010610),1754,108585
+urea_nitrogen,3094-0,Urea nitrogen,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,BUN BLOOD (TEST:EL:5200010415),1752,109405
+sodium,2951-2,Sodium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,SODIUM BLOOD (TEST:EL:5200010860),1751,108744
+potassium,2823-3,Potassium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,POTASSIUM BLOOD (TEST:EL:5200010723),1751,109946
+carbon_dioxide,2028-9,Carbon dioxide,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CO2 BLOOD (TEST:EL:5200010762),1751,108427
+chloride,2075-0,Chloride,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHLORIDE BLOOD (TEST:EL:5200010446),1751,108501
+anion_gap,10466-1,Anion gap,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ANION GAP BLOOD (TEST:EL:5200010248),1751,108402
+phosphate,2777-1,Phosphate,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PHOSPHORUS BLOOD (TEST:EL:5200010668),1452,57931
+glomerular_filtration_rate,69405-9,Glomerular filtration rate,Ser/Plas/Bld,mL/min,mL/min/1.73m2,{'mL/min/1.73m2': 1.0},0.0,9999.0,0.0,9999.0,1,False,,EGFR (TEST:BCPEGFR),1330,76583
+creatinine,2160-0,Creatinine,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CREATININE (TEST:BCPCRE),1330,76589
+urea_nitrogen,3094-0,Urea nitrogen,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,UREA NITROGEN (TEST:BCPBUN),1328,76009
+calcium,17861-6,Calcium,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CALCIUM (TEST:BCCA),1327,76100
+potassium,2823-3,Potassium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,POTASSIUM (TEST:BCPK),1327,77236
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GLUCOSE (TEST:BCPGLU),1325,75958
+anion_gap,10466-1,Anion gap,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ANION GAP (TEST:BCPANION),1325,75861
+sodium,2951-2,Sodium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,SODIUM (TEST:BCPNA),1325,76097
+carbon_dioxide,2028-9,Carbon dioxide,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CARBON DIOXIDE (TEST:BCPLCO2),1325,75941
+chloride,2075-0,Chloride,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHLORIDE (TEST:BCPCL),1325,75938
+platelets,777-3,Platelets,Bld,10*9/L,K/uL,{'K/uL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLT (TEST:BHPLT),1311,67366
+erythrocyte/blood,4544-3,Erythrocyte/Blood,Bld,L/L;%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HCT (TEST:BHHCT),1310,67430
+hemoglobin,718-7,Hemoglobin,Bld,g/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HGB (TEST:BHHGB),1310,67370
+natriuretic_peptide_b_prohormone_n-terminal,33762-6,Natriuretic peptide.B prohormone N-Terminal,Ser/Plas,pg/mL,pg/mL,{'pg/mL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,NT-PROBNP BLOOD (TEST:EL:5200011048),1305,6798
+triglyceride,2571-8,Triglyceride,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TRIGLYCERIDES (TEST:EL:5200014087),1284,10118
+protein,2885-2,Protein,Ser/Plas,g/L;g/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TOTAL PROTEIN (TEST:BCTP),1254,35534
+albumin,1751-7,Albumin,Ser/Plas,g/L;g/dL; mg/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ALBUMIN (TEST:BCALB),1253,35652
+natriuretic_peptide_b_prohormone_n-terminal,33762-6,Natriuretic peptide.B prohormone N-Terminal,Ser/Plas,pg/mL,pg/mL,{'pg/mL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,NT-PROBNP (TEST:MCSQ-PRBNP),1252,7491
+lactate,2524-7,Lactate,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLASMA LACTIC ACID (TEST:MCSQ-PLACT),1239,16415
+triglyceride,2571-8,Triglyceride,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TRIGLYCERIDES (TEST:MCSQ-TRIG),1226,12477
+erythrocyte/blood,4544-3,Erythrocyte/Blood,Bld,L/L;%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HCT (TEST:BH1-4),1175,54613
+hemoglobin,718-7,Hemoglobin,Bld,g/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HGB (TEST:BH1-3),1174,53437
+platelets,777-3,Platelets,Bld,10*9/L,K/uL,{'K/uL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLT (TEST:BH1-9),1174,53551
+anion_gap,10466-1,Anion gap,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ANION GAP BLOOD (TEST:EL:5200001381),1157,26681
+cholesterol,2093-3,Cholesterol,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHOLESTEROL (TEST:MCSQ-CHOL),1145,10593
+glomerular_filtration_rate,69405-9,Glomerular filtration rate,Ser/Plas/Bld,mL/min,mL/min/1.73m2,{'mL/min/1.73m2': 1.0},0.0,9999.0,0.0,9999.0,1,False,,EGFR BLOOD (TEST:EL:5200004709),1137,25756
+cholesterol_in_hdl,2085-9,Cholesterol.in HDL,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HIGH DENSITY LIPOPROTEIN (TEST:MCSQ-HDLP),1132,10259
+creatinine,2160-0,Creatinine,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CREATININE (TEST:BC1-7),1128,56547
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GLUCOSE (TEST:BC1-4),1126,55081
+cholesterol_in_ldl,2089-1,Cholesterol.in LDL,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LOW DENSITY LIPOPROTEIN (TEST:MCSQ-LDL),1124,10126
+cholesterol_total/cholesterol_in_hdl,9830-1,Cholesterol.total/Cholesterol.in HDL,Ser/Plas,ratio,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CARDIAC RISK RATIO (TEST:MCSQ-CRISK),1124,10126
+urea_nitrogen,3094-0,Urea nitrogen,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,UREA N (TEST:BC1-6),1123,54898
+cholesterol,2093-3,Cholesterol,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHOLESTEROL (TEST:EL:5200003152),1123,3780
+potassium,2823-3,Potassium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,POTASSIUM (TEST:BC1-9),1121,59747
+lactate,2524-7,Lactate,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LACTIC ACID (MMOL/L) BLOOD (TEST:EL:5200010744),1121,15207
+chloride,2075-0,Chloride,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHLORIDE (TEST:BC1-10),1117,54682
+carbon_dioxide,2028-9,Carbon dioxide,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TOTAL CO2 (TEST:BC1-11),1117,54595
+sodium,2951-2,Sodium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,SODIUM (TEST:BC1-8),1117,55147
+anion_gap,10466-1,Anion gap,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ANION GAP (TEST:BC1-19),1114,54186
+cholesterol_in_hdl,2085-9,Cholesterol.in HDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HDL (TEST:EL:5200006657),1112,3579
+cholesterol_total/cholesterol_in_hdl,9830-1,Cholesterol.total/Cholesterol.in HDL,Ser/Plas,ratio,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CARDIAC RISK RATIO (TEST:EL:5200003795),1110,3559
+calcium,17861-6,Calcium,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CALCIUM (TEST:BC1-41),1104,53615
+urea_nitrogen,3094-0,Urea nitrogen,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,BUN BLOOD (TEST:EL:5200002387),1068,23173
+creatinine,2160-0,Creatinine,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CREATININE BLOOD (TEST:EL:5200003771),1068,23254
+potassium,2823-3,Potassium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,POTASSIUM BLOOD (TEST:EL:5200007759),1066,23266
+chloride,2075-0,Chloride,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHLORIDE BLOOD (TEST:EL:5200003255),1064,23075
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GLUCOSE BLOOD (TEST:EL:5200006303),1064,23084
+sodium,2951-2,Sodium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,SODIUM BLOOD (TEST:EL:5200009655),1064,23096
+carbon_dioxide,2028-9,Carbon dioxide,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CO2 BLOOD (TEST:EL:5200003481),1064,23079
+troponin_t_cardiac,6598-7,Troponin T.cardiac,Ser/Plas,ug/L,ng/mL,{'ng/mL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TROPONIN-T (TEST:MCSQ-TNT),1045,11277
+protein,2885-2,Protein,Ser/Plas,g/L;g/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TOT PROT (TEST:BC1-38),1040,23920
+albumin,1751-7,Albumin,Ser/Plas,g/L;g/dL; mg/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ALBUMIN (TEST:BC1-39),1038,25289
+glomerular_filtration_rate,33914-3,Glomerular filtration rate,Ser/Plas,mL/min; ml/min/1.73m2,mL/min/1.73m2,{'mL/min/1.73m2': 1.0},0.0,9999.0,0.0,9999.0,1,False,,EGFR (TEST:BC1-1384),998,48611
+lactate_dehydrogenase,2532-0,Lactate dehydrogenase,Ser/Plas,arb U/L,U/L,{'U/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LACTIC DEHYDROGENASE (TEST:MCSQ-LDH),977,14659
+phosphate,2777-1,Phosphate,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PHOSPHORUS (TEST:BCPHOS),969,29983
+calcium_ionized,1994-3,Calcium.ionized,Bld,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,IONIC CALCIUM (TEST:MCSQ-ICA),863,23810
+lactate,2524-7,Lactate,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLASMA LACTIC ACID (TEST:BCPLACT),834,9474
+phosphate,2777-1,Phosphate,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PHOSPHATE (TEST:BC1-44),805,19121
+lactate_dehydrogenase,2532-0,Lactate dehydrogenase,Ser/Plas,arb U/L,U/L,{'U/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LDH (TEST:EL:5200007995),803,10084
+natriuretic_peptide_b_prohormone_n-terminal,33762-6,Natriuretic peptide.B prohormone N-Terminal,Ser/Plas,pg/mL,pg/mL,{'pg/mL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,NT-PROBNP (TEST:BCPRBNP),781,3573
+cholesterol_non_hdl,43396-1,Cholesterol.non HDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,NON-HDL CHOLESTEROL (TEST:MCSQ-NHDLC),744,2999
+triglyceride,2571-8,Triglyceride,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TRIGLYCERIDES (TEST:BCTRIG),715,6954
+troponin_t_cardiac,67151-1,Troponin T.cardiac,Ser/Plas,ng/L,ng/L,{'ng/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"TROPONIN-T, HS GEN5 (TEST:MCSQ-TNTHS)",709,7362
+platelets,777-3,Platelets,Bld,10*9/L,K/uL,{'K/uL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLATELET (TEST:DHSQE-PLT),685,21468
+hemoglobin,718-7,Hemoglobin,Bld,g/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HEMOGLOBIN (TEST:DHSQE-HGB),685,21467
+erythrocyte/blood,4544-3,Erythrocyte/Blood,Bld,L/L;%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HEMATOCRIT (TEST:DHSQE-HCT),685,21467
+calcium,17861-6,Calcium,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CALCIUM (TEST:DCSQE-CA),671,21105
+triglyceride,2571-8,Triglyceride,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TRIGLYCERIDES (TEST:BC1-54),669,6455
+protein,2885-2,Protein,Ser/Plas,g/L;g/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TOTAL PROTEIN (TEST:DCSQE-TP),666,21369
+albumin,1751-7,Albumin,Ser/Plas,g/L;g/dL; mg/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ALBUMIN (TEST:DCSQE-ALB),665,20965
+creatinine,2160-0,Creatinine,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CREATININE (TEST:DCSQE-CRE),662,20919
+glomerular_filtration_rate,69405-9,Glomerular filtration rate,Ser/Plas/Bld,mL/min,mL/min/1.73m2,{'mL/min/1.73m2': 1.0},0.0,9999.0,0.0,9999.0,1,False,,EGFR (TEST:DCSQE-EGFR),662,20915
+cholesterol_in_ldl,2089-1,Cholesterol.in LDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LDL BLOOD (TEST:EL:5200008004),658,1928
+urea_nitrogen,3094-0,Urea nitrogen,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,UREA NITROGEN (TEST:DCSQE-BUN),656,20616
+sodium,2951-2,Sodium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,SODIUM (TEST:DCSQE-NA),654,20566
+potassium,2823-3,Potassium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,POTASSIUM (TEST:DCSQE-K),654,20604
+chloride,2075-0,Chloride,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHLORIDE (TEST:DCSQE-CL),654,20550
+carbon_dioxide,2028-9,Carbon dioxide,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CARBON DIOXIDE (TEST:DCSQE-CO2),654,20550
+anion_gap,10466-1,Anion gap,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ANION GAP (TEST:DCSQE-ANION),654,20548
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GLUCOSE (TEST:DCSQE-GLU),653,20564
+cholesterol_non_hdl,43396-1,Cholesterol.non HDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,NON-HDL CHOLESTEROL BLOOD (TEST:EL:5200016045),643,1923
+cholesterol,2093-3,Cholesterol,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHOLESTEROL (TEST:BC1-52),623,5752
+cholesterol,2093-3,Cholesterol,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHOLESTEROL (TEST:BCCHOL),617,2370
+cholesterol_in_hdl,2085-9,Cholesterol.in HDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HIGH DENSITY LIPOPROTEIN (TEST:BCHDLP),615,2353
+cholesterol_total/cholesterol_in_hdl,9830-1,Cholesterol.total/Cholesterol.in HDL,Ser/Plas,ratio,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CARDIAC RISK RATIO (TEST:BCCRISK),613,2325
+cholesterol_in_vldl,2091-7,Cholesterol.in VLDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"VERY LOW DENSITY LIPOPROTEIN,LL (TEST:BCVLDL)|VLDL (DIRECT) (TEST:NCSQE-VLDLD)|VLDL (TEST:EL:5200015351)|VLDLD (TEST:BC1-2463)",613,2220
+troponin_t_cardiac,67151-1,Troponin T.cardiac,Ser/Plas,ng/L,ng/L,{'ng/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"TROPONIN-T, HS GEN5 (TEST:BCTNTHS)",610,5361
+cholesterol_in_ldl,13457-7,Cholesterol.in LDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CALCULATED LDL (TEST:BCCLDL),609,2292
+glucose,2341-6,Glucose,Bld,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"GLUCOSE, POCT (TEST:EL:5800001333)",572,52987
+cholesterol_in_hdl,2085-9,Cholesterol.in HDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HDL (TEST:BC1-55),543,4182
+calcium_ionized,1995-0,Calcium.ionized,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,IOCA (TEST:BCIOCA),542,8300
+troponin_t_cardiac,6598-7,Troponin T.cardiac,Ser/Plas,ug/L,ng/mL,{'ng/mL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TROPONIN T (TEST:BC1-813),542,3827
+protein,2885-2,Protein,Ser/Plas,g/L;g/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,SERUM TOTAL PROTEIN (TEST:MISQ-TPCI),527,2387
+cholesterol_in_vldl,2091-7,Cholesterol.in VLDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,VLDL (TEST:BC1-136),523,3761
+c_reactive_protein,30522-7,C reactive protein,Ser/Plas,mcg/mL; mg/dL; mg/L,mg/L,{'mg/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"CRP, HIGH SENSITIVITY (TEST:EL:5200007116)",521,2886
+cholesterol_in_ldl,13457-7,Cholesterol.in LDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CALCULATED LDL BLOOD (TEST:EL:5200003273),520,1611
+cholesterol_in_ldl,13457-7,Cholesterol.in LDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CLDL (TEST:BC1-56),514,3634
+lactate_dehydrogenase,2532-0,Lactate dehydrogenase,Ser/Plas,arb U/L,U/L,{'U/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LACTIC DEHYDROGENASE (TEST:BCLDH),482,5656
+lactate_dehydrogenase,2532-0,Lactate dehydrogenase,Ser/Plas,arb U/L,U/L,{'U/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LDH (TEST:BC1-22),474,5449
+troponin_t_cardiac,6598-7,Troponin T.cardiac,Ser/Plas,ug/L,ng/mL,{'ng/mL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TROPONIN-T (TEST:BCTNT),448,3020
+cholesterol_in_vldl,2091-7,Cholesterol.in VLDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,VLDL BLOOD (TEST:EL:5200015348),440,1345
+calcium_ionized,1995-0,Calcium.ionized,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,IOCA (TEST:BC1-386),422,6476
+lactate,2524-7,Lactate,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LACTIC ACID (TEST:BC1-50),410,2856
+calcium_ionized,1994-3,Calcium.ionized,Bld,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,IONIZED CALCIUM BLOOD (TEST:EL:5200007294),403,15103
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLASMA GLUCOSE (TEST:MCP GLU),400,2553
+urea_nitrogen,3094-0,Urea nitrogen,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLASMA UREA NITROGEN (TEST:MCPBUN),392,3753
+creatinine,2160-0,Creatinine,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLASMA CREATININE (TEST:MCPCRE),390,3818
+creatinine,2160-0,Creatinine,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CREATININE (TEST:FCCRE),387,6183
+glomerular_filtration_rate,69405-9,Glomerular filtration rate,Ser/Plas/Bld,mL/min,mL/min/1.73m2,{'mL/min/1.73m2': 1.0},0.0,9999.0,0.0,9999.0,1,False,,EGFR (TEST:FCEGFR),387,6183
+calcium_ionized,1995-0,Calcium.ionized,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,IOCA BLOOD (TEST:EL:5200007613),384,12547
+potassium,2823-3,Potassium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,POTASSIUM (TEST:FCK),383,6188
+urea_nitrogen,3094-0,Urea nitrogen,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,UREA NITROGEN (TEST:FCBUN),382,6110
+chloride,2075-0,Chloride,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHLORIDE (TEST:FCCL),381,6098
+anion_gap,10466-1,Anion gap,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ANION GAP (TEST:FCANION),381,6093
+calcium,17861-6,Calcium,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CALCIUM (TEST:FCCA),381,6099
+carbon_dioxide,2028-9,Carbon dioxide,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CARBON DIOXIDE (TEST:FCCO2),381,6098
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GLUCOSE (TEST:FCGLU),381,6096
+sodium,2951-2,Sodium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,SODIUM (TEST:FCNA),381,6098
+erythrocyte/blood,4544-3,Erythrocyte/Blood,Bld,L/L;%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HCT (TEST:FHHCT),378,5405
+hemoglobin,718-7,Hemoglobin,Bld,g/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HGB (TEST:FHHGB),377,5410
+platelets,777-3,Platelets,Bld,10*9/L,K/uL,{'K/uL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLT (TEST:FHPLT),377,5392
+natriuretic_peptide_b_prohormone_n-terminal,33762-6,Natriuretic peptide.B prohormone N-Terminal,Ser/Plas,pg/mL,pg/mL,{'pg/mL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,NT-PROBNP (TEST:BC1-1445),373,1256
+potassium,2823-3,Potassium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLASMA POTASSIUM (TEST:MCPK),371,3663
+glomerular_filtration_rate,69405-9,Glomerular filtration rate,Ser/Plas/Bld,mL/min,mL/min/1.73m2,{'mL/min/1.73m2': 1.0},0.0,9999.0,0.0,9999.0,1,False,,EGFR (TEST:NCSQE-EGFR),363,5717
+creatinine,2160-0,Creatinine,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CREATININE (TEST:NCSQE-CRE),363,5717
+urea_nitrogen,3094-0,Urea nitrogen,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,UREA NITROGEN (TEST:NCSQE-BUN),363,5695
+potassium,2823-3,Potassium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,POTASSIUM (TEST:NCSQE-K),361,5693
+sodium,2951-2,Sodium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,SODIUM (TEST:NCSQE-NA),360,5674
+calcium,17861-6,Calcium,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CALCIUM (TEST:NCSQE-CA),360,5648
+chloride,2075-0,Chloride,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHLORIDE (TEST:NCSQE-CL),360,5620
+carbon_dioxide,2028-9,Carbon dioxide,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CARBON DIOXIDE (TEST:NCSQE-CO2),360,5620
+anion_gap,10466-1,Anion gap,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ANION GAP (TEST:NCSQE-ANION),360,5619
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GLUCOSE (TEST:NCSQE-GLU),360,5625
+troponin_i_cardiac,10839-9,Troponin I.cardiac,Ser/Plas,ug/L;ng/mL,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TROPONIN-I (TEST:MCSQ-TNI6),359,1388
+sodium,2951-2,Sodium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLASMA SODIUM (TEST:MCPNA),359,3350
+platelets,777-3,Platelets,Bld,10*9/L,K/uL,{'K/uL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLT (TEST:NHSQE-PLT),355,5278
+hemoglobin,718-7,Hemoglobin,Bld,g/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HGB (TEST:NHSQE-HGB),355,5508
+erythrocyte/blood,4544-3,Erythrocyte/Blood,Bld,L/L;%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HCT (TEST:NHSQE-HCT),355,5508
+creatinine,2160-0,Creatinine,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CREATININE (STAT LAB) (TEST:MCSQ-XCRE),354,1531
+urea_nitrogen,3094-0,Urea nitrogen,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,BUN (STAT LAB) (TEST:MCSQ-XBUN),354,1531
+chloride,2075-0,Chloride,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLASMA CHLORIDE (TEST:MCPCL),351,3167
+carbon_dioxide,2028-9,Carbon dioxide,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLASMA CARBON DIOXIDE (TEST:MCPL CO2),348,3137
+potassium,2823-3,Potassium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,POTASSIUM (STAT LAB) (TEST:MCSQ-XK),346,1481
+sodium,2951-2,Sodium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,SODIUM (STAT LAB) (TEST:MCSQ-XNA),344,1465
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GLUCOSE (STAT LAB) (TEST:MCSQ-XGLU),343,1467
+carbon_dioxide,2028-9,Carbon dioxide,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CO2 (STAT LAB) (TEST:MCSQ-XCO2),342,1459
+chloride,2075-0,Chloride,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHLORIDE (STAT LAB) (TEST:MCSQ-XCL),342,1459
+creatinine,2160-0,Creatinine,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CREATININE (TEST:NCCREAT),340,5649
+urea_nitrogen,3094-0,Urea nitrogen,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,BUN (TEST:NCBUN),338,5579
+glomerular_filtration_rate,33914-3,Glomerular filtration rate,Ser/Plas,mL/min; ml/min/1.73m2,ml/min/1.73 sq meter,{'ml/min/1.73 sq meter': 1.0},0.0,9999.0,0.0,9999.0,1,False,,EGFR (TEST:NCGFRNAA),336,5512
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GLUCOSE (TEST:NCGLU),332,5234
+erythrocyte/blood,4544-3,Erythrocyte/Blood,Bld,L/L;%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HCT (TEST:WH101.0400),332,3666
+sodium,2951-2,Sodium,Ser/Plas,mmol/L,MEQ/L,{'MEQ/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,SODIUM (TEST:NCNA),331,5398
+anion_gap,33037-3,Anion gap,Ser/Plas,mmol/L,meq/L,{'meq/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ANION GAP (TEST:NCAGAP),330,5357
+chloride,2075-0,Chloride,Ser/Plas,mmol/L,MEQ/L,{'MEQ/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHLORIDE (TEST:NCCL),330,5362
+carbon_dioxide,2028-9,Carbon dioxide,Ser/Plas,mmol/L,MEQ/L,{'MEQ/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CARBON DIOXIDE (TEST:NCCO2),330,5365
+hemoglobin,718-7,Hemoglobin,Bld,g/dL,gm/dl,{'gm/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HGB (TEST:WH101.0300),329,3519
+platelets,777-3,Platelets,Bld,10*9/L,K/UL,{'K/UL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLATELET COUNT (TEST:WH101.0900),328,3268
+hemoglobin,718-7,Hemoglobin,Bld,g/dL,G/DL,{'G/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HEMOGLOBIN (TEST:NHHGB),327,5607
+platelets,777-3,Platelets,Bld,10*9/L,K/uL,{'K/uL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLATELET (TEST:NHPLT),326,5383
+erythrocyte/blood,4544-3,Erythrocyte/Blood,Bld,L/L;%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HCT (TEST:NHHCT),326,5647
+creatinine,2160-0,Creatinine,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CREATININE (TEST:MCSQ-CRE),323,2134
+potassium,2823-3,Potassium,Ser/Plas,mmol/L,MEQ/L,{'MEQ/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,POTASSIUM (TEST:NCK),321,5068
+albumin,1751-7,Albumin,Ser/Plas,g/L;g/dL; mg/dL,g/dl,{'g/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ALBUMIN (TEST:MCALB),321,1639
+albumin,1751-7,Albumin,Ser/Plas,g/L;g/dL; mg/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ALBUMIN (TEST:NCSQE-ALB),319,2704
+potassium,2823-3,Potassium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,POTASSIUM (TEST:MCSQ-K),319,2121
+urea_nitrogen,3094-0,Urea nitrogen,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,UREA NITROGEN (TEST:MCSQ-BUN),318,2120
+albumin,1751-7,Albumin,Ser/Plas,g/L;g/dL; mg/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ALBUMIN (TEST:FCALB),315,2970
+protein,2885-2,Protein,Ser/Plas,g/L;g/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TOTAL PROTEIN (TEST:NCSQE-TP),314,2620
+platelets,777-3,Platelets,Bld,10*9/L,th/cumm,{'th/cumm': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLT (TEST:MHPLT),312,2928
+protein,2885-2,Protein,Ser/Plas,g/L;g/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TOTAL PROTEIN (TEST:FCTP),312,2909
+erythrocyte/blood,4544-3,Erythrocyte/Blood,Bld,L/L;%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HCT (TEST:MHHCT),312,2928
+hemoglobin,718-7,Hemoglobin,Bld,g/dL,g/dl,{'g/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HGB (TEST:MHHGB),312,2928
+calcium,17861-6,Calcium,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CALCIUM (TEST:MCCA),311,1830
+chloride,2075-0,Chloride,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHLORIDE (TEST:MCSQ-CL),311,2094
+carbon_dioxide,2028-9,Carbon dioxide,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CARBON DIOXIDE (TEST:MCSQ-CO2),310,2090
+sodium,2951-2,Sodium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,SODIUM (TEST:MCSQ-NA),309,2098
+calcium,17861-6,Calcium,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CALCIUM (TEST:NCCA),308,4628
+cholesterol,2093-3,Cholesterol,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHOLESTEROL (TEST:MCCHOL),302,1467
+protein,2885-2,Protein,Ser/Plas,g/L;g/dL,g/dl,{'g/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TOTAL PROTEIN (TEST:MCTP),300,1585
+glomerular_filtration_rate,33914-3,Glomerular filtration rate,Ser/Plas,mL/min; ml/min/1.73m2,mL/min/1.73m2,{'mL/min/1.73m2': 1.0},0.0,9999.0,0.0,9999.0,1,False,,EGFR (TEST:MCSQ-EGFR7),281,703
+phosphate,2777-1,Phosphate,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PHOSPHORUS (TEST:DCSQE-PHOS),279,4295
+erythrocyte/blood,4544-3,Erythrocyte/Blood,Bld,L/L;%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HEMATOCRIT (TEST:FH20.0040),277,3286
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GLUCOSE (TEST:MCSQ-GLU),277,2012
+albumin,1751-7,Albumin,Ser/Plas,g/L;g/dL; mg/dL,G/DL,{'G/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ALBUMIN (TEST:NCALB),275,2613
+hemoglobin,718-7,Hemoglobin,Bld,g/dL,GM/DL,{'GM/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HEMOGLOBIN (TEST:FH20.0035),273,3191
+platelets,777-3,Platelets,Bld,10*9/L,K/MM3,{'K/MM3': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLT (TEST:FH20.0070),272,3194
+cholesterol_in_hdl,2085-9,Cholesterol.in HDL,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HIGH DENSITY LIPOPROTEIN (TEST:MCHDL),267,1272
+protein,2885-2,Protein,Ser/Plas,g/L;g/dL,G/DL,{'G/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TOTAL PROTEIN (TEST:NCTP),265,2452
+phosphate,2777-1,Phosphate,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PHOSPHORUS (TEST:MCPHOS),262,1386
+creatinine,2160-0,Creatinine,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CREATININE (TEST:WC331.0800),258,2304
+erythrocyte/blood,4544-3,Erythrocyte/Blood,Bld,L/L;%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HCT (TEST:WHHCT),257,3490
+hemoglobin,718-7,Hemoglobin,Bld,g/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HGB (TEST:WHHGB),257,3486
+platelets,777-3,Platelets,Bld,10*9/L,K/uL,{'K/uL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLT (TEST:WHPLT),257,3476
+urea_nitrogen,3094-0,Urea nitrogen,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,BUN (TEST:WC331.0700),256,2268
+triglyceride,2571-8,Triglyceride,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TRIGLYCERIDES (TEST:MCTRI),254,1266
+potassium,2823-3,Potassium,Ser/Plas,mmol/L,MMOL/L,{'MMOL/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,POTASSIUM (TEST:WC331.0200),252,2244
+sodium,2951-2,Sodium,Ser/Plas,mmol/L,MMOL/L,{'MMOL/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,SODIUM (TEST:WC331.0100),250,2237
+carbon_dioxide,2028-9,Carbon dioxide,Ser/Plas,mmol/L,MMOL/L,{'MMOL/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CARBON DIOXIDE (TEST:WC331.0400),250,2221
+chloride,2075-0,Chloride,Ser/Plas,mmol/L,MMOL/L,{'MMOL/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHLORIDE (TEST:WC331.0300),250,2223
+lactate_dehydrogenase,2532-0,Lactate dehydrogenase,Ser/Plas,arb U/L,U/L,{'U/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LACTIC DEHYDROGENASE (TEST:MCLDH),247,1237
+cholesterol_in_ldl,2089-1,Cholesterol.in LDL,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LOW DENSITY LIPOPROTEIN (TEST:MCLDL),246,1193
+urea_nitrogen,3094-0,Urea nitrogen,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,UREA NITROGEN (TEST:WCBUN),244,3646
+creatinine,2160-0,Creatinine,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CREATININE (TEST:WCCRE),244,3663
+glomerular_filtration_rate,69405-9,Glomerular filtration rate,Ser/Plas/Bld,mL/min,mL/min/1.73m2,{'mL/min/1.73m2': 1.0},0.0,9999.0,0.0,9999.0,1,False,,EGFR (TEST:WCEGFR),244,3663
+lactate_dehydrogenase,2532-0,Lactate dehydrogenase,Ser/Plas,arb U/L,U/L,{'U/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LDH (TEST:DCSQE-LDH),243,5207
+calcium,17861-6,Calcium,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CALCIUM (TEST:WCCA),243,3581
+anion_gap,10466-1,Anion gap,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ANION GAP (TEST:WCANION),242,3575
+chloride,2075-0,Chloride,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHLORIDE (TEST:WCCL),242,3576
+potassium,2823-3,Potassium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,POTASSIUM (TEST:WCK),242,3590
+carbon_dioxide,2028-9,Carbon dioxide,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CARBON DIOXIDE (TEST:WCCO2),242,3576
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GLUCOSE (TEST:WCGLU),242,3582
+sodium,2951-2,Sodium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,SODIUM (TEST:WCNA),242,3579
+anion_gap,10466-1,Anion gap,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ANION GAP (TEST:BCANION),240,1243
+prealbumin,14338-8,Prealbumin,Ser/Plas,g/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PREALBUMIN (TEST:BCPREA),240,1276
+prealbumin,14338-8,Prealbumin,Ser/Plas,g/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PREALBUMIN (TEST:MCSQ-PREA),239,890
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"GLUCOSE, SERUM (TEST:WC331.0600)",238,1872
+creatinine,38483-4,Creatinine,Bld,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"CREATININE,WHOLE BLD (TEST:BCCREWB)",238,1241
+glomerular_filtration_rate,69405-9,Glomerular filtration rate,Ser/Plas/Bld,mL/min,mL/min/1.73m2,{'mL/min/1.73m2': 1.0},0.0,9999.0,0.0,9999.0,1,False,,EGFR (TEST:BCEGFR),238,1241
+potassium,2823-3,Potassium,Ser/Plas,mmol/L,MMOL/L,{'MMOL/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,POTASSIUM (TEST:FC500.0900),237,2388
+urea_nitrogen,3094-0,Urea nitrogen,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,UREA NITROGEN (TEST:FC500.1450),235,2376
+glomerular_filtration_rate,33914-3,Glomerular filtration rate,Ser/Plas,mL/min; ml/min/1.73m2,ML/MIN,{'ML/MIN': 1.0},0.0,9999.0,0.0,9999.0,1,False,,EGFR (TEST:FC500.1800),235,2425
+creatinine,2160-0,Creatinine,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CREATININE (TEST:FC500.1650),235,2427
+calcium,17861-6,Calcium,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CALCIUM (TEST:FC500.2850),233,2362
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GLUCOSE (TEST:FC500.2150),232,2334
+carbon_dioxide,2028-9,Carbon dioxide,Ser/Plas,mmol/L,MMOL/L,{'MMOL/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TOTAL CO2 (TEST:FC500.1200),232,2357
+anion_gap,33037-3,Anion gap,Ser/Plas,mmol/L,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ANION GAP (TEST:FC500.1270),232,2357
+chloride,2075-0,Chloride,Ser/Plas,mmol/L,MMOL/L,{'MMOL/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHLORIDE (TEST:FC500.1050),232,2357
+sodium,2951-2,Sodium,Ser/Plas,mmol/L,MMOL/L,{'MMOL/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,SODIUM (TEST:FC500.0750),232,2366
+prealbumin,14338-8,Prealbumin,Ser/Plas,g/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PREALBUMIN (TEST:BC1-1124),229,1300
+c_reactive_protein,30522-7,C reactive protein,Ser/Plas,mcg/mL; mg/dL; mg/L,mg/L,{'mg/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"CRP, HIGH SENSITIVITY (TEST:MCSQ-HSCRP)",228,687
+glomerular_filtration_rate,33914-3,Glomerular filtration rate,Ser/Plas,mL/min; ml/min/1.73m2,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,.EST GLOM FILT RATE NON-AFRICAN AM (TEST:WC331.0810),216,1597
+glomerular_filtration_rate,33914-3,Glomerular filtration rate,Ser/Plas,mL/min; ml/min/1.73m2,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,.EST GLOM FILT RATE AFRICAN AMERIC (TEST:WC331.0820),216,1597
+cholesterol,2093-3,Cholesterol,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHOLESTEROL (TEST:NCCHOL),212,1635
+triglyceride,2571-8,Triglyceride,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TRIGLYCERIDE (TEST:NCTRIG),211,1640
+cholesterol_non_hdl,43396-1,Cholesterol.non HDL,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,NON-HDL CHOLESTEROL (TEST:NCNHDLC),210,1617
+cholesterol_total/cholesterol_in_hdl,9830-1,Cholesterol.total/Cholesterol.in HDL,Ser/Plas,ratio,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHOL/HDL (TEST:NCCHHDL),210,1593
+cholesterol_in_hdl,2085-9,Cholesterol.in HDL,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HDL (TEST:NCHDLR),210,1617
+cholesterol_in_ldl,13457-7,Cholesterol.in LDL,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LDL (TEST:NCLDLR),210,1593
+anion_gap,33037-3,Anion gap,Ser/Plas,mmol/L,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ANION GAP (TEST:WC331.0450),208,1604
+calcium,17861-6,Calcium,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CALCIUM (TEST:WC331.0900),207,1759
+albumin,1751-7,Albumin,Ser/Plas,g/L;g/dL; mg/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ALBUMIN (TEST:WCALB),205,2281
+protein,2885-2,Protein,Ser/Plas,g/L;g/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TOTAL PROTEIN (TEST:WCTP),204,2247
+creatinine,2160-0,Creatinine,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CREATININE (TEST:EL:5200003774),200,418
+protein,2885-2,Protein,Ser/Plas,g/L;g/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TOTAL PROTEIN (TEST:EL:5200013999),199,704
+troponin_i_cardiac,10839-9,Troponin I.cardiac,Ser/Plas,ug/L;ng/mL,ng/mL,{'ng/mL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CTN-I (TEST:BC1-938),199,1426
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GLUCOSE POCT (TEST:BCGLUP1),194,11764
+triglyceride,2571-8,Triglyceride,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TRIGLYCERIDES (TEST:NCSQE-TRIG),193,666
+prealbumin,14338-8,Prealbumin,Ser/Plas,g/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PREALBUMIN (TEST:EL:5200011054),192,896
+creatinine,2160-0,Creatinine,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,SERUM CREATININE (TEST:FC10.0220),191,1753
+urea_nitrogen,3094-0,Urea nitrogen,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,BLOOD UREA NITROGEN (TEST:FC10.0205),191,1748
+albumin,1751-7,Albumin,Ser/Plas,g/L;g/dL; mg/dL,G/DL,{'G/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ALBUMIN (TEST:WC331.1200),190,1435
+potassium,2823-3,Potassium,Ser/Plas,mmol/L,MEQ/L,{'MEQ/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,POTASSIUM (TEST:FC10.0110),188,1742
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GLUCOSE (TEST:FC10.0210),187,1767
+glomerular_filtration_rate,33914-3,Glomerular filtration rate,Ser/Plas,mL/min; ml/min/1.73m2,mL/min/1.73m2,{'mL/min/1.73m2': 1.0},0.0,9999.0,0.0,9999.0,1,False,,EGFR (TEST:EL:52000158258),187,396
+phosphate,2777-1,Phosphate,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PHOSPHORUS (TEST:FCPHOS),186,1258
+protein,2885-2,Protein,Ser/Plas,g/L;g/dL,G/DL,{'G/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"TOTAL PROTEIN, SERUM (TEST:WC331.1100)",184,1326
+calcium,17861-6,Calcium,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CALCIUM (TEST:FC10.0235),182,1673
+cholesterol_non_hdl,43396-1,Cholesterol.non HDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,NON-HDL CHOLESTEROL (TEST:NCSQE-NHDLC),182,567
+cholesterol_total/cholesterol_in_hdl,9830-1,Cholesterol.total/Cholesterol.in HDL,Ser/Plas,ratio,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CARDIAC RISK RATIO (TEST:NCSQE-CRISK),182,568
+cholesterol_in_hdl,2085-9,Cholesterol.in HDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HIGH DENSITY LIPOPROTEIN (TEST:NCSQE-HDLP),182,571
+albumin,1751-7,Albumin,Ser/Plas,g/L;g/dL; mg/dL,G/DL,{'G/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ALBUMIN (TEST:FC500.2700),182,1146
+cholesterol,2093-3,Cholesterol,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHOLESTEROL (TEST:NCSQE-CHOL),182,571
+cholesterol_in_ldl,2089-1,Cholesterol.in LDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LOW DENSITY LIPOPROTEIN (TEST:NCSQE-LDL),182,567
+carbon_dioxide,2028-9,Carbon dioxide,Ser/Plas,mmol/L,MEQ/L,{'MEQ/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CARBON DIOXIDE (TEST:FC10.0120),181,1698
+sodium,2951-2,Sodium,Ser/Plas,mmol/L,MEQ/L,{'MEQ/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,SODIUM (TEST:FC10.0105),181,1704
+chloride,2075-0,Chloride,Ser/Plas,mmol/L,MEQ/L,{'MEQ/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHLORIDE (TEST:FC10.0115),181,1701
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GLU (TEST:MCSQ-GLU4),181,1132
+lactate,32693-4,Lactate,Bld,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"LACTATE, BLOOD (TEST:EL:5200007887)",180,3738
+protein,2885-2,Protein,Ser/Plas,g/L;g/dL,G/DL,{'G/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TOTAL PROTEIN (TEST:FC500.2550),178,1106
+cholesterol_total/cholesterol_in_hdl,9830-1,Cholesterol.total/Cholesterol.in HDL,Ser/Plas,ratio,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CARDIAC RISK RATIO (TEST:MCC RISK),178,561
+creatinine,2160-0,Creatinine,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CREA (TEST:MCSQ-CREA4),174,1066
+sodium,2951-2,Sodium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,NA (TEST:MCSQ-NA4),174,1037
+potassium,2823-3,Potassium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,K (TEST:MCSQ-K4),174,1054
+chloride,2075-0,Chloride,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHLORIDE (TEST:MCSQ-CL4),174,1035
+glomerular_filtration_rate,69405-9,Glomerular filtration rate,Ser/Plas/Bld,mL/min,mL/min/1.73m2,{'mL/min/1.73m2': 1.0},0.0,9999.0,0.0,9999.0,1,False,,EGFR (TEST:MCSQ-EGFR),174,1806
+carbon_dioxide,2028-9,Carbon dioxide,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CO2 (TEST:MCSQ-CO24),174,1035
+urea_nitrogen,3094-0,Urea nitrogen,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,BUN (TEST:MCSQ-BUN4),173,1043
+hemoglobin,20509-6,Hemoglobin,Bld,g/dL,gm/dl,{'gm/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HEMOGLOBIN-POC (TEST:MHSQ-HGB7),173,523
+calcium,17861-6,Calcium,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CALCIUM (TEST:MCSQ-CA4),171,1000
+creatinine,2160-0,Creatinine,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CREATININE (TEST:WC326.2175),171,1164
+urea_nitrogen,3094-0,Urea nitrogen,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,UREA NITROGEN (BUN) (TEST:WC326.2165),170,1154
+cholesterol,2093-3,Cholesterol,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"CHOLESTEROL, SERUM (TEST:WC331.2800)",169,1070
+glomerular_filtration_rate,48643-1,Glomerular filtration rate,Ser/Plas/Bld,mL/min; ml/min/1.73m2,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,EST GLOM FILT RATE AFRICAN AMERI (TEST:WC326.2185),168,1130
+glomerular_filtration_rate,48642-3,Glomerular filtration rate,Ser/Plas/Bld,mL/min; ml/min/1.73m2,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,EST GLOM FILT RATE NON-AFRICAN A (TEST:WC326.2180),168,1130
+cholesterol_in_hdl,2085-9,Cholesterol.in HDL,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HDL (TEST:MCSQ-HDLC4),167,910
+potassium,2823-3,Potassium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,POTASSIUM (TEST:WC326.2115),167,1180
+cholesterol,2093-3,Cholesterol,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHOL (TEST:MCSQ-CHOL4),166,912
+carbon_dioxide,2028-9,Carbon dioxide,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CARBON DIOXIDE (TEST:WC326.2130),166,1172
+cholesterol_total/cholesterol_in_hdl,9830-1,Cholesterol.total/Cholesterol.in HDL,Ser/Plas,ratio,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CARD R.R. (TEST:MCSQ-CARD4),166,900
+chloride,2075-0,Chloride,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHLORIDE (TEST:WC326.2120),166,1172
+sodium,2951-2,Sodium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,SODIUM (TEST:WC326.2105),166,1175
+anion_gap,33037-3,Anion gap,Ser/Plas,mmol/L,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ANION GAP (TEST:WC326.2135),166,1172
+anion_gap,10466-1,Anion gap,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ANION GAP (TEST:MCSQ-ANION),165,1779
+phosphate,2777-1,Phosphate,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PHOSPHORUS (TEST:NCSQE-PHOS),163,1191
+triglyceride,2571-8,Triglyceride,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TRIG (TEST:MCSQ-TRIG4),163,879
+cholesterol_in_ldl,2089-1,Cholesterol.in LDL,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LDL (TEST:MCSQ-LDLC4),162,870
+albumin,1751-7,Albumin,Ser/Plas,g/L;g/dL; mg/dL,G/DL,{'G/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ALBUMIN (TEST:FC10.0230),160,1160
+protein,2885-2,Protein,Ser/Plas,g/L;g/dL,G/DL,{'G/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TOTAL PROTEIN (TEST:FC10.0225),158,1109
+calcium,17861-6,Calcium,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CALCIUM (TEST:WC326.2140),157,1056
+troponin_t_cardiac,67151-1,Troponin T.cardiac,Ser/Plas,ng/L,ng/L,{'ng/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"TROPONIN-T, HIGH SENSITIVITY (GEN 5) BLOOD (TEST:EL:5290003044)",156,759
+albumin,1751-7,Albumin,Ser/Plas,g/L;g/dL; mg/dL,g/dl,{'g/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ALBUMIN (TEST:MCSQ-ALB4),155,910
+erythrocyte/blood,4544-3,Erythrocyte/Blood,Bld,L/L;%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HCT (TEST:MHSQ-HCT4),154,723
+hemoglobin,718-7,Hemoglobin,Bld,g/dL,g/dl,{'g/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HGB (TEST:MHSQ-HGB4),154,723
+platelets,777-3,Platelets,Bld,10*9/L,/mm3,{'/mm3': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLT (TEST:MHSQ-PLT4),154,723
+potassium,2823-3,Potassium,Ser/Plas,mmol/L,mmol/l,{'mmol/l': 1.0},0.0,9999.0,0.0,9999.0,1,False,,POTASSIUM (TEST:MCK),153,850
+erythrocyte/blood,4544-3,Erythrocyte/Blood,Bld,L/L;%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HEMATOCRIT (TEST:FH601.0230),153,922
+natriuretic_peptide_b_prohormone_n-terminal,33762-6,Natriuretic peptide.B prohormone N-Terminal,Ser/Plas,pg/mL,pg/mL,{'pg/mL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,NT-PROBNP (TEST:FCPRBNP),153,482
+hemoglobin,718-7,Hemoglobin,Bld,g/dL,GM/DL,{'GM/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HEMOGLOBIN (TEST:FH601.0220),152,911
+platelets,777-3,Platelets,Bld,10*9/L,K/MM3,{'K/MM3': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLT (TEST:FH601.0280),152,906
+creatinine,2160-0,Creatinine,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CREATININE (TEST:MCSQ-CRE1),151,1780
+urea_nitrogen,3094-0,Urea nitrogen,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,UREA NITROGEN (TEST:MCSQ-BUN1),151,1763
+protein,2885-2,Protein,Ser/Plas,g/L;g/dL,g/dl,{'g/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TP (TEST:MCSQ-TP4),150,840
+lactate,2524-7,Lactate,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLASMA LACTIC ACID (TEST:FCPLACT),149,735
+creatinine,2160-0,Creatinine,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CREATININE (TEST:MCCRE),146,455
+cholesterol_in_hdl,2085-9,Cholesterol.in HDL,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HDL CHOLESTEROL (TEST:WC331.3000),145,949
+sodium,2951-2,Sodium,Ser/Plas,mmol/L,mmol/l,{'mmol/l': 1.0},0.0,9999.0,0.0,9999.0,1,False,,SODIUM (TEST:MCNA),144,747
+cholesterol_total/cholesterol_in_hdl,9830-1,Cholesterol.total/Cholesterol.in HDL,Ser/Plas,ratio,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHOL/HDL RATIO (TEST:WC331.3200),144,955
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GLUCOSE (TEST:WC326.2145),141,1003
+urea_nitrogen,3094-0,Urea nitrogen,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,UREA NITROGEN (TEST:MCBUN),141,419
+erythrocyte/blood,4544-3,Erythrocyte/Blood,Bld,L/L;%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HCT (TEST:MHSQ-HCT1),140,1335
+cholesterol_in_ldl,18262-6,Cholesterol.in LDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,DLDL (TEST:BC1-1160),140,524
+platelets,777-3,Platelets,Bld,10*9/L,th/cumm,{'th/cumm': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLT (TEST:MHSQ-PLT1),140,1335
+hemoglobin,718-7,Hemoglobin,Bld,g/dL,g/dl,{'g/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HGB (TEST:MHSQ-HGB1),140,1326
+cholesterol_in_ldl,13457-7,Cholesterol.in LDL,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LDL CHOLESTEROL (TEST:WC331.3100),137,916
+triglyceride,2571-8,Triglyceride,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TRIGLYCERIDE (TEST:WC331.2900),136,865
+albumin,1751-7,Albumin,Ser/Plas,g/L;g/dL; mg/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ALBUMIN (TEST:WC326.2215),135,660
+potassium,2823-3,Potassium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,POTASSIUM (TEST:MCSQ-K1),134,1602
+sodium,2951-2,Sodium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,SODIUM (TEST:MCSQ-NA1),133,1530
+glomerular_filtration_rate,33914-3,Glomerular filtration rate,Ser/Plas,mL/min; ml/min/1.73m2,mL/min/1.73m2,{'mL/min/1.73m2': 1.0},0.0,9999.0,0.0,9999.0,1,False,,EGFR (TEST:MCSQ-EGFR1),133,1116
+protein,2885-2,Protein,Ser/Plas,g/L;g/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TOTAL PROTEIN (TEST:WC326.2205),133,642
+chloride,2075-0,Chloride,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHLORIDE (TEST:MCSQ-CL1),133,1502
+carbon_dioxide,2028-9,Carbon dioxide,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CARBON DIOXIDE (TEST:MCSQ-CO21),133,1499
+calcium,17861-6,Calcium,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CALCIUM (TEST:MCSQ-CA1),132,1412
+troponin_t_cardiac,67151-1,Troponin T.cardiac,Ser/Plas,ng/L,ng/L,{'ng/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"TROPONIN-T, HS GEN5 (TEST:NCSQE-TNTHS)",131,880
+natriuretic_peptide_b_prohormone_n-terminal,33762-6,Natriuretic peptide.B prohormone N-Terminal,Ser/Plas,pg/mL,pg/mL,{'pg/mL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,NT-PROBNP (TEST:NCSQE-PRBNP),128,449
+erythrocyte/blood,4544-3,Erythrocyte/Blood,Bld,L/L;%,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CBC - HCT (TEST:MH110HCT),126,609
+hemoglobin,718-7,Hemoglobin,Bld,g/dL,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CBC - HGB (TEST:MH110HGB),126,609
+triglyceride,2571-8,Triglyceride,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TRIGLYCERIDES (TEST:DCSQE-TRIG),125,646
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GLUCOSE (TEST:MCBS),124,331
+albumin,1751-7,Albumin,Ser/Plas,g/L;g/dL; mg/dL,g/dl,{'g/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ALBUMIN (TEST:MCSQ-ALB1),124,1096
+protein,2885-2,Protein,Ser/Plas,g/L;g/dL,g/dl,{'g/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TOTAL PROTEIN (TEST:MCSQ-TP1),121,999
+chloride,2075-0,Chloride,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHLORIDE (TEST:MCCL),121,345
+phosphate,2777-1,Phosphate,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PHOSPHOROUS (TEST:NCPHOS),120,794
+troponin_t_cardiac,67151-1,Troponin T.cardiac,Ser/Plas,ng/L,ng/L,{'ng/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"TROPONIN-T, HS GEN5 (TEST:FCTNTHS)",120,654
+cholesterol,2093-3,Cholesterol,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHOLESTEROL (TEST:DCSQE-CHOL),119,720
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLASMA GLUCOSE (TEST:MCSQ-PGLU1),119,1197
+urea_nitrogen,3094-0,Urea nitrogen,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,BUN (TEST:SC400.1000),118,1377
+platelets,777-3,Platelets,Bld,10*9/L,K/uL,{'K/uL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLATELET COUNT (TEST:SH100.1000),118,1326
+creatinine,2160-0,Creatinine,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CREATININE (TEST:SC400.1100),118,1376
+sodium,2951-2,Sodium,Ser/Plas,mmol/L,meq/L,{'meq/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,SODIUM (TEST:SC400.1400),118,1382
+chloride,2075-0,Chloride,Ser/Plas,mmol/L,meq/L,{'meq/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHLORIDE (TEST:SC400.1600),118,1375
+erythrocyte/blood,4544-3,Erythrocyte/Blood,Bld,L/L;%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HEMATOCRIT (TEST:SH100.0500),118,1333
+potassium,2823-3,Potassium,Ser/Plas,mmol/L,meq/L,{'meq/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,POTASSIUM (TEST:SC400.1500),118,1380
+carbon_dioxide,2028-9,Carbon dioxide,Ser/Plas,mmol/L,mEq/L,{'mEq/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CARBON DIOXIDE (TEST:SC400.1700),118,1375
+hemoglobin,718-7,Hemoglobin,Bld,g/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HEMOGLOBIN (TEST:SH100.0400),118,1332
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"GLUCOSE,RANDOM (TEST:SC400.0600)",117,1131
+anion_gap,10466-1,Anion gap,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ANION GAP (TEST:MCSQ-ANION1),117,949
+carbon_dioxide,2028-9,Carbon dioxide,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CARBON DIOXIDE (TEST:MCCO2),116,331
+albumin,1751-7,Albumin,Ser/Plas,g/L;g/dL; mg/dL,gm/dL,{'gm/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ALBUMIN (TEST:SC400.2800),115,1001
+protein,2885-2,Protein,Ser/Plas,g/L;g/dL,gm/dL,{'gm/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TOTAL PROTEIN (TEST:SC400.2700),114,955
+potassium,2823-3,Potassium,Ser/Plas,mmol/L,MEQ/L,{'MEQ/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HEPARINIZED K (TEST:NCHEPK),114,493
+cholesterol_total/cholesterol_in_hdl,9830-1,Cholesterol.total/Cholesterol.in HDL,Ser/Plas,ratio,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,(TEST:BC1-1813),114,160
+triglyceride,2571-8,Triglyceride,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TRIGLYCERIDES (TEST:FCTRIG),112,378
+cholesterol,2093-3,Cholesterol,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHOLESTEROL (TEST:FCCHOL),106,326
+cholesterol_total/cholesterol_in_hdl,9830-1,Cholesterol.total/Cholesterol.in HDL,Ser/Plas,ratio,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CARDIAC RISK RATIO (TEST:FCCRISK),106,326
+cholesterol_in_hdl,2085-9,Cholesterol.in HDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HIGH DENSITY LIPOPROTEIN (TEST:FCHDLP),106,326
+cholesterol_in_ldl,2089-1,Cholesterol.in LDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LOW DENSITY LIPOPROTEIN (TEST:FCLDL),106,318
+cholesterol,2093-3,Cholesterol,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHOLESTEROL (TEST:MCSQ-CHOL1),104,891
+cholesterol_in_hdl,2085-9,Cholesterol.in HDL,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HIGH DENSITY LIPOPROTEIN (TEST:MCSQ-HDLP1),104,815
+cholesterol_in_ldl,13457-7,Cholesterol.in LDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CALCULATED LDL (TEST:DCSQE-CLDL),102,478
+cholesterol_total/cholesterol_in_hdl,9830-1,Cholesterol.total/Cholesterol.in HDL,Ser/Plas,ratio,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CARDIAC RISK RATIO (TEST:DCSQE-CRISK),102,477
+cholesterol_in_hdl,2085-9,Cholesterol.in HDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HIGH DENSITY LIPOPROTEIN (TEST:DCSQE-HDLP),102,479
+phosphate,2777-1,Phosphate,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PHOSPHORUS (TEST:WCPHOS),101,1074
+cholesterol_in_vldl,2091-7,Cholesterol.in VLDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,VERY LOW DENSITY LIPOPROTEIN (TEST:DCSQE-VLDL),101,474
+triglyceride,2571-8,Triglyceride,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TRIGLYCERIDES (TEST:WCTRIG),100,691
+troponin_i_cardiac,10839-9,Troponin I.cardiac,Ser/Plas,ug/L;ng/mL,NG/ML,{'NG/ML': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TROPONIN I (TEST:NCTROPI),100,568
+triglyceride,2571-8,Triglyceride,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TRIGLYCERIDES (TEST:MCSQ-TRIG1),99,746
+lactate,2524-7,Lactate,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LACTATE (TEST:NCSQE-LACTAC),99,437
+glomerular_filtration_rate,77147-7,Glomerular filtration rate,Ser/Plas/Bld,mL/min/1.73 sq m,mL/min/1.73m2,{'mL/min/1.73m2': 1.0},0.0,9999.0,0.0,9999.0,1,False,,EGFR (TEST:DCSQE-EGFR7),98,241
+cholesterol_total/cholesterol_in_hdl,9830-1,Cholesterol.total/Cholesterol.in HDL,Ser/Plas,ratio,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CARDIAC RISK RATIO (TEST:MCSQ-CRISK1),98,743
+cholesterol_in_ldl,2089-1,Cholesterol.in LDL,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LOW DENSITY LIPOPROTEIN (TEST:MCSQ-LDL1),98,743
+troponin_t_cardiac,6598-7,Troponin T.cardiac,Ser/Plas,ug/L,ng/mL,{'ng/mL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TROPONIN-T (TEST:FCTNT),96,454
+glucose,2341-6,Glucose,Bld,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"GLUCOSE, POCT (TEST:EL:5800001334)",95,3053
+calcium,17861-6,Calcium,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CALCIUM (TEST:SCCA),94,875
+lipoprotein_(little_a),43583-4,Lipoprotein (little a),Ser/Plas,nmol/L,mg/dL|nmol/L,{'nmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LIPOPROTEIN A (TEST:MCSQ-MLPPA)|LIPOPROTEIN(A) (TEST:EL:5200018868),94,144
+urea_nitrogen,3094-0,Urea nitrogen,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,UREA NITROGEN (TEST:SCBUN),93,875
+creatinine,2160-0,Creatinine,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CREATININE (TEST:SCCRE),93,872
+potassium,2823-3,Potassium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,POTASSIUM (TEST:SCK),93,877
+sodium,2951-2,Sodium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,SODIUM (TEST:SCNA),93,873
+chloride,2075-0,Chloride,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHLORIDE (TEST:SCCL),93,873
+carbon_dioxide,2028-9,Carbon dioxide,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CARBON DIOXIDE (TEST:SCCO2),93,873
+glomerular_filtration_rate,69405-9,Glomerular filtration rate,Ser/Plas/Bld,mL/min,mL/min/1.73m2,{'mL/min/1.73m2': 1.0},0.0,9999.0,0.0,9999.0,1,False,,EGFR (TEST:SCEGFR),93,872
+anion_gap,10466-1,Anion gap,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ANION GAP (TEST:SCANION),93,872
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GLUCOSE (TEST:SCGLU),93,874
+natriuretic_peptide_b_prohormone_n-terminal,33762-6,Natriuretic peptide.B prohormone N-Terminal,Ser/Plas,pg/mL,pg/mL,{'pg/mL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,NT-PROBNP (TEST:WCPRBNP),92,273
+glucose,2341-6,Glucose,Bld,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"GLUCOSE, POCT (TEST:EL:5800001337)",91,2458
+platelets,777-3,Platelets,Bld,10*9/L,K/uL,{'K/uL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLT (TEST:SHPLT),91,830
+hemoglobin,718-7,Hemoglobin,Bld,g/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HGB (TEST:SHHGB),91,830
+erythrocyte/blood,4544-3,Erythrocyte/Blood,Bld,L/L;%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HCT (TEST:SHHCT),91,831
+glomerular_filtration_rate,33914-3,Glomerular filtration rate,Ser/Plas,mL/min; ml/min/1.73m2,ML/MIN,{'ML/MIN': 1.0},0.0,9999.0,0.0,9999.0,1,False,,EGFR (TEST:FC500.1850),91,396
+creatinine,2160-0,Creatinine,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CREATININE (TEST:FC500.1700),91,398
+cholesterol,2093-3,Cholesterol,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHOLESTEROL (TEST:WCCHOL),90,407
+cholesterol_in_hdl,2085-9,Cholesterol.in HDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HIGH DENSITY LIPOPROTEIN (TEST:WCHDLP),89,406
+albumin,1751-7,Albumin,Ser/Plas,g/L;g/dL; mg/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ALBUMIN (TEST:SCALB),89,660
+protein,2885-2,Protein,Ser/Plas,g/L;g/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TOTAL PROTEIN (TEST:SCTP),89,658
+calcium,17861-6,Calcium,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CALCIUM (TEST:FC500.2900),88,393
+cholesterol_in_ldl,13457-7,Cholesterol.in LDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CALCULATED LDL (TEST:WCCLDL),88,405
+cholesterol_total/cholesterol_in_hdl,9830-1,Cholesterol.total/Cholesterol.in HDL,Ser/Plas,ratio,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CARDIAC RISK RATIO (TEST:WCCRISK),88,405
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GLUCOSE (TEST:FC500.2200),88,392
+sodium,2951-2,Sodium,Ser/Plas,mmol/L,MMOL/L,{'MMOL/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,SODIUM (TEST:FC500.0800),87,385
+urea_nitrogen,3094-0,Urea nitrogen,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,UREA NITROGEN (TEST:FC500.1500),87,393
+anion_gap,33037-3,Anion gap,Ser/Plas,mmol/L,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ANION GAP (TEST:FC500.1280),87,385
+carbon_dioxide,2028-9,Carbon dioxide,Ser/Plas,mmol/L,MMOL/L,{'MMOL/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TOTAL CO2 (TEST:FC500.1250),87,385
+chloride,2075-0,Chloride,Ser/Plas,mmol/L,MMOL/L,{'MMOL/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHLORIDE (TEST:FC500.1100),87,385
+potassium,2823-3,Potassium,Ser/Plas,mmol/L,MMOL/L,{'MMOL/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,POTASSIUM (TEST:FC500.0950),87,396
+calcium,17861-6,Calcium,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CALCIUM (TEST:SC400.2100),87,546
+glucose,2341-6,Glucose,Bld,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"GLUCOSE, POCT (TEST:EL:5800001335)",86,2271
+troponin_t_cardiac,67151-1,Troponin T.cardiac,Ser/Plas,ng/L,ng/L,{'ng/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"TROPONIN-T, HS GEN5 (TEST:WCTNTHS)",86,379
+lactate,2524-7,Lactate,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LACTIC ACID (MMOL/L) BLOOD (TEST:EL:5290002761),84,443
+phosphate,2777-1,Phosphate,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PHOS (TEST:MCSQ-PHOS4),82,258
+triglyceride,2571-8,Triglyceride,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TRIGLYCERIDE (TEST:FC500.6900),80,297
+cholesterol,2093-3,Cholesterol,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHOLESTEROL (TEST:FC500.7200),79,293
+cholesterol_in_hdl,2085-9,Cholesterol.in HDL,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HDL CHOL (TEST:FC500.7500),79,277
+cholesterol,2093-3,Cholesterol,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHOLESTEROL (TEST:WC326.2380),79,260
+cholesterol_in_ldl,13457-7,Cholesterol.in LDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LDL CHOLESTEROL (CALC) (TEST:WC326.2415),78,258
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GLUCOSE (TEST:MCSQ-GLU1),78,505
+cholesterol_total/cholesterol_in_hdl,9830-1,Cholesterol.total/Cholesterol.in HDL,Ser/Plas,ratio,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHOL/HDL RATIO (TEST:WC326.2420),78,258
+cholesterol_in_hdl,2085-9,Cholesterol.in HDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HDL CHOLESTEROL (TEST:WC326.2405),78,258
+albumin,1751-7,Albumin,Ser/Plas,g/L;g/dL; mg/dL,G/DL,{'G/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ALBUMIN (TEST:FC500.2750),76,219
+cholesterol,2093-3,Cholesterol,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHOLESTEROL (TEST:FC10.0315),76,451
+triglyceride,2571-8,Triglyceride,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TRIGLYCERIDE (TEST:FC10.0310),76,432
+troponin_t_cardiac,6598-7,Troponin T.cardiac,Ser/Plas,ug/L,NG/ML,{'NG/ML': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TROPONIN T (TEST:FC500.5100),76,339
+erythrocyte/blood,4544-3,Erythrocyte/Blood,Bld,L/L;%,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,OP HCT DELTA (TEST:MHSQ-HCTDLT),75,145
+protein,2885-2,Protein,Ser/Plas,g/L;g/dL,G/DL,{'G/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TOTAL PROTEIN (TEST:FC500.2600),75,214
+cholesterol_in_hdl,2085-9,Cholesterol.in HDL,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HDL CHOLESTEROL (TEST:FC10.0316),74,431
+cholesterol_in_ldl,13457-7,Cholesterol.in LDL,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LDL CHOL (CALC) (TEST:FC500.7700),74,226
+cholesterol_in_ldl,13457-7,Cholesterol.in LDL,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LDL CHOLESTEROL (TEST:FC10.0317),73,420
+hemoglobin,718-7,Hemoglobin,Bld,g/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HGB (TEST:EL:52000161432),73,411
+hemoglobin,718-7,Hemoglobin,Bld,g/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HEMOGLOBIN (TEST:BCHGB10),72,469
+platelets,777-3,Platelets,Bld,10*9/L,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLATELETS (TEST:MH112),72,314
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"GLUCOSE, PLASMA (TEST:WC331.0602)",71,326
+erythrocyte/blood,4544-3,Erythrocyte/Blood,Bld,L/L;%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HCT (TEST:MHPOL403),71,250
+phosphate,2777-1,Phosphate,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PHOSPHOROUS (TEST:WC331.1000),71,370
+hemoglobin,718-7,Hemoglobin,Bld,g/dL,g/dl,{'g/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HGB (TEST:MHPOL402),71,250
+platelets,777-3,Platelets,Bld,10*9/L,/mm3,{'/mm3': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLT (TEST:MHPOL407),71,250
+lactate_dehydrogenase,2532-0,Lactate dehydrogenase,Ser/Plas,arb U/L,U/L,{'U/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LACTIC DEHYDROGENASE (TEST:NCSQE-LDH),70,136
+cholesterol,2093-3,Cholesterol,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHOL (TEST:MCPOL122),69,242
+lactate,2524-7,Lactate,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLASMA LACTIC ACID (TEST:WCPLACT),68,291
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GLU (TEST:MCPOL104),68,227
+c_reactive_protein,1988-5,C reactive protein,Ser/Plas,mg/L;mcg/mL; mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CRP (TEST:NCCRPT),68,230
+creatinine,2160-0,Creatinine,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CREA (TEST:MCPOL106),68,212
+cholesterol_in_ldl,18262-6,Cholesterol.in LDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,DIRECT LDL (TEST:BCDRLDL),67,152
+cholesterol_in_ldl,18262-6,Cholesterol.in LDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,DIRECT LDL (TEST:MCSQ-DIRLDL),67,206
+lactate_dehydrogenase,2532-0,Lactate dehydrogenase,Ser/Plas,arb U/L,U/L,{'U/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LACTIC DEHYDROGENASE (TEST:FCLDH),67,163
+triglyceride,2571-8,Triglyceride,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TRIGLYCERIDE (TEST:WC326.2390),65,231
+potassium,2823-3,Potassium,Ser/Plas,mmol/L,meq/L,{'meq/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,K (TEST:MCPOL101),64,194
+urea_nitrogen,3094-0,Urea nitrogen,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,BUN (TEST:MCPOL105),64,209
+cholesterol_non_hdl,43396-1,Cholesterol.non HDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,NON-HDL CHOLESTEROL (TEST:WCNHDLC),63,191
+platelets,13056-7,Platelets,Plas,10*3/uL,K/uL,{'K/uL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLATELET - CITRATED (TEST:EL:5200003694),62,128
+natriuretic_peptide_b,30934-4,Natriuretic peptide.B,Ser/Plas,ng/L;pg/mL,PG/ML,{'PG/ML': 1.0},0.0,9999.0,0.0,9999.0,1,False,,B-NATRIURETIC PEP. (TEST:NCBNPCHF),62,228
+erythrocyte/blood,4544-3,Erythrocyte/Blood,Bld,L/L;%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HCT (TEST:MHSQ-HCT3),61,330
+hemoglobin,718-7,Hemoglobin,Bld,g/dL,g/dl,{'g/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HGB (TEST:MHSQ-HGB3),61,330
+platelets,777-3,Platelets,Bld,10*9/L,th/cumm,{'th/cumm': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLT (TEST:MHSQ-PLT3),61,330
+sodium,2951-2,Sodium,Ser/Plas,mmol/L,meq/L,{'meq/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,NA (TEST:MCPOL100),60,184
+cholesterol_in_hdl,2085-9,Cholesterol.in HDL,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HDL (TEST:MCPOL124),60,216
+cholesterol_total/cholesterol_in_hdl,9830-1,Cholesterol.total/Cholesterol.in HDL,Ser/Plas,ratio,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CARD R.R. (TEST:MCPOL201),60,216
+carbon_dioxide,2028-9,Carbon dioxide,Ser/Plas,mmol/L,meq/L,{'meq/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CO2 (TEST:MCPOL103),59,175
+phosphate,2777-1,Phosphate,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PHOSPHOROUS (TEST:SC400.2200),59,240
+chloride,2075-0,Chloride,Ser/Plas,mmol/L,meq/L,{'meq/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHLORIDE (TEST:MCPOL102),59,175
+cholesterol_in_ldl,18262-6,Cholesterol.in LDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,DIRECT LDL (TEST:EL:5200004506),58,125
+calcium_ionized,1994-3,Calcium.ionized,Bld,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,OIOCA (TEST:BC1-1314),58,687
+carbon_dioxide,2028-9,Carbon dioxide,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,OTCO2 (TEST:BC1-1308),58,687
+triglyceride,2571-8,Triglyceride,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TRIG (TEST:MCPOL123),57,210
+cholesterol_in_ldl,2089-1,Cholesterol.in LDL,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LDL (TEST:MCPOL200),56,205
+erythrocyte/blood,4544-3,Erythrocyte/Blood,Bld,L/L;%,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,OP HCT DELTA (TEST:EL:52900002296),55,110
+troponin_t_cardiac,6598-7,Troponin T.cardiac,Ser/Plas,ug/L,ng/mL,{'ng/mL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TROPONIN-T (TEST:NCSQE-TNT),53,268
+lactate_dehydrogenase,2532-0,Lactate dehydrogenase,Ser/Plas,arb U/L,U/L,{'U/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LD/LDH (TEST:WC331.1500),52,127
+hemoglobin,20509-6,Hemoglobin,Bld,g/dL,gm/dl,{'gm/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HGB (TEST:EL:5200006745),51,111
+phosphate,2777-1,Phosphate,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PHOSPHORUS (TEST:FC500.3000),51,186
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GLUCOSE (TEST:WC326.0150),50,130
+glucose^post_cfst,1558-6,Glucose^post CFst,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GLUCOSE FASTING (TEST:NCGLUF),50,154
+lactate_dehydrogenase,2532-0,Lactate dehydrogenase,Ser/Plas,arb U/L,U/L,{'U/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LACTIC DEHYDROGENASE (TEST:WCLDH),49,170
+c_reactive_protein,30522-7,C reactive protein,Ser/Plas,mcg/mL; mg/dL; mg/L,mg/L,{'mg/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"CRP, HIGH SENSITIVITY (TEST:DCSQE-HSCRP)",49,159
+natriuretic_peptide_b,30934-4,Natriuretic peptide.B,Ser/Plas,ng/L;pg/mL,pg/mL,{'pg/mL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,BRAIN NATRIURETIC PEPTIDE (TEST:BC1-1287),48,166
+c_reactive_protein,30522-7,C reactive protein,Ser/Plas,mcg/mL; mg/dL; mg/L,mg/L,{'mg/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"CRP, HIGH SENSITIVITY (TEST:FCHSCRP)",48,165
+albumin,1751-7,Albumin,Ser/Plas,g/L;g/dL; mg/dL,g/dl,{'g/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ALBUMIN (TEST:MCPOL115),46,149
+hemoglobin,718-7,Hemoglobin,Bld,g/dL,GM/DL,{'GM/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HEMOGLOBIN (TEST:FH20.00351),45,116
+platelets,777-3,Platelets,Bld,10*9/L,K/MM3,{'K/MM3': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLT (TEST:FH20.00701),45,116
+erythrocyte/blood,20570-8,Erythrocyte/Blood,Bld,%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HEMATOCRIT (TEST:FH20.00401),45,116
+phosphate,2777-1,Phosphate,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PHOSPHORUS (TEST:MCSQ-PHOS1),43,215
+protein,2885-2,Protein,Ser/Plas,g/L;g/dL,g/dl,{'g/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TP (TEST:MCPOL114),42,137
+calcium,17861-6,Calcium,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CALCIUM (TEST:MCPOL118),42,136
+troponin_i_cardiac,10839-9,Troponin I.cardiac,Ser/Plas,ug/L;ng/mL,NG/ML,{'NG/ML': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TROPONIN I (TEST:FC10.0284),41,141
+phosphate,2777-1,Phosphate,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PHOS (TEST:MCPOL119),41,133
+creatinine,2160-0,Creatinine,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CREATININE (TEST:VCSQE-CRE),39,131
+phosphate,2777-1,Phosphate,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PHOSPHORUS (TEST:WC326.2195),39,205
+glomerular_filtration_rate,69405-9,Glomerular filtration rate,Ser/Plas/Bld,mL/min,mL/min/1.73m2,{'mL/min/1.73m2': 1.0},0.0,9999.0,0.0,9999.0,1,False,,EGFR (TEST:VCSQE-EGFR),39,131
+troponin_t_cardiac,6598-7,Troponin T.cardiac,Ser/Plas,ug/L,ng/mL,{'ng/mL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TROPONIN T (TEST:WC326.0279),38,97
+platelets,777-3,Platelets,Bld,10*9/L,K/uL,{'K/uL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLATELET (TEST:NCPLT),37,96
+erythrocyte/blood,4544-3,Erythrocyte/Blood,Bld,L/L;%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HCT (TEST:NCHCT),37,96
+hemoglobin,718-7,Hemoglobin,Bld,g/dL,G/DL,{'G/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HEMOGLOBIN (TEST:NCHGB),37,96
+urea_nitrogen,3094-0,Urea nitrogen,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,BUN (TEST:VCSQE-BUN),36,122
+phosphate,2777-1,Phosphate,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PHOSPHORUS (TEST:SCPHOS),36,180
+glomerular_filtration_rate,69405-9,Glomerular filtration rate,Ser/Plas/Bld,mL/min,mL/min/1.73m2,{'mL/min/1.73m2': 1.0},0.0,9999.0,0.0,9999.0,1,False,,EGFR (TEST:DCSQE-PEGFR),35,556
+creatinine,2160-0,Creatinine,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CREATININE (TEST:DCSQE-PCRE),35,556
+urea_nitrogen,3094-0,Urea nitrogen,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,BUN (TEST:DCSQE-PBUN),35,556
+sodium,2951-2,Sodium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,SODIUM (TEST:DCSQE-PNA),34,552
+potassium,2823-3,Potassium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,POTASSIUM (TEST:DCSQE-PK),34,555
+anion_gap,10466-1,Anion gap,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ANION GAP (TEST:DCSQE-PANION),34,551
+natriuretic_peptide_b_prohormone_n-terminal,33762-6,Natriuretic peptide.B prohormone N-Terminal,Ser/Plas,pg/mL,PG/ML,{'PG/ML': 1.0},0.0,9999.0,0.0,9999.0,1,False,,NT-PROBNP (TEST:FC500.5200),34,79
+troponin_i_cardiac,10839-9,Troponin I.cardiac,Ser/Plas,ug/L;ng/mL,ng/ml,{'ng/ml': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"TROPONIN I, PLASMA (TEST:WC602.20101)",34,94
+carbon_dioxide,2028-9,Carbon dioxide,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CARBON DIOXIDE (TEST:DCSQE-PLCO2),34,552
+chloride,2075-0,Chloride,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHLORIDE (TEST:DCSQE-PCL),34,552
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GLUCOSE (TEST:DCSQE-PGLU),34,552
+triglyceride,2571-8,Triglyceride,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,.TRIGLYCERIDE (TEST:WC331.2995),33,86
+lactate_dehydrogenase,2532-0,Lactate dehydrogenase,Ser/Plas,arb U/L,IU/L,{'IU/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LDH (TEST:NCLDH),33,63
+calcium_ionized,1995-0,Calcium.ionized,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,IOCA (TEST:EL:5200007614),33,496
+anion_gap,10466-1,Anion gap,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ANION GAP (TEST:VCSQE-ANION),32,112
+c_reactive_protein,1988-5,C reactive protein,Ser/Plas,mg/L;mcg/mL; mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,C-REACTIVE PROTEIN (TEST:WC451.1600),32,78
+platelets,777-3,Platelets,Bld,10*9/L,K/uL,{'K/uL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLATELET (TEST:VHSQE-PLT),32,115
+potassium,2823-3,Potassium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,POTASSIUM (TEST:VCSQE-K),32,112
+troponin_t_cardiac,6598-7,Troponin T.cardiac,Ser/Plas,ug/L,ng/mL,{'ng/mL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TROPONIN T (TEST:NCTROPT),32,160
+chloride,2075-0,Chloride,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHLORIDE (TEST:VCSQE-CL),32,112
+hemoglobin,718-7,Hemoglobin,Bld,g/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HGB (TEST:VHSQE-HGB),32,115
+carbon_dioxide,2028-9,Carbon dioxide,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CARBON DIOXIDE (TEST:VCSQE-CO2),32,112
+erythrocyte/blood,4544-3,Erythrocyte/Blood,Bld,L/L;%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HCT (TEST:VHSQE-HCT),32,115
+calcium,17861-6,Calcium,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CALCIUM (TEST:VCSQE-CA),32,113
+sodium,2951-2,Sodium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,SODIUM (TEST:VCSQE-NA),32,112
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GLUCOSE (TEST:MCGL),31,275
+troponin_t_cardiac,6598-7,Troponin T.cardiac,Ser/Plas,ug/L,ng/mL,{'ng/mL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TROPONIN-T (TEST:WCTNT),31,73
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GLUCOSE (TEST:VCSQE-GLU),31,112
+hemoglobin,718-7,Hemoglobin,Bld,g/dL,gm/dl,{'gm/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HEMOGLOBIN (TEST:WH101.0296),30,111
+erythrocyte/blood,4544-3,Erythrocyte/Blood,Bld,L/L;%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HEMATOCRIT (TEST:WH101.0355),30,111
+cholesterol_in_ldl,2089-1,Cholesterol.in LDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LDL CHOLESTEROL (TEST:WC326.2410),30,71
+hemoglobin,718-7,Hemoglobin,Bld,g/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HGB (TEST:DCSQE-HGB),29,47
+protein,2885-2,Protein,Ser/Plas,g/L;g/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,SERUM TOTAL PROTEIN (TEST:NISQE-TPCI),29,47
+protein,2885-2,Protein,Ser/Plas,g/L;g/dL,G/DL,{'G/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TOTAL PROTEIN (TEST:NCTP1),29,65
+glucose,2341-6,Glucose,Bld,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"GLUCOSE, POCT (TEST:EL:5800001347)",29,1634
+erythrocyte/blood,4544-3,Erythrocyte/Blood,Bld,L/L;%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HCT (TEST:DCSQE-HCT),29,47
+glomerular_filtration_rate,69405-9,Glomerular filtration rate,Ser/Plas/Bld,mL/min,mL/min/BSA,{'mL/min/BSA': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GFR (ESTIMATED) BLOOD (TEST:EL:5200003003),29,93
+phosphate,2777-1,Phosphate,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PHOSPHORUS (TEST:FC10.0240),29,246
+triglyceride,2571-8,Triglyceride,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TRIGLYCERIDE (TEST:WC326.2395),29,72
+platelets,777-3,Platelets,Bld,10*9/L,K/uL,{'K/uL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLT (TEST:DCSQE-PLT),29,47
+glomerular_filtration_rate,33914-3,Glomerular filtration rate,Ser/Plas,mL/min; ml/min/1.73m2,ML/MIN,{'ML/MIN': 1.0},0.0,9999.0,0.0,9999.0,1,False,,EGFR (TEST:FC500.1750),28,49
+lactate,2524-7,Lactate,Ser/Plas,mmol/L,MMOL/L,{'MMOL/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LACTIC ACID (TEST:FC500.4500),28,74
+platelets,777-3,Platelets,Bld,10*9/L,K/UL,{'K/UL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLATELET COUNT (TEST:WH101.0895),28,109
+prealbumin,14338-8,Prealbumin,Ser/Plas,g/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PREALBUMIN (TEST:FCPREA),28,63
+calcium_ionized,1994-3,Calcium.ionized,Bld,mmol/L,mmol/l,{'mmol/l': 1.0},0.0,9999.0,0.0,9999.0,1,False,,IONIC CALCIUM (TEST:MCIC),28,234
+creatinine,2160-0,Creatinine,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CREATININE (TEST:FC500.1600),28,49
+cholesterol_in_ldl,13457-7,Cholesterol.in LDL,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LDL CHOL (CALC) (TEST:FC500.7750),26,49
+cholesterol_in_hdl,2085-9,Cholesterol.in HDL,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HDL CHOL (TEST:FC500.7550),26,51
+triglyceride,2571-8,Triglyceride,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TRIGLYCERIDE (TEST:FC500.6950),26,51
+prealbumin,14338-8,Prealbumin,Ser/Plas,g/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PREALBUMIN (TEST:SC400.2755),26,156
+prealbumin,14338-8,Prealbumin,Ser/Plas,g/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PREALBUMIN (TEST:SCPREA),26,141
+cholesterol,2093-3,Cholesterol,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHOLESTEROL (TEST:FC500.7250),26,51
+urea_nitrogen,3094-0,Urea nitrogen,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,BUN (TEST:NHBUN),25,70
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GLUCOSE (TEST:NHGLU),25,70
+carbon_dioxide,2028-9,Carbon dioxide,Ser/Plas,mmol/L,MEQ/L,{'MEQ/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CARBON DIOXIDE (TEST:NHCO2),25,70
+chloride,2075-0,Chloride,Ser/Plas,mmol/L,MEQ/L,{'MEQ/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHLORIDE (TEST:NHCL),25,70
+sodium,2951-2,Sodium,Ser/Plas,mmol/L,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,SMEAR (TEST:EL:5200013016),25,48
+glomerular_filtration_rate,33914-3,Glomerular filtration rate,Ser/Plas,mL/min; ml/min/1.73m2,ml/min,{'ml/min': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GFR_X1.2 IF AFR (TEST:NHGFRNAA),25,70
+c_reactive_protein,30522-7,C reactive protein,Ser/Plas,mcg/mL; mg/dL; mg/L,MG/L,{'MG/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"C-REACTIVE PROTEIN, HIGH SENS (TEST:WC451.1603)",25,77
+lipoprotein_(little_a),43583-4,Lipoprotein (little a),Ser/Plas,nmol/L,nmol/L,{'nmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LIPOPROTEIN (A) AML (TEST:MCSQ-LPAAML),25,44
+anion_gap,33037-3,Anion gap,Ser/Plas,mmol/L,meq/L,{'meq/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ANION GAP (TEST:NHAGAP),25,70
+lipoprotein_(little_a),43583-4,Lipoprotein (little a),Ser/Plas,nmol/L,nmol/L,{'nmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"LIPOPROTEIN (A), AML (TEST:MCSQ-LPAAML)",25,44
+potassium,2823-3,Potassium,Ser/Plas,mmol/L,MEQ/L,{'MEQ/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,POTASSIUM (TEST:NHK),25,70
+sodium,2951-2,Sodium,Ser/Plas,mmol/L,MEQ/L,{'MEQ/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,SODIUM (TEST:NHNA),25,70
+c_reactive_protein,1988-5,C reactive protein,Ser/Plas,mg/L;mcg/mL; mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,C-REACTIVE PROTEIN (TEST:WC326.2740),25,66
+creatinine,2160-0,Creatinine,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CREATININE (TEST:NHCREAT),25,70
+natriuretic_peptide_b_prohormone_n-terminal,33762-6,Natriuretic peptide.B prohormone N-Terminal,Ser/Plas,pg/mL,pg/mL,{'pg/mL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,NT-PROBNP (TEST:DCSQE-PRBNP),24,56
+protein,2885-2,Protein,Ser/Plas,g/L;g/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TOTAL PROTEIN (TEST:FITP),24,37
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GLUCOSE (TEST:MC.BS),23,104
+lactate_dehydrogenase,2532-0,Lactate dehydrogenase,Ser/Plas,arb U/L,U/L,{'U/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LDH (TEST:FC500.4050),23,82
+natriuretic_peptide_b_prohormone_n-terminal,33762-6,Natriuretic peptide.B prohormone N-Terminal,Ser/Plas,pg/mL,pg/ml,{'pg/ml': 1.0},0.0,9999.0,0.0,9999.0,1,False,,NT PRO BNP (TEST:WC326.0807),22,41
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GLUCOSE POCT (TEST:FCGLUP2),22,520
+hemoglobin,718-7,Hemoglobin,Bld,g/dL,g/dl,{'g/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HGB (TEST:MH.HGB),21,95
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,RAPID GLUCOSE (TEST:DCSQE-RGLU),21,39
+cholesterol,2093-3,Cholesterol,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHOLESTEROL (TEST:DHSQE-CHOL),21,34
+triglyceride,2571-8,Triglyceride,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TRIGLYCERIDES (TEST:DHSQE-TRIG),21,34
+cholesterol_in_ldl,18262-6,Cholesterol.in LDL,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LDL CHOL (DIRECT) (TEST:FC500.7900),21,57
+erythrocyte/blood,4544-3,Erythrocyte/Blood,Bld,L/L;%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HCT (TEST:MH.HCT),21,95
+platelets,777-3,Platelets,Bld,10*9/L,th/cumm,{'th/cumm': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLT (TEST:MH.PLT),21,95
+erythrocyte/blood,4544-3,Erythrocyte/Blood,Bld,L/L;%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HCT (TEST:MH'HCT),20,42
+urea_nitrogen,3094-0,Urea nitrogen,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,UREA NITROGEN (TEST:MC.BUN),20,103
+cholesterol,2093-3,Cholesterol,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHOLESTEROL (TEST:MC.CHOL),20,70
+hemoglobin,718-7,Hemoglobin,Bld,g/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,SJP-HGB (TEST:BH1-359),20,218
+hemoglobin_free,721-1,Hemoglobin.free,Plas,mg/L,mg%,{'mg%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLASMA HEMOGLOBIN (TEST:BHPHGB),20,314
+cholesterol_in_ldl,2089-1,Cholesterol.in LDL,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LDL CHOLESTEROL (TEST:WC331.3355),20,31
+erythrocyte/blood,4544-3,Erythrocyte/Blood,Bld,L/L;%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,SJP-HCT (TEST:BH1-360),20,218
+platelets,777-3,Platelets,Bld,10*9/L,th/cumm,{'th/cumm': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLT (TEST:MH'PLT),20,42
+troponin_t_cardiac,67151-1,Troponin T.cardiac,Ser/Plas,ng/L,ng/L,{'ng/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"TROPONIN-T, HS GEN5 (TEST:DCSQE-TNTHS)",20,74
+hemoglobin,718-7,Hemoglobin,Bld,g/dL,g/dl,{'g/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HGB (TEST:MH'HGB),20,42
+platelets,777-3,Platelets,Bld,10*9/L,K/uL,{'K/uL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,SJP-PLT (TEST:BH1-365),20,218
+creatinine,2160-0,Creatinine,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CREATININE (TEST:MC.CRE),19,100
+platelets,13056-7,Platelets,Plas,10*3/uL,K/uL,{'K/uL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLATELET - CITRATED (TEST:BHCPLT),19,60
+natriuretic_peptide_b_prohormone_n-terminal,33762-6,Natriuretic peptide.B prohormone N-Terminal,Ser/Plas,pg/mL,pg/mL,{'pg/mL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,NT-PRO BNP (TEST:NCNTPRO),19,60
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GLUCOSE POCT (TEST:NCSQE-GLUP3),19,318
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GLUCOSE POCT (TEST:WCGLUP5),19,179
+potassium,2823-3,Potassium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,POTASSIUM (TEST:MC.K),19,97
+platelets,777-3,Platelets,Bld,10*9/L,K/UL,{'K/UL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLATELET COUNT (TEST:WH101.0902),18,230
+carbon_dioxide,2028-9,Carbon dioxide,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CARBON DIOXIDE (TEST:MC.CO2),18,77
+c_reactive_protein,30522-7,C reactive protein,Ser/Plas,mcg/mL; mg/dL; mg/L,mg/L,{'mg/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"CRP, HIGH SENSITIVITY (TEST:WCHSCRP)",18,65
+sodium,2951-2,Sodium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,SODIUM (TEST:MC.NA),18,82
+c_reactive_protein,30522-7,C reactive protein,Ser/Plas,mcg/mL; mg/dL; mg/L,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CARDIO CRP (TEST:NCCCRP),18,46
+chloride,2075-0,Chloride,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHLORIDE (TEST:MC.CL),18,81
+natriuretic_peptide_b,30934-4,Natriuretic peptide.B,Ser/Plas,ng/L;pg/mL,PG/ML,{'PG/ML': 1.0},0.0,9999.0,0.0,9999.0,1,False,,BRAIN NATRIURETIC PEPTIDE (TEST:SC200.1151),17,65
+calcium_ionized,1994-3,Calcium.ionized,Bld,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,IOCA (TEST:FCIOCA),17,57
+natriuretic_peptide_b,30934-4,Natriuretic peptide.B,Ser/Plas,ng/L;pg/mL,PG/ML,{'PG/ML': 1.0},0.0,9999.0,0.0,9999.0,1,False,,B-TYPE NATRIURETIC PEPTIDE (TEST:WC331.6060),17,28
+troponin_t_cardiac,6598-7,Troponin T.cardiac,Ser/Plas,ug/L,NG/ML,{'NG/ML': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TROPONIN T (TEST:FC500.5150),17,45
+troponin_i_cardiac,10839-9,Troponin I.cardiac,Ser/Plas,ug/L;ng/mL,ng/mL,{'ng/mL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TROPONIN-I (TEST:MCTROPON),17,39
+lactate_dehydrogenase,2532-0,Lactate dehydrogenase,Ser/Plas,arb U/L,U/L,{'U/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LD/LDH (TEST:WC326.2290),16,36
+cholesterol_in_ldl,18262-6,Cholesterol.in LDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,DIRECT LDL (TEST:NCSQE-DRLDL),16,28
+lactate,2524-7,Lactate,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLASMA LACTIC ACID (TEST:NCSQE-PLACT),16,54
+platelets,13056-7,Platelets,Plas,10*3/uL,K/uL,{'K/uL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLATELET - CITRATED (TEST:MHSQ-CPLT),16,59
+cholesterol_in_hdl,2085-9,Cholesterol.in HDL,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HIGH DENSITY LIPOPROTEIN (TEST:MC.HDL),16,62
+glucose^post_cfst,1558-6,Glucose^post CFst,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GLUCOSE FASTING (TEST:WC331.0500),16,24
+lactate_dehydrogenase,2532-0,Lactate dehydrogenase,Ser/Plas,arb U/L,U/L,{'U/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LACTIC DEHYDROGENASE (TEST:FC10.0265),16,66
+lactate,2524-7,Lactate,Ser/Plas,mmol/L,MMOL/L,{'MMOL/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LACTIC ACID (TEST:NCLAC1),15,51
+lipoprotein_(little_a),10835-7,Lipoprotein (little a),Ser/Plas,mg/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LIPOPROTEIN A (TEST:MCSQ-LPAM),15,17
+apolipoprotein_a-i,1869-7,Apolipoprotein A-I,Ser/Plas,g/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,APOLIPOPROTEIN A1 (TEST:MCSQ-I92688),15,32
+lactate,32693-4,Lactate,Bld,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"LACTATE, WHOLE BLOOD (TEST:SCLACTB)",15,30
+cholesterol_in_ldl,2089-1,Cholesterol.in LDL,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LDL CHOLESTEROL SCREENING (TEST:FC500.7800),14,24
+cholesterol,2093-3,Cholesterol,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHOLESTEROL SCREENING (TEST:FC500.7300),14,24
+cholesterol_in_hdl,2085-9,Cholesterol.in HDL,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HDL SCREENING (TEST:FC500.7600),14,24
+hemoglobin_free,721-1,Hemoglobin.free,Plas,mg/L,mg%,{'mg%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLASMA HEMOGLOBIN (TEST:EL:5200010656),14,360
+triglyceride,2571-8,Triglyceride,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TRIGLYCERIDE SCREENING (TEST:FC500.7000),14,24
+glomerular_filtration_rate,33914-3,Glomerular filtration rate,Ser/Plas,mL/min; ml/min/1.73m2,ml/min,{'ml/min': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"GFR,IF AFRICAN AMER (TEST:NCGFRAA)",14,23
+erythrocyte/blood,4544-3,Erythrocyte/Blood,Bld,L/L;%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HCT (ISTAT) (TEST:NCHCTIS),14,92
+lactate,2524-7,Lactate,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLASMA LACTIC ACID (TEST:DCSQE-PLACT),13,20
+prealbumin,14338-8,Prealbumin,Ser/Plas,g/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PREALBUMIN (TEST:NCSQE-PRALBM),13,99
+c_reactive_protein,30522-7,C reactive protein,Ser/Plas,mcg/mL; mg/dL; mg/L,mg/L,{'mg/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HS-CRP (TEST:FC10.0829),13,42
+cholesterol_in_ldl,2089-1,Cholesterol.in LDL,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LOW DENSITY LIPOPROTEIN (TEST:MC.LDL),13,54
+lipoprotein_(little_a),10835-7,Lipoprotein (little a),Ser/Plas,mg/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LIPOA (TEST:BC1-776),13,21
+triglyceride,2571-8,Triglyceride,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TRIGLYCERIDES (TEST:MC.TRIG),13,56
+glomerular_filtration_rate,48643-1,Glomerular filtration rate,Ser/Plas/Bld,mL/min; ml/min/1.73m2,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,.GLOM FILT RATE AFRICAN AMERIC (TEST:WC331.0821),13,24
+creatinine,2160-0,Creatinine,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,".CREATININE,PLASMA (TEST:WC331.0796)",13,24
+glomerular_filtration_rate,48642-3,Glomerular filtration rate,Ser/Plas/Bld,mL/min; ml/min/1.73m2,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,.GLOM FILT RATE NON-AFRICAN AM (TEST:WC331.0811),13,24
+c_reactive_protein,1988-5,C reactive protein,Ser/Plas,mg/L;mcg/mL; mg/dL,mg/L,{'mg/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,C-REACTIVE PROTEIN (TEST:FC10.0828),12,17
+protein,2885-2,Protein,Ser/Plas,g/L;g/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TOTAL PROTEIN (TEST:DHSQE-TP),12,18
+erythrocyte/blood,20570-8,Erythrocyte/Blood,Bld,%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HCT (ISTAT) (TEST:EL:5200006607),12,32
+lipoprotein_(little_a),10835-7,Lipoprotein (little a),Ser/Plas,mg/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LIPOPROTEIN A (TEST:BCLPAM),12,17
+prealbumin,14338-8,Prealbumin,Ser/Plas,g/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PREALBUMIN (TEST:EL:5200011046),12,278
+albumin,1751-7,Albumin,Ser/Plas,g/L;g/dL; mg/dL,G/DL,{'G/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ALBUMIN (TEST:NHALB),12,30
+protein,2885-2,Protein,Ser/Plas,g/L;g/dL,G/DL,{'G/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TOTAL PROTEIN (TEST:NHTP),12,30
+potassium,2823-3,Potassium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,POTASSIUM (TEST:EL:5200007763),12,32
+lactate,2524-7,Lactate,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LACTATE (TEST:WC326.0800),12,22
+phosphate,2777-1,Phosphate,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PHOSPHORUS (TEST:FC500.3050),12,45
+lactate,32693-4,Lactate,Bld,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"LACTATE, WHOLE BLOOD (TEST:NCSQE-LACTB)",12,61
+cholesterol_in_ldl,18262-6,Cholesterol.in LDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,DIRECT LDL (TEST:FCDRLDL),12,18
+c_reactive_protein,30522-7,C reactive protein,Ser/Plas,mcg/mL; mg/dL; mg/L,mg/L,{'mg/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"C-REACTIVE PROTEIN, HIGH SEN (TEST:WC326.2745)",12,25
+cholesterol_in_ldl,18262-6,Cholesterol.in LDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,DIRECT LDL (TEST:NCDRLDL),11,21
+troponin_i_cardiac,10839-9,Troponin I.cardiac,Ser/Plas,ug/L;ng/mL,NG/ML,{'NG/ML': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TROPONIN I (TEST:NHTROPI),11,22
+calcium,17861-6,Calcium,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CALCIUM (TEST:NHCA),11,22
+phosphate,2777-1,Phosphate,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PHOSPHOROUS (TEST:NHPHOS),11,22
+natriuretic_peptide_b,30934-4,Natriuretic peptide.B,Ser/Plas,ng/L;pg/mL,pg/mL,{'pg/mL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,B-TYPE NATR PEPTIDE (TEST:BCBNPSHC),11,24
+c_reactive_protein,30522-7,C reactive protein,Ser/Plas,mcg/mL; mg/dL; mg/L,mg/L,{'mg/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"CRP, HIGH SENSITIVITY (TEST:NCSQE-HSCRP)",11,32
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GLUCOSE (TEST:WCPGLU),11,82
+apolipoprotein_a-i,1869-7,Apolipoprotein A-I,Ser/Plas,g/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"APOLIPOPROTEIN A1, S BLOOD (TEST:EL:5290003481)",10,15
+prealbumin,14338-8,Prealbumin,Ser/Plas,g/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PREALBUMIN (TEST:NCPALB1),10,51
+apolipoprotein_a-i,1869-7,Apolipoprotein A-I,Ser/Plas,g/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,APOLIPOPROTEIN A1 (TEST:BCFIBRO9),10,14
+cholesterol_in_hdl,2085-9,Cholesterol.in HDL,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"HIGH DENSITY LIPOPROTEIN,LL (TEST:MCHDL,LL)",10,29
+carbon_dioxide,2028-9,Carbon dioxide,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CO2 (TEST:DHSQE-CO2),10,14
+cholesterol,2093-3,Cholesterol,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"CHOLESTEROL,LL (TEST:MCCHOLES)",10,29
+albumin,1751-7,Albumin,Ser/Plas,g/L;g/dL; mg/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ALBUMIN (TEST:VCSQE-ALB),10,15
+potassium,2823-3,Potassium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,POTASSIUM (TEST:DHSQE-K),10,14
+anion_gap,10466-1,Anion gap,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ANION GAP (TEST:DHSQE-ANION),10,14
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GLUCOSE (TEST:DHSQE-GLU),10,14
+urea_nitrogen,3094-0,Urea nitrogen,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,".UREA NITROGEN (BUN), PLASMA (TEST:WC331.0780)",10,19
+calcium,17861-6,Calcium,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CALCIUM (TEST:DHSQE-CA),10,14
+sodium,2951-2,Sodium,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,SODIUM (TEST:DHSQE-NA),10,14
+hemoglobin_free,721-1,Hemoglobin.free,Plas,mg/L,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLASMA HGB (TEST:BH1-117),10,174
+chloride,2075-0,Chloride,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHLORIDE (TEST:DHSQE-CL),10,14
+urea_nitrogen,3094-0,Urea nitrogen,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,BUN (TEST:DHSQE-BUN),10,14
+cholesterol_in_ldl,18262-6,Cholesterol.in LDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,DIRECT LDL (TEST:DCSQE-DRLDL),10,29
+urea_nitrogen,3094-0,Urea nitrogen,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,BUN (TEST:EL:5200002391),10,23
+creatinine,2160-0,Creatinine,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CREATININE (TEST:DHSQE-CRE),10,14
+c_reactive_protein,1988-5,C reactive protein,Ser/Plas,mg/L;mcg/mL; mg/dL,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,C-REACTIVE PROTEIN (TEST:SC800.3305),10,65
+lactate,2524-7,Lactate,Ser/Plas,mmol/L,mmol/l,{'mmol/l': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LACTIC ACID (TEST:MCSQ-LACT),10,11
+protein,2885-2,Protein,Ser/Plas,g/L;g/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TOTAL PROTEIN (TEST:VCSQE-TP),9,13
+calcium,17861-6,Calcium,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CALCIUM (TEST:MC.CA),9,22
+c_reactive_protein,1988-5,C reactive protein,Ser/Plas,mg/L;mcg/mL; mg/dL,mg/L,{'mg/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,C REACTIVE PROTEIN (TEST:MCSQ-CRP),9,22
+apolipoprotein_a-i,1869-7,Apolipoprotein A-I,Ser/Plas,g/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,APOLOPPROTEIN A1 BLOOD (TEST:EL:5200017153),9,20
+cholesterol_in_ldl,18262-6,Cholesterol.in LDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LDL (TEST:NCDLDL1),9,11
+cholesterol_in_lipoprotein_(little_a),35387-0,Cholesterol.in lipoprotein (little a),Ser/Plas,,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LPA INTERPRETATION (TEST:MCSQ-LPAINT),9,12
+cholesterol_in_ldl,18262-6,Cholesterol.in LDL,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"DIRECT LDL,LL (TEST:MCLDLDIR)",9,14
+lactate,2524-7,Lactate,Ser/Plas,mmol/L,MMOL/L,{'MMOL/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"LACTIC ACID, PLASMA (TEST:WC331.6901)",9,18
+prealbumin,14338-8,Prealbumin,Ser/Plas,g/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PREALBUMIN (TEST:WCPREA),9,21
+calcium_ionized,1995-0,Calcium.ionized,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,IOCA (TEST:DCSQE-IOCA),8,15
+lactate_dehydrogenase_5/lactate_dehydrogenase_total,2548-6,Lactate dehydrogenase 5/Lactate dehydrogenase.total,Ser/Plas,%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LDH5 (TEST:BC1-36),8,11
+lactate_dehydrogenase_3/lactate_dehydrogenase_total,2542-9,Lactate dehydrogenase 3/Lactate dehydrogenase.total,Ser/Plas,%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LDH3 (TEST:BC1-34),8,11
+lactate_dehydrogenase_2/lactate_dehydrogenase_total,2539-5,Lactate dehydrogenase 2/Lactate dehydrogenase.total,Ser/Plas,%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LDH2 (TEST:BC1-33),8,11
+lactate_dehydrogenase_1/lactate_dehydrogenase_total,2536-1,Lactate dehydrogenase 1/Lactate dehydrogenase.total,Ser/Plas,%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LDH1 (TEST:BC1-32),8,12
+hemoglobin_free,721-1,Hemoglobin.free,Plas,mg/L,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLASMA HEMOGLOBIN (TEST:MCSQ-PLHGB),8,101
+chloride,2075-0,Chloride,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHLORIDE (TEST:EL:5200003259),8,21
+prealbumin,14338-8,Prealbumin,Ser/Plas,g/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PREALBUMIN (TEST:DCSQE-PRALBM),8,24
+troponin_i_cardiac,10839-9,Troponin I.cardiac,Ser/Plas,ug/L;ng/mL,ng/mL,{'ng/mL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"TROPONIN-I,B&W (TEST:MCTROP-I)",8,13
+troponin_i_cardiac,10839-9,Troponin I.cardiac,Ser/Plas,ug/L;ng/mL,ng/mL,{'ng/mL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TROPONIN-I BLOOD (TEST:EL:5200018209),8,23
+lactate_dehydrogenase_4/lactate_dehydrogenase_total,2545-2,Lactate dehydrogenase 4/Lactate dehydrogenase.total,Ser/Plas,%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LDH4 (TEST:BC1-35),8,11
+lactate,32693-4,Lactate,Bld,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,OLACTATE (TEST:BC1-2039),8,100
+hemoglobin,718-7,Hemoglobin,Bld,g/dL,g/dl,{'g/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HGB (TEST:MH;HGB),8,31
+albumin,1751-7,Albumin,Ser/Plas,g/L;g/dL; mg/dL,g/dl,{'g/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ALBUMIN (TEST:MC.ALB),8,15
+platelets,777-3,Platelets,Bld,10*9/L,th/cumm,{'th/cumm': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLT (TEST:MH;PLT),8,31
+erythrocyte/blood,20570-8,Erythrocyte/Blood,Bld,%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HCT (ISTAT) (TEST:NCSQE-HCT7),8,27
+erythrocyte/blood,4544-3,Erythrocyte/Blood,Bld,L/L;%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HCT (TEST:MH;HCT),8,31
+prealbumin,14338-8,Prealbumin,Ser/Plas,g/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PREALBUMIN (TEST:MCSQ-PRALBM),7,31
+calcium_ionized,1994-3,Calcium.ionized,Bld,mmol/L,MMOL/L,{'MMOL/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,IONIZED CALCIUM ISTAT (TEST:NCICAIS),7,82
+phosphate,2777-1,Phosphate,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PHOSPHORUS (TEST:MC.PHOS),7,16
+natriuretic_peptide_b_prohormone_n-terminal,33762-6,Natriuretic peptide.B prohormone N-Terminal,Ser/Plas,pg/mL,pg/mL,{'pg/mL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,NT-PROBNP (TEST:SCPRBNP),7,33
+hemoglobin,718-7,Hemoglobin,Bld,g/dL,G/DL,{'G/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HGB (ISTAT) (TEST:NCHGBIS),7,10
+lactate_dehydrogenase,2532-0,Lactate dehydrogenase,Ser/Plas,arb U/L,U/L,{'U/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LDH (TEST:FC500.4100),7,14
+troponin_i_cardiac,10839-9,Troponin I.cardiac,Ser/Plas,ug/L;ng/mL,NG/ML,{'NG/ML': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TROPONIN I (NSMC) (TEST:SC400.4555),7,22
+lactate_dehydrogenase,2532-0,Lactate dehydrogenase,Ser/Plas,arb U/L,U/L,{'U/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LDH (TEST:DHSQE-LDH),7,10
+lactate_dehydrogenase,2532-0,Lactate dehydrogenase,Ser/Plas,arb U/L,U/L,{'U/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LACTIC DEHYDROGENASE (TEST:MC.LDH),7,16
+albumin,1751-7,Albumin,Ser/Plas,g/L;g/dL; mg/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ALBUMIN (TEST:DHSQE-ALB),7,10
+glucose,2341-6,Glucose,Bld,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"GLUCOSE, POCT (TEST:EL:5800001336)",7,49
+glucose^post_cfst,1558-6,Glucose^post CFst,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GLUCOSE FASTING (TEST:WC326.2150),6,8
+hemoglobin,718-7,Hemoglobin,Bld,g/dL,gm/dl,{'gm/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HGB (TEST:NCSQE-HGB7),6,10
+glomerular_filtration_rate,33914-3,Glomerular filtration rate,Ser/Plas,mL/min; ml/min/1.73m2,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,EST GLOMERULAR FILTRATION RATE (TEST:FC10.3300),6,9
+albumin,1751-7,Albumin,Ser/Plas,g/L;g/dL; mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"ALBUMIN, S (TEST:MCSQ-MSPR10)",6,9
+creatinine,2160-0,Creatinine,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,SERUM CREATININE (TEST:FC10.3200),6,9
+protein,2885-2,Protein,Ser/Plas,g/L;g/dL,g/dl,{'g/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TOTAL PROTEIN (TEST:MC.TP),6,12
+urea_nitrogen,3094-0,Urea nitrogen,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,BLOOD UREA NITROGEN (TEST:FC10.3100),6,9
+cholesterol_in_ldl,18261-8,Cholesterol.in LDL,Ser/Plas.ultracentrifugate,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ULTRA LOW DENSITY LIPOPROTEIN (TEST:MCSQ-ULDL),6,14
+cholesterol_in_ldl,18262-6,Cholesterol.in LDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,DIRECT LDL (TEST:WCDRLDL),6,15
+natriuretic_peptide_b,30934-4,Natriuretic peptide.B,Ser/Plas,ng/L;pg/mL,pg/mL,{'pg/mL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,B-TYPE NATR PEPTIDE BLOOD (TEST:EL:5290000344),6,11
+glucose,2341-6,Glucose,Bld,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"GLUCOSE, POCT (TEST:EL:5800001343)",6,37
+platelets,13056-7,Platelets,Plas,10*3/uL,K/uL,{'K/uL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CITRATED PLT COUNT (TEST:BH1-592),6,12
+calcium_ionized,1994-3,Calcium.ionized,Bld,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,IONIC CALCIUM (TEST:WCICA),6,25
+c_reactive_protein,30522-7,C reactive protein,Ser/Plas,mcg/mL; mg/dL; mg/L,MG/L,{'MG/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HS-CRP (TEST:FC500.9750),6,17
+cholesterol_in_hdl,2085-9,Cholesterol.in HDL,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HDL SCREENING (TEST:FC10.1691),6,11
+calcium_ionized,1994-3,Calcium.ionized,Bld,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,IONIC CALCIUM (TEST:NCSQE-ICA),6,9
+troponin_i_cardiac,10839-9,Troponin I.cardiac,Ser/Plas,ug/L;ng/mL,ng/mL,{'ng/mL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TROPONIN I (TEST:DCSQE-TPNI),6,12
+lipoprotein_(little_a),10835-7,Lipoprotein (little a),Ser/Plas,mg/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"LIPOPROTEIN (A),MP (TEST:MCLPP(A))",6,9
+natriuretic_peptide_b,30934-4,Natriuretic peptide.B,Ser/Plas,ng/L;pg/mL,pg/mL,{'pg/mL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,B-TYPE NATRIURETIC PEPTIDE (TEST:FC10.0288),6,7
+urea_nitrogen,6299-2,Urea nitrogen,Bld,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,BUN (ISTAT) (TEST:NCBUNIS),6,8
+cholesterol_in_ldl,2089-1,Cholesterol.in LDL,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LDL CHOLESTEROL SCREENING (TEST:FC10.1696),5,10
+troponin_t_cardiac,6598-7,Troponin T.cardiac,Ser/Plas,ug/L,ng/mL,{'ng/mL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TROPONIN-T (TEST:DCSQE-TNT),5,11
+glomerular_filtration_rate,69405-9,Glomerular filtration rate,Ser/Plas/Bld,mL/min,mL/min/1.73m2,{'mL/min/1.73m2': 1.0},0.0,9999.0,0.0,9999.0,1,False,,EGFR (TEST:DHSQE-EGFR),5,7
+albumin,1751-7,Albumin,Ser/Plas,g/L;g/dL; mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ALBUMIN CEREBROSPINAL FLUID (TEST:EL:5200009397),5,8
+cholesterol_in_ldl,18262-6,Cholesterol.in LDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,DIRECT LDL (TEST:MCSQ-LDLDR),5,8
+calcium_ionized,34581-9,Calcium.ionized,BldA,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CALCIUM (RT) (TEST:SC310.0020),5,9
+lactate,2524-7,Lactate,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LACTATE (RT) (TEST:SC310.0040),5,9
+apolipoprotein_b/apolipoprotein_a-i,1874-7,Apolipoprotein B/Apolipoprotein A-I,Ser/Plas,Ratio,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,APOLIPOPROTEIN B/A BLOOD (TEST:EL:5200001517),5,6
+triglyceride,2571-8,Triglyceride,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TRIGLYCERIDE SCREENING (TEST:FC10.1693),5,10
+erythrocyte/blood,4544-3,Erythrocyte/Blood,Bld,L/L;%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PUMP HCT (TEST:MHSQ-PHCT),5,7
+cholesterol,2093-3,Cholesterol,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHOLESTEROL SCREENING (TEST:FC10.1692),5,10
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GLUCOSE POCT (TEST:VCSQE-GLUP11),5,11
+cholesterol_in_ldl,18262-6,Cholesterol.in LDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,DIRECT LDL (TEST:MCSQ-LDLDIR),5,11
+lactate,2524-7,Lactate,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LACTIC ACID/LACTATE - RT (TEST:SC401.4102),5,12
+cholesterol_in_ldl,2089-1,Cholesterol.in LDL,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"LOW DENSITY LIPOPROTEIN,LL (TEST:MCLDL,LL)",5,22
+apolipoprotein_b,1884-6,Apolipoprotein B,Ser/Plas,g/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,APOLIPOPROTEIN B BLOOD (TEST:EL:5200001516),5,6
+lactate,2524-7,Lactate,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLASMA LACTIC ACID (TEST:MCP-LACT),5,39
+triglyceride,2571-8,Triglyceride,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"TRIGLYCERIDES,LL (TEST:MCTRIGLY)",5,22
+lactate,32693-4,Lactate,Bld,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"LACTATE, WHOLE BLOOD (TEST:BCLACTB)",5,61
+prealbumin,14338-8,Prealbumin,Ser/Plas,g/L;mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PREALBUMIN (TEST:FC10.0827),5,25
+triglyceride,2571-8,Triglyceride,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TRIGLYCERIDES (TEST:SC400.2500),5,8
+cholesterol,2093-3,Cholesterol,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHOLESTEROL (TEST:SC400.2400),5,8
+lactate_dehydrogenase,2532-0,Lactate dehydrogenase,Ser/Plas,arb U/L,U/L,{'U/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LACTIC DEHYDROGENASE (TEST:MCSQ-LDH1),5,7
+apolipoprotein_a-i,1869-7,Apolipoprotein A-I,Ser/Plas,g/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,APOLIPOPROTEIN A1 BLOOD (TEST:EL:5200001515),5,6
+hemoglobin,718-7,Hemoglobin,Bld,g/dL,g/dl,{'g/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HGB (TEST:MHSQ-HGB2),4,9
+troponin_t_cardiac,67151-1,Troponin T.cardiac,Ser/Plas,ng/L,ng/L,{'ng/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"TROPONIN-T, HS GEN5 (TEST:SCTNTHS)",4,9
+troponin_t_cardiac,6598-7,Troponin T.cardiac,Ser/Plas,ug/L,ng/mL,{'ng/mL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TROPONIN-T (TEST:VCSQE-TNT),4,6
+c_reactive_protein,30522-7,C reactive protein,Ser/Plas,mcg/mL; mg/dL; mg/L,MG/L,{'MG/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HS-CRP (TEST:FC500.9800),4,6
+platelets,13056-7,Platelets,Plas,10*3/uL,K/uL,{'K/uL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLATELET - CITRATED (TEST:FHCPLT),4,4
+calcium_ionized,1994-3,Calcium.ionized,Bld,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,IONIC CALCIUM (TEST:VCSQE-ICA),4,15
+cholesterol_in_hdl,2085-9,Cholesterol.in HDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HDL CHOLESTEROL (TEST:SC400.2570),4,7
+prealbumin,14338-8,Prealbumin,Ser/Plas,g/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PREALBUMIN (TEST:WC326.2755),4,22
+albumin,1751-7,Albumin,Ser/Plas,g/L;g/dL; mg/dL,g/dl,{'g/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLASMA ALBUMIN (TEST:MCPALB),4,5
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GLUCOSE POCT (TEST:SCGLUP12),4,140
+erythrocyte/blood,4544-3,Erythrocyte/Blood,Bld,L/L;%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HCT (TEST:MHSQ-HCT2),4,9
+hemoglobin,718-7,Hemoglobin,Bld,g/dL,G/DL,{'G/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HGBPOC (TEST:NHHGBPOC),4,5
+protein,2885-2,Protein,Ser/Plas,g/L;g/dL,g/dl,{'g/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLASMA TOTAL PROTEIN (TEST:MCP-TP),4,5
+phosphate,2777-1,Phosphate,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PHOSPHORUS (TEST:DHSQE-PHOS),4,6
+prealbumin,14338-8,Prealbumin,Ser/Plas,g/L;mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PREALBUMIN (TEST:WC451.1400),4,23
+platelets,777-3,Platelets,Bld,10*9/L,th/cumm,{'th/cumm': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLT (TEST:MHSQ-PLT2),4,9
+cholesterol_in_ldl,18262-6,Cholesterol.in LDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,DIRECT LDL (TEST:EL:5290000528),4,6
+lactate,2524-7,Lactate,Ser/Plas,mmol/L,MMOL/L,{'MMOL/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LACTIC ACID (TEST:FC10.0293),4,6
+cholesterol_in_ldl,2089-1,Cholesterol.in LDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LDL CHOLESTEROL (TEST:SC400.2585),4,7
+apolipoprotein_b,1884-6,Apolipoprotein B,Ser/Plas,g/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,APOLIPOPROTEIN B (TEST:MCSQ-ALIPOB),3,3
+glucose^post_cfst,1558-6,Glucose^post CFst,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,FASTING (TEST:BC1-1382),3,3
+calcium_ionized,1994-3,Calcium.ionized,Bld,mmol/L,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,IONIZED CALCIUM (TEST:WC301.1000),3,6
+calcium_ionized,1994-3,Calcium.ionized,Bld,mmol/L,MMOL/L,{'MMOL/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"CALCIUM, IONIZED (TEST:NCRTCAI)",3,4
+calcium,17861-6,Calcium,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CALCIUM (PTH INTACT IRMA) (TEST:FC50.8111),3,7
+protein,2885-2,Protein,Ser/Plas,g/L;g/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TOTAL PROTEIN (TEST:BITP),3,5
+hemoglobin,718-7,Hemoglobin,Bld,g/dL,G/DL,{'G/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HGB POC (TEST:NCHGBPOC),3,6
+calcium_ionized,1994-3,Calcium.ionized,Bld,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,IONIC CALCIUM (TEST:SCICA),3,5
+prealbumin,14338-8,Prealbumin,Ser/Plas,g/L;mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PREALBUMIN (TEST:FC500.9610),3,4
+lipoprotein_(little_a),10835-7,Lipoprotein (little a),Ser/Plas,mg/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LIPOPROTEIN A (TEST:EL:5200008267),3,3
+c_reactive_protein,30522-7,C reactive protein,Ser/Plas,mcg/mL; mg/dL; mg/L,mg/L,{'mg/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CARDIO CRP (TEST:FC50.5055),3,6
+calcium,17861-6,Calcium,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLASMA CALCIUM (TEST:MCPCA),2,2
+prealbumin,14338-8,Prealbumin,Ser/Plas,g/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PREALBUMIN (TEST:VCSQE-PREA),2,3
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLASMA GLUCOSE (TEST:MC.P GLU),2,6
+hemoglobin,718-7,Hemoglobin,Bld,g/dL,gm/dl,{'gm/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HGB (TEST:MCSQ-HGB7),2,10
+erythrocyte/blood,20570-8,Erythrocyte/Blood,Bld,%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HCT (ISTAT) (TEST:MCSQ-HCT7),2,10
+hemoglobin_free,721-1,Hemoglobin.free,Plas,mg/L,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"HEMOGLOBIN, PLASMA (TEST:BCHGBPL1)",2,16
+natriuretic_peptide_b_prohormone_n-terminal,33762-6,Natriuretic peptide.B prohormone N-Terminal,Ser/Plas,pg/mL,pg/mL,{'pg/mL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"NT-PRO BNP, P (TEST:WC953.0202)",2,3
+calcium,17861-6,Calcium,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CALCIUM (PTH C TERMINAL) (TEST:FC50.0669),2,2
+lipoprotein_(little_a),10835-7,Lipoprotein (little a),Ser/Plas,mg/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"LIPOPROTEIN A, SERUM (TEST:WC601.7420)",2,4
+lactate,2524-7,Lactate,Ser/Plas,mmol/L,MMOL/L,{'MMOL/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LACTIC ACID (TEST:MCLACT),2,4
+glucose^post_cfst,1558-6,Glucose^post CFst,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,FASTING (3 HR GTT) (TEST:BC0HR),2,4
+hemoglobin,717-9,Hemoglobin,Bld,,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HEMOGLOBIN SCREEN FINAL RESULT (TEST:BHHGBFR),2,2
+glucose^post_cfst,1558-6,Glucose^post CFst,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"GLUCOSE,FASTING (TEST:SC400.0700)",2,2
+prealbumin,14338-8,Prealbumin,Ser/Plas,g/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PREALBUMIN (TEST:DCSQE-PREA),2,5
+troponin_i_cardiac,10839-9,Troponin I.cardiac,Ser/Plas,ug/L;ng/mL,ng/mL,{'ng/mL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TROPONIN I (TEST:EL:52000158165),2,3
+calcium,17861-6,Calcium,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CALCIUM (TEST:NCCA1),2,4
+lactate_dehydrogenase,2532-0,Lactate dehydrogenase,Ser/Plas,arb U/L,IU/L,{'IU/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LACTIC DEHYDROGENASE (TEST:SC400.4310),2,2
+platelets,13056-7,Platelets,Plas,10*3/uL,K/uL,{'K/uL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLATELET - CITRATED (TEST:DHSQE-CPLT),2,3
+glomerular_filtration_rate,33914-3,Glomerular filtration rate,Ser/Plas,mL/min; ml/min/1.73m2,mL/min/1.73m2,{'mL/min/1.73m2': 1.0},0.0,9999.0,0.0,9999.0,1,False,,EGFR (TEST:FCEGFR7),2,2
+glomerular_filtration_rate,69405-9,Glomerular filtration rate,Ser/Plas/Bld,mL/min,mL/min/1.73m2,{'mL/min/1.73m2': 1.0},0.0,9999.0,0.0,9999.0,1,False,,EGFR (TEST:WCPEGFR),2,3
+c_reactive_protein,30522-7,C reactive protein,Ser/Plas,mcg/mL; mg/dL; mg/L,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,C-REACTIVE PROTEIN HIGH SENS (TEST:WC451.1605),2,2
+troponin_t_cardiac,6598-7,Troponin T.cardiac,Ser/Plas,ug/L,ng/ml,{'ng/ml': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TROPONIN T (MGH) (TEST:SC400.4550),2,2
+apolipoprotein_a-i_&_a-ii_&_b_&_c_panel,55724-9,Apolipoprotein A-I & A-II & B & C panel,Ser/Plas,,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,APOLIPO A1+B (TEST:BC1-544),2,3
+urea_nitrogen,3094-0,Urea nitrogen,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,UREA NITROGEN (TEST:WCPBUN),2,3
+creatinine,2160-0,Creatinine,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CREATININE (TEST:WCPCRE),2,3
+apolipoprotein_a-i,1869-7,Apolipoprotein A-I,Ser/Plas,g/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,APOLIPOPROTEIN A1 (TEST:NCAPOA1),2,3
+prealbumin,6793-4,Prealbumin,Ser/Plas,mg/L,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"PREALBUMIN, MP (TEST:MCSQ-PREALB)",2,4
+c_reactive_protein,30522-7,C reactive protein,Ser/Plas,mcg/mL; mg/dL; mg/L,mg/L,{'mg/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"HI RES C-RP,MP (TEST:MCSQ-HICRP)",2,3
+natriuretic_peptide_b,30934-4,Natriuretic peptide.B,Ser/Plas,ng/L;pg/mL,PG/ML,{'PG/ML': 1.0},0.0,9999.0,0.0,9999.0,1,False,,BNP POC (TEST:NCBNPPOC),2,3
+troponin_t_cardiac,6598-7,Troponin T.cardiac,Ser/Plas,ug/L,ng/mL,{'ng/mL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TROPONIN-T BLOOD (TEST:EL:5200013936),2,4
+triglyceride,2571-8,Triglyceride,Ser/Plas,mg/dL,ng/ml,{'ng/ml': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TRIGLYCERIDES (TEST:DCSQE-TRG),2,9
+prealbumin,14338-8,Prealbumin,Ser/Plas,g/L;mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PREALBUMIN (TEST:FC500.9600),2,2
+phosphate,2777-1,Phosphate,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLASMA PHOSPHORUS (TEST:MCPPHOS),2,3
+lipoprotein_(little_a),10835-7,Lipoprotein (little a),Ser/Plas,mg/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LIPOPROTEIN A (TEST:WCLPAM),2,2
+cholesterol_in_ldl,2089-1,Cholesterol.in LDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LDL CHOLESTEROL (TEST:FC79.2630),1,2
+lactate,2524-7,Lactate,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLASMA LACTIC ACID (TEST:VCSQE-PLACT),1,1
+cholesterol,2093-3,Cholesterol,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"CHOLESTEROL, TOTAL, CDC, S (TEST:FC79.2610)",1,2
+triglyceride,2571-8,Triglyceride,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"TRIGLYCERIDES, CDC, S (TEST:FC79.2620)",1,2
+cholesterol_in_vldl,2091-7,Cholesterol.in VLDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,VLDL CHOLESTEROL (TEST:FC79.2670),1,2
+apolipoprotein_b,1884-6,Apolipoprotein B,Ser/Plas,g/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"APOLIPOPROTEIN B, P (TEST:FC79.2650)",1,2
+cholesterol_in_hdl,2085-9,Cholesterol.in HDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"HDL CHOLESTEROL, CDC, S (TEST:FC79.2660)",1,2
+apolipoprotein_a-i,1869-7,Apolipoprotein A-I,Ser/Plas,g/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,APOLIPOPROTEIN A-1 (TEST:FC83.2290),1,1
+lactate_dehydrogenase_4/lactate_dehydrogenase_total,2545-2,Lactate dehydrogenase 4/Lactate dehydrogenase.total,Ser/Plas,%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,IV (TEST:WC603.4200),1,1
+phosphate,2777-1,Phosphate,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PHOSPHORUS (TEST:VCSQE-PHOS),1,10
+urea_nitrogen,3094-0,Urea nitrogen,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,UREA NITROGEN (TEST:FC500.1400),1,1
+lactate_dehydrogenase,2532-0,Lactate dehydrogenase,Ser/Plas,arb U/L,U/L,{'U/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TOTAL LDH (TEST:WC603.3801),1,1
+c_reactive_protein,30522-7,C reactive protein,Ser/Plas,mcg/mL; mg/dL; mg/L,mg/L,{'mg/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"C-REACTIVE PROTEIN, HIGH SENS (TEST:FC81.5911)",1,2
+albumin,1751-7,Albumin,Ser/Plas,g/L;g/dL; mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,".ALBUMIN, SERUM (TEST:WC952.5138)",1,1
+apolipoprotein_a-i,1869-7,Apolipoprotein A-I,Ser/Plas,g/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,APOLIPOPROTEIN A1 (TEST:MCSQ-ALIPA1),1,1
+lactate_dehydrogenase,2532-0,Lactate dehydrogenase,Ser/Plas,arb U/L,U/L,{'U/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LDH (TEST:SC400.4300),1,1
+cholesterol_in_ldl,18262-6,Cholesterol.in LDL,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LDL CHOL (DIRECT) (TEST:FC500.7950),1,2
+potassium,2823-3,Potassium,Ser/Plas,mmol/L,MEQ/L,{'MEQ/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"POTASSIUM , (TEST:NCRTK)",1,4
+lactate,2524-7,Lactate,Ser/Plas,mmol/L,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LACTIC ACID (TEST:MCSQ-ORGAC1),1,1
+lactate_dehydrogenase_1/lactate_dehydrogenase_total,2536-1,Lactate dehydrogenase 1/Lactate dehydrogenase.total,Ser/Plas,%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,I (HEART) (TEST:WC603.3900),1,1
+cholesterol_in_ldl,2089-1,Cholesterol.in LDL,Ser/Plas,mg/dL,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LDL CHOLESTEROL (TEST:WC331.3120),1,1
+apolipoprotein_a-i,1869-7,Apolipoprotein A-I,Ser/Plas,g/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,APOLIPOPROTEIN A-1 (TEST:WC953.1328),1,1
+lactate_dehydrogenase,2532-0,Lactate dehydrogenase,Ser/Plas,arb U/L,U/L,{'U/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TOTAL LDH ACTIVITY (TEST:WC603.3800),1,1
+lactate_dehydrogenase_5/lactate_dehydrogenase_total,2548-6,Lactate dehydrogenase 5/Lactate dehydrogenase.total,Ser/Plas,%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,V (LIVER) (TEST:WC603.4300),1,1
+apolipoprotein_a-i,1869-7,Apolipoprotein A-I,Ser/Plas,g/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,APOLIPOPROTEIN A1 (TEST:FCFIBRO9),1,1
+cholesterol,2093-3,Cholesterol,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLASMA CHOLESTEROL (TEST:MCPCHOL),1,2
+glomerular_filtration_rate,33914-3,Glomerular filtration rate,Ser/Plas,mL/min; ml/min/1.73m2,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,EST GLOMERULAR FILTRATION RATE (TEST:FC10.02211),1,1
+troponin_i_cardiac,10839-9,Troponin I.cardiac,Ser/Plas,ug/L;ng/mL,ng/mL,{'ng/mL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TROPONIN I (TEST:BCTPNI),1,4
+calcium_ionized,1995-0,Calcium.ionized,Ser/Plas,mmol/L,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,IONIZED CALCIUM (TEST:FC50.0460),1,4
+protein,2885-2,Protein,Ser/Plas,g/L;g/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PROTEIN TOTAL BLOOD (TEST:EL:52000158895),1,1
+albumin,1751-7,Albumin,Ser/Plas,g/L;g/dL; mg/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ALBUMIN BLOOD (TEST:EL:52000158524),1,1
+protein,2885-2,Protein,Ser/Plas,g/L;g/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,SERUM TOTAL PROTEIN (TEST:DISQE-TPCI),1,2
+troponin_i_cardiac,10839-9,Troponin I.cardiac,Ser/Plas,ug/L;ng/mL,NG/ML,{'NG/ML': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TROPONIN POC (TEST:NCTROPOC),1,1
+albumin,1751-7,Albumin,Ser/Plas,g/L;g/dL; mg/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,SERUM ALBUMIN (TEST:BC3-154),1,2
+cholesterol_in_ldl,18262-6,Cholesterol.in LDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"LDL CHOLESTEROL, DIRECT SERUM (TEST:FC50.0058)",1,2
+lactate_dehydrogenase,2532-0,Lactate dehydrogenase,Ser/Plas,arb U/L,U/L,{'U/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LACTIC DEHYDROGENASE (TEST:FC10.0267),1,2
+triglyceride,2571-8,Triglyceride,Ser/Plas,mg/dL,MG/DL,{'MG/DL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,.TRIGLYCERIDE FOR PROPOFOL (TEST:WC331.2901),1,6
+cholesterol_in_ldl,18262-6,Cholesterol.in LDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"LDL DIRECT, SERUM (TEST:WC652.0500)",1,1
+lipoprotein_(little_a),10835-7,Lipoprotein (little a),Ser/Plas,mg/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LIPOPROTEIN A (TEST:NCSQE-LPAM),1,2
+glucose,2345-7,Glucose,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,FASTING GLUCOSE (TEST:NCSQE-GLUF),1,1
+calcium,17861-6,Calcium,Ser/Plas,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"NICHOLS TOTAL CALCIUM,NI (TEST:MCSQ-NICA)",1,2
+natriuretic_peptide_b_prohormone_n-terminal,33762-6,Natriuretic peptide.B prohormone N-Terminal,Ser/Plas,pg/mL,PG/ML,{'PG/ML': 1.0},0.0,9999.0,0.0,9999.0,1,False,,NT-PROBNP (TEST:FC500.5250),1,2
+apolipoprotein_a-i,1869-7,Apolipoprotein A-I,Ser/Plas,g/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,APOLIPOPROTEIN A-1 (TEST:FCFHFIB9),1,2
+cholesterol_in_ldl,18262-6,Cholesterol.in LDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,DIRECT LDL (TEST:MCSQ-DRLDL),1,2
+lactate_dehydrogenase_3/lactate_dehydrogenase_total,2542-9,Lactate dehydrogenase 3/Lactate dehydrogenase.total,Ser/Plas,%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,III (TEST:WC603.4100),1,1
+apolipoprotein_a-i,1869-7,Apolipoprotein A-I,Ser/Plas,g/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,APOLIPOPROTEIN A-1 (TEST:BCFHFIB9),1,2
+cholesterol_in_ldl,18261-8,Cholesterol.in LDL,Ser/Plas.ultracentrifugate,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"LOW DENSITY LIPOPROTEIN (ULTRA),LL (TEST:MCLDU,LL)",1,2
+calcium_ionized,1994-3,Calcium.ionized,Bld,mmol/L,MMOL/L,{'MMOL/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,WHOLE BLD IONIZED CA (TEST:NCWBCAI),1,1
+lipoprotein_(little_a),10835-7,Lipoprotein (little a),Ser/Plas,mg/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LIPOPROTEIN A (TEST:FC50.022),1,2
+lactate_dehydrogenase_2/lactate_dehydrogenase_total,2539-5,Lactate dehydrogenase 2/Lactate dehydrogenase.total,Ser/Plas,%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,II (TEST:WC603.4000),1,1
+lipoprotein_beta,2574-2,Lipoprotein.beta,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,B LIPOPROTEIN (TEST:BC1-202),1,1
+erythrocyte/specimen_volume,11271-4,Erythrocyte/Specimen Volume,BldCo,%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,FETAL BLOOD HCT (TEST:MHSQ-FHCT),1,2
+triglyceride,2571-8,Triglyceride,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TRIGLYCERIDES (TEST:SCTRIG),1,1
+apolipoprotein_a-i,1869-7,Apolipoprotein A-I,Ser/Plas,g/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,APOLIPOPROTEIN A1 (TEST:DCSQE-FIBRO9),1,1
+erythrocyte/blood,4544-3,Erythrocyte/Blood,Bld,L/L;%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,WIC HEMATOCRIT (TEST:BH1-309),1,1
+glucose^post_cfst,1558-6,Glucose^post CFst,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,FASTING GLUCOSE BLOOD (TEST:EL:5200006324),1,2
+glucose^post_cfst,1558-6,Glucose^post CFst,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,FASTING (2 HR GTT) (TEST:MCSQ-0H),1,1
+hemoglobin,20509-6,Hemoglobin,Bld,g/dL,gm/dl,{'gm/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HEMOGLOBIN-POC (TEST:NHSQE-HGB7),1,1
+albumin,1751-7,Albumin,Ser/Plas,g/L;g/dL; mg/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ALPHA-1 GLOBULIN (TEST:DCSQE-MPSS3),1,2
+protein,2885-2,Protein,Ser/Plas,g/L;g/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TOTAL PROTEIN (TEST:DCSQE-MPSS1),1,2
+albumin,1751-7,Albumin,Ser/Plas,g/L;g/dL; mg/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ALBUMIN (TEST:DCSQE-MPSS2),1,2
+natriuretic_peptide_b,30934-4,Natriuretic peptide.B,Ser/Plas,ng/L;pg/mL,pg/mL,{'pg/mL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"BRAIN NATRURETIC PEP, NI (TEST:MCSQ-BNP)",1,1
+hemoglobin_free,721-1,Hemoglobin.free,Plas,mg/L,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLASMA HEMOGLOBIN BLOOD (TEST:EL:5200010765),1,7
+protein,2885-2,Protein,Ser/Plas,g/L;g/dL,gm/dL,{'gm/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TP (TEST:BC1-188),1,1
+chloride,2075-0,Chloride,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CL-PL (TEST:BC1-352),1,1
+lactate_dehydrogenase,2532-0,Lactate dehydrogenase,Ser/Plas,arb U/L,U/L,{'U/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LACTIC DEHYDROGENASE (TEST:VCSQE-LDH),1,1
+c_reactive_protein,30522-7,C reactive protein,Ser/Plas,mcg/mL; mg/dL; mg/L,mg/L,{'mg/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"CRP, HIGH SENSITIVITY (TEST:SCHSCRP)",1,1
+natriuretic_peptide_b,30934-4,Natriuretic peptide.B,Ser/Plas,ng/L;pg/mL,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,BRAIN NATRIURETIC PEPTIDE (TEST:SC200.1150),1,2
+platelets,777-3,Platelets,Bld,10*9/L,th/cumm,{'th/cumm': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PLT (TEST:MHSQ-BTSPLT),1,32
+prealbumin,14338-8,Prealbumin,Ser/Plas,g/L;mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PREALBUMIN (TEST:SC400.2750),1,2
+lactate_dehydrogenase_5/lactate_dehydrogenase_total,2548-6,Lactate dehydrogenase 5/Lactate dehydrogenase.total,Ser/Plas,%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"V, LIVER (TEST:BCLDI8)",1,1
+apolipoprotein_b,1884-6,Apolipoprotein B,Ser/Plas,g/L;mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,APOLIPOPROTEIN B (TEST:EL:5200001150),1,2
+troponin_t_cardiac,6598-7,Troponin T.cardiac,Ser/Plas,ug/L,ng/mL,{'ng/mL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TROPONIN-T (TEST:SCTNT),1,2
+lactate_dehydrogenase,2532-0,Lactate dehydrogenase,Ser/Plas,arb U/L,U/L,{'U/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LACTATE DEHYDROGENASE (TEST:BCLDI1),1,1
+lactate_dehydrogenase_3/lactate_dehydrogenase_total,2542-9,Lactate dehydrogenase 3/Lactate dehydrogenase.total,Ser/Plas,%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,III (TEST:BCLDI6),1,1
+glomerular_filtration_rate,33914-3,Glomerular filtration rate,Ser/Plas,mL/min; ml/min/1.73m2,mL/min/1.73m2,{'mL/min/1.73m2': 1.0},0.0,9999.0,0.0,9999.0,1,False,,EGFR (TEST:VCSQE-EGFR7),1,1
+protein,2885-2,Protein,Ser/Plas,g/L;g/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TOTAL PROTEIN BLOOD (TEST:EL:5200009291),1,2
+cholesterol_in_ldl,18261-8,Cholesterol.in LDL,Ser/Plas.ultracentrifugate,mg/dL,mg/dl,{'mg/dl': 1.0},0.0,9999.0,0.0,9999.0,1,False,,ULTRA LOW DENSITY LIPOPROTEIN (TEST:MCULDL),1,1
+lactate_dehydrogenase_1/lactate_dehydrogenase_total,2536-1,Lactate dehydrogenase 1/Lactate dehydrogenase.total,Ser/Plas,%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"I, HEART (TEST:BCLD4)",1,1
+protein,2885-2,Protein,Ser/Plas,g/L;g/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TOTAL PROTEIN-EP (TEST:EL:5290006025),1,1
+erythrocyte/blood,4544-3,Erythrocyte/Blood,Bld,L/L;%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HCT (TEST:MHSQ-BTSHCT),1,32
+cholesterol_in_ldl,55440-2,Cholesterol.in LDL,Ser/Plas,mg/dL,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,VAP RESULT (TEST:WC953.1212),1,1
+lactate_dehydrogenase_4/lactate_dehydrogenase_total,2545-2,Lactate dehydrogenase 4/Lactate dehydrogenase.total,Ser/Plas,%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,IV (TEST:BCLDI7),1,1
+lactate_dehydrogenase_2/lactate_dehydrogenase_total,2539-5,Lactate dehydrogenase 2/Lactate dehydrogenase.total,Ser/Plas,%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,II (TEST:BCLDI5),1,1
+glucose^post_cfst,1558-6,Glucose^post CFst,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,GTT (3 HR) - FASTING GLUCOSE BLOOD (TEST:EL:5200000069),1,1
+protein,2885-2,Protein,Ser/Plas,g/L;g/dL,g/dL,{'g/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,SERUM TOTAL PROTEIN (TEST:WITPCI),1,1
+glucose^post_cfst,1558-6,Glucose^post CFst,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"GTT (2 HR)- FASTING GLUCOSE GLUCOSE TOLERANCE TEST, 2 HR (TEST:EL:5200000068)",1,1
+creatinine,2160-0,Creatinine,Ser/Plas,mg/dL,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,".CREATININE,PLASMA (TEST:WC331.0795)",1,1
+prealbumin,14338-8,Prealbumin,Ser/Plas,g/L;mg/dL,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,PREALBUMIN (NSMC) (TEST:SC400.2751),1,1
+lactate_dehydrogenase_1/lactate_dehydrogenase_total,2536-1,Lactate dehydrogenase 1/Lactate dehydrogenase.total,Ser/Plas,%,%,{'%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LD I (TEST:BC1-2026),1,1
+cholesterol_non_hdl,43396-1,Cholesterol.non HDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,NON-HDL CHOLESTEROL (TEST:SCNHDLC),1,1
+urea_nitrogen,3094-0,Urea nitrogen,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,BUN (TEST:NCSQE-BUN7),1,1
+lactate_dehydrogenase,14804-9,Lactate dehydrogenase,Ser/Plas,arb U/L,U/L,{'U/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LD TOTAL (TEST:BC1-2025),1,1
+chloride,2075-0,Chloride,Ser/Plas,mmol/L,mmol/L,{'mmol/L': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHLORIDE (TEST:NCSQE-CL7),1,1
+cholesterol_in_hdl,2085-9,Cholesterol.in HDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,HIGH DENSITY LIPOPROTEIN (TEST:SCHDLP),1,1
+cholesterol_total/cholesterol_in_hdl,9830-1,Cholesterol.total/Cholesterol.in HDL,Ser/Plas,ratio,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CARDIAC RISK RATIO (TEST:SCCRISK),1,1
+cholesterol_in_ldl,2089-1,Cholesterol.in LDL,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,LDL (TEST:SCLDL),1,1
+lipoprotein_pattern,49280-1,Lipoprotein pattern,Ser/Plas,,,{'': 1.0},0.0,9999.0,0.0,9999.0,1,False,,"LIPOPROTEIN ELECTROPHORESIS,MP (TEST:MCSQ-LIPEP)",1,1
+protein,2885-2,Protein,Ser/Plas,g/L;g/dL,gm%,{'gm%': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TOTAL PROTEIN (TEST:MCSQ-TPA),1,1
+cholesterol,2093-3,Cholesterol,Ser/Plas,mg/dL,mg/dL,{'mg/dL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,CHOLESTEROL (TEST:SCCHOL),1,1
+troponin_i_cardiac,10839-9,Troponin I.cardiac,Ser/Plas,ug/L;ng/mL,ng/mL,{'ng/mL': 1.0},0.0,9999.0,0.0,9999.0,1,False,,TROPONIN-I (TEST:SCTRPNI1),1,2
+"vldl,_direct_test_bcvldld",,,,mg/dL,mg/dL,{},0.0,9999.0,0.0,9999.0,3,True,singleton,"VLDL, DIRECT (TEST:BCVLDLD)",38,73
+nmr_lipoprofile_test_mcsq-nmrlp,,,,,,{},0.0,9999.0,0.0,9999.0,3,True,generic_terms,NMR LIPOPROFILE (TEST:MCSQ-NMRLP),3,10
