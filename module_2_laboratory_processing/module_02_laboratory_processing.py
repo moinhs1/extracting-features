@@ -610,6 +610,96 @@ def tier2_loinc_family_match(frequency_df, tier1_matched, loinc_matcher):
     return tier2_df, matched_tests
 
 
+def tier3_hierarchical_clustering(frequency_df, all_matched, threshold=0.9):
+    """
+    Tier 3: Hierarchical clustering for unmapped tests.
+
+    Args:
+        frequency_df: Test frequency DataFrame
+        all_matched: Set of tests already matched in Tier 1/2
+        threshold: Similarity threshold for clustering (default 0.9)
+
+    Returns:
+        pd.DataFrame: Tier 3 cluster suggestions
+        dict: Clusters mapping
+        np.ndarray: Linkage matrix for dendrogram
+        np.ndarray: Distance matrix for heatmap
+    """
+    print(f"\n{'='*80}")
+    print("TIER 3: HIERARCHICAL CLUSTERING")
+    print(f"{'='*80}\n")
+
+    # Get unmapped tests
+    unmapped_df = frequency_df[~frequency_df['test_description'].isin(all_matched)].copy()
+    print(f"  Unmapped tests: {len(unmapped_df)}")
+
+    if len(unmapped_df) == 0:
+        print("  No unmapped tests to cluster\n")
+        return pd.DataFrame(), {}, None, None
+
+    # Prepare test data for clustering
+    unmapped_tests = []
+    for _, row in unmapped_df.iterrows():
+        unmapped_tests.append({
+            'name': row['test_description'],
+            'unit': row['reference_units'],
+            'patient_count': row['patient_count'],
+            'count': row['count']
+        })
+
+    # Perform hierarchical clustering
+    clusters, linkage_matrix, distances = perform_hierarchical_clustering(
+        unmapped_tests,
+        threshold=threshold
+    )
+
+    print(f"  Clusters found: {len(clusters)}")
+
+    # Flag suspicious clusters
+    flags = flag_suspicious_clusters(clusters, unmapped_tests)
+    print(f"  Clusters flagged for review: {len(flags)}")
+
+    # Create Tier 3 matches
+    tier3_matches = []
+
+    for cluster_id, test_indices in clusters.items():
+        # Get tests in this cluster
+        cluster_tests = [unmapped_tests[i] for i in test_indices]
+        test_names = [t['name'] for t in cluster_tests]
+        test_units = [t['unit'] for t in cluster_tests]
+
+        # Create group name from first test (sanitized)
+        group_name = test_names[0].lower().replace(' ', '_').replace('(', '').replace(')', '').replace(':', '_')
+
+        # Check if flagged
+        cluster_flags = flags.get(cluster_id, [])
+        needs_review = len(cluster_flags) > 0 or len(test_indices) == 1  # Singletons need review
+
+        tier3_matches.append({
+            'group_name': group_name,
+            'loinc_code': '',
+            'component': '',
+            'system': '',
+            'standard_unit': cluster_tests[0]['unit'],
+            'source_units': '|'.join(set(test_units)),
+            'conversion_factors': '{}',
+            'tier': 3,
+            'needs_review': needs_review,
+            'review_reason': '|'.join(cluster_flags) if cluster_flags else ('singleton' if len(test_indices) == 1 else ''),
+            'matched_tests': '|'.join(test_names),
+            'patient_count': max(t['patient_count'] for t in cluster_tests),
+            'measurement_count': sum(t['count'] for t in cluster_tests)
+        })
+
+    tier3_df = pd.DataFrame(tier3_matches)
+    tier3_df = tier3_df.sort_values('patient_count', ascending=False).reset_index(drop=True)
+
+    print(f"  Tier 3 groups created: {len(tier3_df)}")
+    print(f"  Groups needing review: {tier3_df['needs_review'].sum()}\n")
+
+    return tier3_df, clusters, linkage_matrix, distances
+
+
 def fuzzy_match_orphans(unmapped_df, matched_tests, frequency_df):
     """
     Use fuzzy string matching to group similar test names.
@@ -820,6 +910,18 @@ def run_phase1(test_mode=False, test_n=100):
         tier2_df = pd.DataFrame()
         tier2_matched = set()
         all_matched = tier1_matched
+
+    # Tier 3: Hierarchical clustering
+    tier3_df, clusters, linkage_matrix, distances = tier3_hierarchical_clustering(
+        frequency_df,
+        all_matched,
+        threshold=0.9
+    )
+
+    # Save Tier 3 output
+    tier3_output = output_dir / f'{output_prefix}_tier3_cluster_suggestions.csv'
+    tier3_df.to_csv(tier3_output, index=False)
+    print(f"  Saved Tier 3 clusters to: {tier3_output}\n")
 
     # LOINC grouping (original implementation)
     loinc_df, unmapped_df, matched_tests = group_by_loinc(frequency_df)
