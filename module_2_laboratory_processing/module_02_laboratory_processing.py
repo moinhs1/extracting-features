@@ -1000,6 +1000,24 @@ def run_phase1(test_mode=False, test_n=100):
         harmonization_map_path
     )
 
+    # Generate static dendrogram if clustering was performed
+    if linkage_matrix is not None:
+        from visualization_generator import generate_static_dendrogram
+
+        # Get test names from tier3
+        unmapped_test_names = []
+        unmapped_df_tier3 = frequency_df[~frequency_df['test_description'].isin(all_matched)]
+        for _, row in unmapped_df_tier3.iterrows():
+            unmapped_test_names.append(row['test_description'])
+
+        dendrogram_path = output_dir / f'{output_prefix}_cluster_dendrogram.png'
+        generate_static_dendrogram(
+            linkage_matrix,
+            unmapped_test_names,
+            dendrogram_path,
+            title=f"Tier 3 Hierarchical Clustering (n={len(unmapped_test_names)} tests)"
+        )
+
     # LOINC grouping (original implementation)
     loinc_df, unmapped_df, matched_tests = group_by_loinc(frequency_df)
 
