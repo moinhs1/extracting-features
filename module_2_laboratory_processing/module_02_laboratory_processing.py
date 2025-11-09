@@ -355,6 +355,9 @@ def scan_lab_data(patient_empis, test_mode=False):
 
 def group_by_loinc(frequency_df):
     """
+    DEPRECATED: Replaced by three-tier harmonization system.
+    Use harmonization_map_draft.csv instead.
+
     Group tests by LOINC code families.
 
     Args:
@@ -770,6 +773,9 @@ def generate_harmonization_map_draft(tier1_df, tier2_df, tier3_df, output_path):
 
 def fuzzy_match_orphans(unmapped_df, matched_tests, frequency_df):
     """
+    DEPRECATED: Replaced by Tier 3 hierarchical clustering.
+    Use tier3_hierarchical_clustering() instead.
+
     Use fuzzy string matching to group similar test names.
 
     Args:
@@ -860,6 +866,9 @@ def fuzzy_match_orphans(unmapped_df, matched_tests, frequency_df):
 def generate_discovery_reports(frequency_df, loinc_df, fuzzy_df, unmapped_df,
                                output_prefix, test_mode):
     """
+    DEPRECATED: Generates legacy discovery files (loinc_groups.csv, fuzzy_suggestions.csv, unmapped_tests.csv).
+    These files are replaced by the new three-tier system outputs.
+
     Save Phase 1 discovery outputs to CSV files.
 
     Args:
@@ -1031,15 +1040,30 @@ def run_phase1(test_mode=False, test_n=100):
         explorer_path = output_dir / f'{output_prefix}_harmonization_explorer.html'
         generate_harmonization_explorer(harmonization_map, explorer_path)
 
-    # LOINC grouping (original implementation)
-    loinc_df, unmapped_df, matched_tests = group_by_loinc(frequency_df)
-
-    # Fuzzy matching
-    fuzzy_df = fuzzy_match_orphans(unmapped_df, matched_tests, frequency_df)
-
-    # Generate reports
-    generate_discovery_reports(frequency_df, loinc_df, fuzzy_df, unmapped_df,
-                               output_prefix, test_mode)
+    print(f"\n{'='*80}")
+    print("PHASE 1 COMPLETE!")
+    print(f"{'='*80}\n")
+    print("Enhanced three-tier harmonization complete:")
+    print(f"  - Tier 1: {len(tier1_df)} groups (LOINC exact matching)")
+    print(f"  - Tier 2: {len(tier2_df)} groups (LOINC family matching)")
+    print(f"  - Tier 3: {len(tier3_df)} groups (hierarchical clustering)")
+    print(f"  - Total: {len(harmonization_map)} groups")
+    print()
+    print("Output files:")
+    print(f"  ✓ {harmonization_map_path.name}")
+    print(f"  ✓ {tier1_output.name}")
+    print(f"  ✓ {tier2_output.name}")
+    print(f"  ✓ {tier3_output.name}")
+    if linkage_matrix is not None:
+        print(f"  ✓ {dendrogram_path.name}")
+        print(f"  ✓ {dendrogram_html_path.name}")
+        print(f"  ✓ {explorer_path.name}")
+    print()
+    print("Next steps:")
+    print("  1. Review harmonization_map_draft.csv")
+    print("  2. Check visualizations (open HTML files in browser)")
+    print("  3. Adjust QC thresholds and review flags as needed")
+    print("  4. Run Phase 2: --phase2")
 
 
 # ============================================================================
@@ -1048,6 +1072,9 @@ def run_phase1(test_mode=False, test_n=100):
 
 def create_default_harmonization_map(loinc_df, fuzzy_df):
     """
+    DEPRECATED: This function uses legacy loinc_df and fuzzy_df.
+    The new load_harmonization_map() function reads from harmonization_map_draft.csv instead.
+
     Create a default harmonization map from LOINC and fuzzy match results.
     This is a starting point - users should review and customize.
 
@@ -1119,7 +1146,7 @@ def create_default_harmonization_map(loinc_df, fuzzy_df):
 def load_harmonization_map(output_prefix):
     """
     Load user-approved harmonization map from JSON.
-    If not found, create default from discovery files.
+    If not found, create default from harmonization_map_draft.csv.
 
     Args:
         output_prefix: Filename prefix
@@ -1140,26 +1167,53 @@ def load_harmonization_map(output_prefix):
         print(f"  Loaded {len(harmonization_map)} harmonized tests\n")
     else:
         print(f"  No existing map found at: {map_file}")
-        print(f"  Creating default map from discovery files...\n")
+        print(f"  Creating default map from harmonization_map_draft.csv...\n")
 
-        # Load discovery files
-        loinc_file = DISCOVERY_DIR / f"{output_prefix}_loinc_groups.csv"
-        fuzzy_file = DISCOVERY_DIR / f"{output_prefix}_fuzzy_suggestions.csv"
+        # Load NEW harmonization map draft (from three-tier system)
+        draft_file = DISCOVERY_DIR / f"{output_prefix}_harmonization_map_draft.csv"
 
-        if not loinc_file.exists():
+        if not draft_file.exists():
             raise FileNotFoundError(
-                f"Discovery files not found. Run Phase 1 first with: "
+                f"Harmonization map draft not found at: {draft_file}\n"
+                f"Run Phase 1 first with: "
                 f"python module_02_laboratory_processing.py --phase1 --test --n=10"
             )
 
-        loinc_df = pd.read_csv(loinc_file)
+        draft_df = pd.read_csv(draft_file)
 
-        if fuzzy_file.exists():
-            fuzzy_df = pd.read_csv(fuzzy_file)
-        else:
-            fuzzy_df = pd.DataFrame()
+        # Convert to dict format for Phase 2
+        harmonization_map = {}
+        for _, row in draft_df.iterrows():
+            group_name = row['group_name']
+            test_descriptions = str(row['matched_tests']).split('|')
+            loinc_code = str(row['loinc_code']) if pd.notna(row['loinc_code']) else ''
 
-        harmonization_map = create_default_harmonization_map(loinc_df, fuzzy_df)
+            # Get forward-fill limit from config or default
+            forward_fill_hours = FORWARD_FILL_LIMITS.get(group_name, FORWARD_FILL_LIMITS['default'])
+
+            # Get QC thresholds from config or use placeholders from CSV
+            qc_thresholds = QC_THRESHOLDS.get(group_name, {
+                'impossible_low': row.get('impossible_low', 0),
+                'impossible_high': row.get('impossible_high', 999999),
+                'extreme_low': row.get('extreme_low', 0),
+                'extreme_high': row.get('extreme_high', 999999)
+            })
+
+            # Get clinical thresholds if available
+            clinical_thresholds = CLINICAL_THRESHOLDS.get(group_name, {})
+
+            harmonization_map[group_name] = {
+                'canonical_name': group_name,
+                'variants': test_descriptions,
+                'loinc_codes': [loinc_code] if loinc_code else [],
+                'canonical_unit': str(row['standard_unit']) if pd.notna(row['standard_unit']) else '',
+                'unit_conversions': {},  # TODO: parse from conversion_factors column
+                'forward_fill_max_hours': forward_fill_hours,
+                'qc_thresholds': qc_thresholds,
+                'clinical_thresholds': clinical_thresholds,
+                'tier': int(row['tier']),
+                'needs_review': bool(row['needs_review'])
+            }
 
         # Save default map
         with open(map_file, 'w') as f:
@@ -1167,6 +1221,7 @@ def load_harmonization_map(output_prefix):
 
         print(f"  ✓ Created default harmonization map: {map_file}")
         print(f"  ✓ Contains {len(harmonization_map)} harmonized tests")
+        print(f"  ✓ Source: {draft_file.name} (three-tier system)")
         print(f"\n  NOTE: Review and customize this file before re-running Phase 2\n")
 
     return harmonization_map
