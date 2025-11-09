@@ -189,3 +189,88 @@ def perform_hierarchical_clustering(
         clusters[label].append(idx)
 
     return clusters, linkage_matrix, distances
+
+
+def detect_isoenzyme_pattern(test_names: List[str]) -> bool:
+    """
+    Detect if cluster contains isoenzymes (should be separated).
+
+    Args:
+        test_names: List of test names in cluster
+
+    Returns:
+        bool: True if isoenzyme pattern detected
+    """
+    # Patterns for isoenzymes
+    patterns = [
+        r'LDH\s*[1-5]',           # LDH1, LDH2, ..., LDH5
+        r'CK[-\s]?(MB|MM|BB)',    # CK-MB, CK-MM, CK-BB
+        r'TROPONIN\s*[IT]',       # Troponin I, Troponin T (different biomarkers)
+    ]
+
+    for pattern in patterns:
+        matches = [re.search(pattern, name, re.IGNORECASE) for name in test_names]
+        if sum(1 for m in matches if m) >= 2:
+            return True  # At least 2 isoenzymes in cluster
+
+    return False
+
+
+def flag_suspicious_clusters(
+    clusters: Dict[int, List[int]],
+    unmapped_tests: List[Dict]
+) -> Dict[int, List[str]]:
+    """
+    Identify clusters that need manual review.
+
+    Args:
+        clusters: Dict mapping cluster_id to list of test indices
+        unmapped_tests: List of test dictionaries
+
+    Returns:
+        flags: Dict mapping cluster_id to list of flag reasons
+    """
+    flags = {}
+
+    for cluster_id, test_indices in clusters.items():
+        cluster_flags = []
+
+        # Get test info
+        test_names = [unmapped_tests[i]['name'] for i in test_indices]
+        test_units = [unmapped_tests[i]['unit'] for i in test_indices]
+
+        # Flag 1: Very large cluster (>10 tests)
+        if len(test_indices) > 10:
+            cluster_flags.append(f"large_cluster ({len(test_indices)} tests)")
+
+        # Flag 2: Isoenzyme pattern
+        if detect_isoenzyme_pattern(test_names):
+            cluster_flags.append("isoenzyme_pattern")
+
+        # Flag 3: Unit mismatch (incompatible units)
+        unique_units = set(test_units)
+        if len(unique_units) > 1:
+            # Check if all are convertible
+            incompatible = False
+            units_list = list(unique_units)
+            for i in range(len(units_list)):
+                for j in range(i+1, len(units_list)):
+                    incomp = calculate_unit_incompatibility(units_list[i], units_list[j])
+                    if incomp > 0.5:  # Not convertible
+                        incompatible = True
+                        break
+                if incompatible:
+                    break
+
+            if incompatible:
+                cluster_flags.append(f"unit_mismatch ({', '.join(unique_units)})")
+
+        # Flag 4: Generic terms (likely too broad)
+        generic_terms = ['PANEL', 'PROFILE', 'COMPREHENSIVE', 'BASIC', 'COMPLETE']
+        if any(term in ' '.join(test_names).upper() for term in generic_terms):
+            cluster_flags.append("generic_terms")
+
+        if cluster_flags:
+            flags[cluster_id] = cluster_flags
+
+    return flags

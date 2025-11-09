@@ -138,3 +138,77 @@ class TestHierarchicalClustering:
                 break
 
         assert singleton_found
+
+
+class TestClusterQuality:
+    """Test cluster quality checks."""
+
+    def test_detect_isoenzyme_pattern_ldh(self):
+        """Test detection of LDH isoenzymes."""
+        from hierarchical_clustering import detect_isoenzyme_pattern
+
+        # LDH isoenzymes
+        ldh_tests = ['LDH1', 'LDH2', 'LDH3']
+        assert detect_isoenzyme_pattern(ldh_tests) is True
+
+        # Single LDH test - not a pattern
+        single_ldh = ['LDH1']
+        assert detect_isoenzyme_pattern(single_ldh) is False
+
+        # Non-isoenzyme tests
+        other_tests = ['GLUCOSE', 'CHOLESTEROL']
+        assert detect_isoenzyme_pattern(other_tests) is False
+
+    def test_detect_isoenzyme_pattern_ck(self):
+        """Test detection of CK isoenzymes."""
+        from hierarchical_clustering import detect_isoenzyme_pattern
+
+        ck_tests = ['CK-MB', 'CK-MM']
+        assert detect_isoenzyme_pattern(ck_tests) is True
+
+    def test_detect_isoenzyme_pattern_troponin(self):
+        """Test detection of troponin I vs T."""
+        from hierarchical_clustering import detect_isoenzyme_pattern
+
+        trop_tests = ['TROPONIN I', 'TROPONIN T']
+        assert detect_isoenzyme_pattern(trop_tests) is True
+
+    def test_flag_isoenzyme_cluster(self):
+        """Test flagging cluster with isoenzymes."""
+        from hierarchical_clustering import flag_suspicious_clusters
+
+        clusters = {
+            1: [0, 1],  # LDH1 and LDH2
+            2: [2, 3],  # Glucose tests
+        }
+
+        tests = [
+            {'name': 'LDH1', 'unit': 'U/L'},
+            {'name': 'LDH2', 'unit': 'U/L'},
+            {'name': 'GLUCOSE', 'unit': 'mg/dL'},
+            {'name': 'GLUCOSE BLOOD', 'unit': 'mg/dL'},
+        ]
+
+        flags = flag_suspicious_clusters(clusters, tests)
+
+        # Cluster 1 should be flagged for isoenzyme pattern
+        assert 1 in flags
+        assert 'isoenzyme_pattern' in flags[1]
+
+        # Cluster 2 should not be flagged
+        assert 2 not in flags
+
+    def test_flag_large_cluster(self):
+        """Test flagging very large cluster."""
+        from hierarchical_clustering import flag_suspicious_clusters
+
+        clusters = {
+            1: list(range(15)),  # 15 tests - too large
+        }
+
+        tests = [{'name': f'TEST{i}', 'unit': 'mg/dL'} for i in range(15)]
+
+        flags = flag_suspicious_clusters(clusters, tests)
+
+        assert 1 in flags
+        assert any('large_cluster' in flag for flag in flags[1])
