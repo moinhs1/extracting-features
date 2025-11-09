@@ -512,6 +512,104 @@ def tier1_loinc_exact_match(frequency_df, loinc_matcher, unit_converter):
     return tier1_df, matched_tests
 
 
+def tier2_loinc_family_match(frequency_df, tier1_matched, loinc_matcher):
+    """
+    Tier 2: LOINC family matching (group by component).
+
+    Args:
+        frequency_df: Test frequency DataFrame
+        tier1_matched: Set of tests already matched in Tier 1
+        loinc_matcher: LoincMatcher instance
+
+    Returns:
+        pd.DataFrame: Tier 2 matches (needs review)
+        set: Matched test descriptions
+    """
+    print(f"\n{'='*80}")
+    print("TIER 2: LOINC FAMILY MATCHING")
+    print(f"{'='*80}\n")
+
+    # Get tests not yet matched with LOINC codes
+    has_loinc = frequency_df[
+        (frequency_df['loinc_code'].notna()) &
+        (~frequency_df['test_description'].isin(tier1_matched))
+    ].copy()
+
+    print(f"  Tests with LOINC codes (unmapped in Tier 1): {len(has_loinc)}")
+
+    # Group by component
+    component_groups = {}
+    for _, row in has_loinc.iterrows():
+        loinc_code = row['loinc_code']
+        loinc_data = loinc_matcher.match(loinc_code)
+
+        if loinc_data is None:
+            continue
+
+        component = loinc_data.get('component', '')
+        if not component:
+            continue
+
+        if component not in component_groups:
+            component_groups[component] = []
+
+        component_groups[component].append({
+            'test_description': row['test_description'],
+            'loinc_code': loinc_code,
+            'system': loinc_data.get('system', ''),
+            'units': row['reference_units'],
+            'patient_count': row['patient_count'],
+            'count': row['count']
+        })
+
+    # Create Tier 2 matches
+    tier2_matches = []
+    matched_tests = set()
+
+    for component, tests in component_groups.items():
+        # Check if all tests have same system
+        systems = set(t['system'] for t in tests)
+        units = set(t['units'] for t in tests)
+
+        needs_review = len(systems) > 1 or len(units) > 1
+        review_reason = []
+        if len(systems) > 1:
+            review_reason.append(f"multiple_systems ({', '.join(systems)})")
+        if len(units) > 1:
+            review_reason.append(f"multiple_units ({', '.join(units)})")
+
+        group_name = component.lower().replace('.', '_').replace(' ', '_').replace(',', '')
+
+        tier2_matches.append({
+            'group_name': group_name,
+            'loinc_code': tests[0]['loinc_code'],  # Representative code
+            'component': component,
+            'system': '|'.join(systems),
+            'standard_unit': tests[0]['units'],
+            'source_units': '|'.join(units),
+            'conversion_factors': '{}',
+            'tier': 2,
+            'needs_review': needs_review,
+            'review_reason': '|'.join(review_reason) if review_reason else '',
+            'matched_tests': '|'.join(t['test_description'] for t in tests),
+            'patient_count': max(t['patient_count'] for t in tests),
+            'measurement_count': sum(t['count'] for t in tests)
+        })
+
+        for t in tests:
+            matched_tests.add(t['test_description'])
+
+    tier2_df = pd.DataFrame(tier2_matches)
+    if len(tier2_df) > 0:
+        tier2_df = tier2_df.sort_values('patient_count', ascending=False).reset_index(drop=True)
+
+    print(f"  Tier 2 family groups: {len(tier2_df)}")
+    print(f"  Tests matched: {len(matched_tests)}")
+    print(f"  Groups needing review: {tier2_df['needs_review'].sum() if len(tier2_df) > 0 else 0}\n")
+
+    return tier2_df, matched_tests
+
+
 def fuzzy_match_orphans(unmapped_df, matched_tests, frequency_df):
     """
     Use fuzzy string matching to group similar test names.
@@ -702,6 +800,26 @@ def run_phase1(test_mode=False, test_n=100):
     else:
         tier1_df = pd.DataFrame()
         tier1_matched = set()
+
+    # Tier 2: LOINC family matching
+    if loinc_matcher is not None:
+        tier2_df, tier2_matched = tier2_loinc_family_match(
+            frequency_df,
+            tier1_matched,
+            loinc_matcher
+        )
+
+        # Save Tier 2 output
+        tier2_output = output_dir / f'{output_prefix}_tier2_loinc_family.csv'
+        tier2_df.to_csv(tier2_output, index=False)
+        print(f"  Saved Tier 2 matches to: {tier2_output}\n")
+
+        # Combine matched sets
+        all_matched = tier1_matched | tier2_matched
+    else:
+        tier2_df = pd.DataFrame()
+        tier2_matched = set()
+        all_matched = tier1_matched
 
     # LOINC grouping (original implementation)
     loinc_df, unmapped_df, matched_tests = group_by_loinc(frequency_df)
