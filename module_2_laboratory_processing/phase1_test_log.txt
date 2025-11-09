@@ -1,0 +1,196 @@
+Constants and configuration loaded successfully.
+
+================================================================================
+MODULE 2: LABORATORY PROCESSING
+*** TEST MODE: 10 patients ***
+================================================================================
+
+
+Loading LOINC database from /home/moin/TDA_11_1/module_2_laboratory_processing/Loinc/LoincTable/Loinc.csv...
+Loading LOINC database from cache...
+  Loaded 66497 LOINC codes from cache
+
+================================================================================
+LOADING PATIENT TIMELINES FROM MODULE 1
+================================================================================
+
+  Loaded 3565 patient timelines
+  *** TEST MODE: Limited to 10 patients ***
+
+================================================================================
+PHASE 1: SCANNING LAB DATA
+================================================================================
+
+  Lab file: /home/moin/TDA_11_1/Data/FNR_20240409_091633_Lab.txt
+  Filtering to 10 patient EMPIs
+  Processing in chunks (1M rows per chunk)...
+
+  Chunk 1: 1,000,000 rows → 2,102 cohort rows
+  Chunk 2: 1,000,000 rows → 0 cohort rows
+  Chunk 3: 1,000,000 rows → 0 cohort rows
+  Chunk 4: 1,000,000 rows → 0 cohort rows
+  Chunk 5: 1,000,000 rows → 0 cohort rows
+  Chunk 6: 1,000,000 rows → 0 cohort rows
+  Chunk 7: 1,000,000 rows → 0 cohort rows
+  Chunk 8: 1,000,000 rows → 1,749 cohort rows
+  Chunk 9: 1,000,000 rows → 0 cohort rows
+  Chunk 10: 1,000,000 rows → 0 cohort rows
+  Chunk 11: 1,000,000 rows → 0 cohort rows
+  Chunk 12: 1,000,000 rows → 0 cohort rows
+  Chunk 13: 1,000,000 rows → 0 cohort rows
+  Chunk 14: 1,000,000 rows → 0 cohort rows
+  Chunk 15: 1,000,000 rows → 0 cohort rows
+  Chunk 16: 1,000,000 rows → 3,063 cohort rows
+  Chunk 17: 1,000,000 rows → 169 cohort rows
+  Chunk 18: 1,000,000 rows → 0 cohort rows
+  Chunk 19: 1,000,000 rows → 0 cohort rows
+  Chunk 20: 1,000,000 rows → 0 cohort rows
+  Chunk 21: 1,000,000 rows → 1,895 cohort rows
+  Chunk 22: 1,000,000 rows → 0 cohort rows
+  Chunk 23: 1,000,000 rows → 0 cohort rows
+  Chunk 24: 1,000,000 rows → 0 cohort rows
+  Chunk 25: 1,000,000 rows → 0 cohort rows
+  Chunk 26: 1,000,000 rows → 0 cohort rows
+  Chunk 27: 1,000,000 rows → 0 cohort rows
+  Chunk 28: 1,000,000 rows → 0 cohort rows
+  Chunk 29: 1,000,000 rows → 1,240 cohort rows
+  Chunk 30: 1,000,000 rows → 0 cohort rows
+  Chunk 31: 1,000,000 rows → 0 cohort rows
+  Chunk 32: 1,000,000 rows → 0 cohort rows
+  Chunk 33: 1,000,000 rows → 2,777 cohort rows
+  Chunk 34: 1,000,000 rows → 0 cohort rows
+  Chunk 35: 1,000,000 rows → 0 cohort rows
+  Chunk 36: 1,000,000 rows → 0 cohort rows
+  Chunk 37: 1,000,000 rows → 0 cohort rows
+  Chunk 38: 1,000,000 rows → 0 cohort rows
+  Chunk 39: 1,000,000 rows → 0 cohort rows
+  Chunk 40: 1,000,000 rows → 0 cohort rows
+  Chunk 41: 1,000,000 rows → 0 cohort rows
+  Chunk 42: 1,000,000 rows → 0 cohort rows
+  Chunk 43: 1,000,000 rows → 0 cohort rows
+  Chunk 44: 1,000,000 rows → 5,436 cohort rows
+  Chunk 45: 1,000,000 rows → 0 cohort rows
+  Chunk 46: 1,000,000 rows → 0 cohort rows
+  Chunk 47: 1,000,000 rows → 0 cohort rows
+  Chunk 48: 1,000,000 rows → 0 cohort rows
+  Chunk 49: 1,000,000 rows → 0 cohort rows
+  Chunk 50: 1,000,000 rows → 0 cohort rows
+  Chunk 51: 1,000,000 rows → 0 cohort rows
+  Chunk 52: 1,000,000 rows → 1,646 cohort rows
+  Chunk 53: 1,000,000 rows → 0 cohort rows
+  Chunk 54: 1,000,000 rows → 0 cohort rows
+  Chunk 55: 1,000,000 rows → 0 cohort rows
+  Chunk 56: 1,000,000 rows → 0 cohort rows
+  Chunk 57: 1,000,000 rows → 0 cohort rows
+  Chunk 58: 1,000,000 rows → 0 cohort rows
+  Chunk 59: 1,000,000 rows → 0 cohort rows
+  Chunk 60: 1,000,000 rows → 1,240 cohort rows
+  Chunk 61: 1,000,000 rows → 0 cohort rows
+  Chunk 62: 1,000,000 rows → 0 cohort rows
+  Chunk 63: 1,000,000 rows → 0 cohort rows
+  Chunk 64: 368,217 rows → 0 cohort rows
+
+  Total rows scanned: 63,368,217
+  Cohort rows: 21,317
+  Unique test descriptions: 330
+
+  Frequency table created: 330 unique tests
+
+================================================================================
+TIER 1: LOINC EXACT MATCHING
+================================================================================
+
+  Tests with LOINC codes: 330
+  Tier 1 matches: 319
+  Coverage: 319/330 (96.7%)
+
+  Saved Tier 1 matches to: /home/moin/TDA_11_1/module_2_laboratory_processing/outputs/discovery/test_n10_tier1_loinc_exact.csv
+
+
+================================================================================
+TIER 2: LOINC FAMILY MATCHING
+================================================================================
+
+  Tests with LOINC codes (unmapped in Tier 1): 11
+  Tier 2 family groups: 0
+  Tests matched: 0
+  Groups needing review: 0
+
+  Saved Tier 2 matches to: /home/moin/TDA_11_1/module_2_laboratory_processing/outputs/discovery/test_n10_tier2_loinc_family.csv
+
+
+================================================================================
+TIER 3: HIERARCHICAL CLUSTERING
+================================================================================
+
+  Unmapped tests: 11
+  Clusters found: 6
+  Clusters flagged for review: 0
+  Tier 3 groups created: 6
+  Groups needing review: 3
+
+  Saved Tier 3 clusters to: /home/moin/TDA_11_1/module_2_laboratory_processing/outputs/discovery/test_n10_tier3_cluster_suggestions.csv
+
+
+================================================================================
+GENERATING HARMONIZATION MAP DRAFT
+================================================================================
+
+  Total groups: 325
+  Tier 1 (auto-approved): 319
+  Tier 2 (needs review): 0
+  Tier 3 (needs review): 6
+  Groups needing review: 3
+  Saved to: /home/moin/TDA_11_1/module_2_laboratory_processing/outputs/discovery/test_n10_harmonization_map_draft.csv
+
+  Generating static dendrogram...
+  Saved static dendrogram to: /home/moin/TDA_11_1/module_2_laboratory_processing/outputs/discovery/test_n10_cluster_dendrogram.png
+  Generating interactive dendrogram...
+  Saved interactive dendrogram to: /home/moin/TDA_11_1/module_2_laboratory_processing/outputs/discovery/test_n10_cluster_dendrogram_interactive.html
+  Generating harmonization explorer dashboard...
+  Saved harmonization explorer to: /home/moin/TDA_11_1/module_2_laboratory_processing/outputs/discovery/test_n10_harmonization_explorer.html
+
+================================================================================
+GROUPING TESTS BY LOINC CODE FAMILIES
+================================================================================
+
+  LOINC families matched: 18
+  Tests matched: 211
+  Tests unmapped: 119
+
+
+================================================================================
+FUZZY MATCHING UNMAPPED TESTS
+================================================================================
+
+  Unmapped tests to process: 119
+  Fuzzy matching threshold: 85%
+
+  Candidates above 5.0% threshold: 119
+
+  Fuzzy match groups found: 25
+  Groups needing review: 15
+
+
+================================================================================
+SAVING DISCOVERY REPORTS
+================================================================================
+
+  ✓ Saved: /home/moin/TDA_11_1/module_2_laboratory_processing/outputs/discovery/test_n10_test_frequency_report.csv
+    Rows: 330
+  ✓ Saved: /home/moin/TDA_11_1/module_2_laboratory_processing/outputs/discovery/test_n10_loinc_groups.csv
+    Rows: 18
+  ✓ Saved: /home/moin/TDA_11_1/module_2_laboratory_processing/outputs/discovery/test_n10_fuzzy_suggestions.csv
+    Rows: 25
+  ✓ Saved: /home/moin/TDA_11_1/module_2_laboratory_processing/outputs/discovery/test_n10_unmapped_tests.csv
+    Rows: 119
+
+================================================================================
+PHASE 1 COMPLETE!
+================================================================================
+
+Next steps:
+1. Review files in outputs/discovery/
+2. Create lab_harmonization_map.json with approved groupings
+3. Run Phase 2 with --phase2 flag
+
