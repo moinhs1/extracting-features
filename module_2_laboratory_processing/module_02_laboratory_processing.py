@@ -1002,7 +1002,7 @@ def run_phase1(test_mode=False, test_n=100):
 
     # Generate static dendrogram if clustering was performed
     if linkage_matrix is not None:
-        from visualization_generator import generate_static_dendrogram
+        from visualization_generator import generate_static_dendrogram, generate_interactive_dendrogram
 
         # Get test names from tier3
         unmapped_test_names = []
@@ -1016,6 +1016,15 @@ def run_phase1(test_mode=False, test_n=100):
             unmapped_test_names,
             dendrogram_path,
             title=f"Tier 3 Hierarchical Clustering (n={len(unmapped_test_names)} tests)"
+        )
+
+        # Generate interactive dendrogram
+        dendrogram_html_path = output_dir / f'{output_prefix}_cluster_dendrogram_interactive.html'
+        generate_interactive_dendrogram(
+            linkage_matrix,
+            unmapped_test_names,
+            dendrogram_html_path,
+            title=f"Interactive Tier 3 Clustering (n={len(unmapped_test_names)} tests)"
         )
 
     # LOINC grouping (original implementation)
