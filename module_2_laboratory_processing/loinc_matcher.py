@@ -79,5 +79,16 @@ class LoincMatcher:
         return self.loinc_dict
 
     def match(self, loinc_code: str) -> Optional[Dict]:
-        """Look up LOINC code."""
-        raise NotImplementedError("To be implemented")
+        """
+        Look up LOINC code.
+
+        Args:
+            loinc_code: LOINC code to look up (e.g., "2093-3")
+
+        Returns:
+            dict or None: LOINC metadata if found, None otherwise
+        """
+        if self.loinc_dict is None:
+            self.load()
+
+        return self.loinc_dict.get(loinc_code)
