@@ -700,6 +700,74 @@ def tier3_hierarchical_clustering(frequency_df, all_matched, threshold=0.9):
     return tier3_df, clusters, linkage_matrix, distances
 
 
+def generate_harmonization_map_draft(tier1_df, tier2_df, tier3_df, output_path):
+    """
+    Combine all tiers into unified harmonization map draft.
+
+    Args:
+        tier1_df: Tier 1 matches DataFrame
+        tier2_df: Tier 2 matches DataFrame
+        tier3_df: Tier 3 matches DataFrame
+        output_path: Path to save harmonization map CSV
+
+    Returns:
+        pd.DataFrame: Combined harmonization map
+    """
+    print(f"\n{'='*80}")
+    print("GENERATING HARMONIZATION MAP DRAFT")
+    print(f"{'='*80}\n")
+
+    # Combine all tiers
+    harmonization_map = pd.concat([tier1_df, tier2_df, tier3_df], ignore_index=True)
+
+    # Add placeholder QC thresholds (will be reviewed)
+    harmonization_map['impossible_low'] = 0.0
+    harmonization_map['impossible_high'] = 9999.0
+    harmonization_map['extreme_low'] = 0.0
+    harmonization_map['extreme_high'] = 9999.0
+
+    # Reorder columns for better readability
+    column_order = [
+        'group_name',
+        'loinc_code',
+        'component',
+        'system',
+        'standard_unit',
+        'source_units',
+        'conversion_factors',
+        'impossible_low',
+        'impossible_high',
+        'extreme_low',
+        'extreme_high',
+        'tier',
+        'needs_review',
+        'review_reason',
+        'matched_tests',
+        'patient_count',
+        'measurement_count'
+    ]
+
+    harmonization_map = harmonization_map[column_order]
+
+    # Sort by tier, then patient count
+    harmonization_map = harmonization_map.sort_values(
+        ['tier', 'patient_count'],
+        ascending=[True, False]
+    ).reset_index(drop=True)
+
+    # Save
+    harmonization_map.to_csv(output_path, index=False)
+
+    print(f"  Total groups: {len(harmonization_map)}")
+    print(f"  Tier 1 (auto-approved): {len(tier1_df)}")
+    print(f"  Tier 2 (needs review): {len(tier2_df)}")
+    print(f"  Tier 3 (needs review): {len(tier3_df)}")
+    print(f"  Groups needing review: {harmonization_map['needs_review'].sum()}")
+    print(f"  Saved to: {output_path}\n")
+
+    return harmonization_map
+
+
 def fuzzy_match_orphans(unmapped_df, matched_tests, frequency_df):
     """
     Use fuzzy string matching to group similar test names.
@@ -922,6 +990,15 @@ def run_phase1(test_mode=False, test_n=100):
     tier3_output = output_dir / f'{output_prefix}_tier3_cluster_suggestions.csv'
     tier3_df.to_csv(tier3_output, index=False)
     print(f"  Saved Tier 3 clusters to: {tier3_output}\n")
+
+    # Generate harmonization map draft
+    harmonization_map_path = output_dir / f'{output_prefix}_harmonization_map_draft.csv'
+    harmonization_map = generate_harmonization_map_draft(
+        tier1_df,
+        tier2_df,
+        tier3_df,
+        harmonization_map_path
+    )
 
     # LOINC grouping (original implementation)
     loinc_df, unmapped_df, matched_tests = group_by_loinc(frequency_df)
