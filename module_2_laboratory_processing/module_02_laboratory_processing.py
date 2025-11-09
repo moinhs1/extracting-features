@@ -1002,7 +1002,7 @@ def run_phase1(test_mode=False, test_n=100):
 
     # Generate static dendrogram if clustering was performed
     if linkage_matrix is not None:
-        from visualization_generator import generate_static_dendrogram, generate_interactive_dendrogram
+        from visualization_generator import generate_static_dendrogram, generate_interactive_dendrogram, generate_harmonization_explorer
 
         # Get test names from tier3
         unmapped_test_names = []
@@ -1026,6 +1026,10 @@ def run_phase1(test_mode=False, test_n=100):
             dendrogram_html_path,
             title=f"Interactive Tier 3 Clustering (n={len(unmapped_test_names)} tests)"
         )
+
+        # Generate harmonization explorer dashboard
+        explorer_path = output_dir / f'{output_prefix}_harmonization_explorer.html'
+        generate_harmonization_explorer(harmonization_map, explorer_path)
 
     # LOINC grouping (original implementation)
     loinc_df, unmapped_df, matched_tests = group_by_loinc(frequency_df)

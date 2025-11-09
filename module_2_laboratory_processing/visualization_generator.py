@@ -114,3 +114,104 @@ def generate_interactive_dendrogram(
 
     except Exception as e:
         print(f"  Warning: Could not generate interactive dendrogram: {e}")
+
+
+def generate_harmonization_explorer(
+    harmonization_map,
+    output_path: Path
+):
+    """
+    Generate interactive harmonization explorer dashboard.
+
+    Args:
+        harmonization_map: Harmonization map DataFrame
+        output_path: Path to save HTML
+    """
+    print(f"  Generating harmonization explorer dashboard...")
+
+    try:
+        import pandas as pd
+        import plotly.graph_objects as go
+        from plotly.subplots import make_subplots
+
+        # Create subplots: 2x2 grid
+        fig = make_subplots(
+            rows=2, cols=2,
+            subplot_titles=(
+                'Coverage by Tier',
+                'Groups Needing Review',
+                'Patient Coverage Distribution',
+                'Test Count per Group'
+            ),
+            specs=[
+                [{'type': 'pie'}, {'type': 'bar'}],
+                [{'type': 'histogram'}, {'type': 'histogram'}]
+            ]
+        )
+
+        # Plot 1: Coverage by tier (pie chart)
+        tier_counts = harmonization_map['tier'].value_counts().sort_index()
+        fig.add_trace(
+            go.Pie(
+                labels=[f'Tier {t}' for t in tier_counts.index],
+                values=tier_counts.values,
+                name='Tier Coverage',
+                hovertemplate='<b>%{label}</b><br>Groups: %{value}<br>Percentage: %{percent}<extra></extra>'
+            ),
+            row=1, col=1
+        )
+
+        # Plot 2: Review status (bar chart)
+        review_counts = harmonization_map['needs_review'].value_counts()
+        fig.add_trace(
+            go.Bar(
+                x=['Approved', 'Needs Review'],
+                y=[review_counts.get(False, 0), review_counts.get(True, 0)],
+                name='Review Status',
+                marker_color=['green', 'orange'],
+                hovertemplate='<b>%{x}</b><br>Groups: %{y}<extra></extra>'
+            ),
+            row=1, col=2
+        )
+
+        # Plot 3: Patient coverage distribution (histogram)
+        fig.add_trace(
+            go.Histogram(
+                x=harmonization_map['patient_count'],
+                name='Patient Coverage',
+                nbinsx=20,
+                hovertemplate='Patient Count: %{x}<br>Groups: %{y}<extra></extra>'
+            ),
+            row=2, col=1
+        )
+
+        # Plot 4: Test count per group (histogram)
+        test_counts = harmonization_map['matched_tests'].str.split('|').apply(len)
+        fig.add_trace(
+            go.Histogram(
+                x=test_counts,
+                name='Tests per Group',
+                nbinsx=20,
+                hovertemplate='Tests in Group: %{x}<br>Groups: %{y}<extra></extra>'
+            ),
+            row=2, col=2
+        )
+
+        # Update layout
+        fig.update_layout(
+            title_text="Harmonization Map Explorer Dashboard",
+            height=900,
+            showlegend=False
+        )
+
+        # Save
+        fig.write_html(
+            output_path,
+            include_plotlyjs='cdn',
+            config={'displayModeBar': True, 'displaylogo': False}
+        )
+
+        print(f"  Saved harmonization explorer to: {output_path}")
+
+    except Exception as e:
+        print(f"  Warning: Could not generate explorer dashboard: {e}")
