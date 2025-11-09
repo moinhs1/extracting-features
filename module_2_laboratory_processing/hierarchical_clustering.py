@@ -1,0 +1,126 @@
+"""
+Hierarchical clustering for unmapped lab tests.
+"""
+
+import numpy as np
+import re
+from typing import Dict, List, Tuple, Set
+
+
+def calculate_token_similarity(name1: str, name2: str) -> float:
+    """
+    Calculate Jaccard similarity between tokenized test names.
+
+    Args:
+        name1: First test name (e.g., "LOW DENSITY LIPOPROTEIN")
+        name2: Second test name (e.g., "HIGH DENSITY LIPOPROTEIN")
+
+    Returns:
+        float: Similarity in [0, 1], where 1=identical tokens
+    """
+    # Tokenize: split on whitespace, convert to uppercase, remove empty
+    tokens1 = set(name1.upper().split())
+    tokens2 = set(name2.upper().split())
+
+    # Remove common stop words that don't add meaning
+    stop_words = {'TEST', 'BLOOD', 'SERUM', 'PLASMA', 'LEVEL', 'TOTAL'}
+    tokens1 = tokens1 - stop_words
+    tokens2 = tokens2 - stop_words
+
+    # Jaccard similarity
+    intersection = tokens1 & tokens2
+    union = tokens1 | tokens2
+
+    if len(union) == 0:
+        return 0.0
+
+    return len(intersection) / len(union)
+
+
+def calculate_unit_incompatibility(unit1: str, unit2: str) -> float:
+    """
+    Calculate unit incompatibility score.
+
+    Args:
+        unit1: First unit (e.g., "mg/dL")
+        unit2: Second unit (e.g., "mmol/L")
+
+    Returns:
+        float: Incompatibility in [0, 1], where 0=same unit, 1=incompatible
+    """
+    # Normalize units (lowercase, strip whitespace)
+    u1 = unit1.lower().strip() if unit1 else ""
+    u2 = unit2.lower().strip() if unit2 else ""
+
+    # Exact match
+    if u1 == u2:
+        return 0.0
+
+    # Try pint for dimension analysis
+    try:
+        import pint
+        ureg = pint.UnitRegistry()
+
+        # Parse units
+        unit_obj1 = ureg(u1)
+        unit_obj2 = ureg(u2)
+
+        # Same dimensionality = convertible
+        if unit_obj1.dimensionality == unit_obj2.dimensionality:
+            return 0.3  # Compatible but need conversion
+        else:
+            return 1.0  # Incompatible dimensions
+
+    except:
+        # Fallback: simple string matching for common patterns
+        normalize_map = {
+            'mgdl': 'mg/dL',
+            'mg/dl': 'mg/dL',
+            'mmol': 'mmol/L',
+            'umol/l': 'µmol/L',
+            'g/dl': 'g/dL',
+            'u/l': 'U/L'
+        }
+
+        u1_norm = normalize_map.get(u1.replace(' ', ''), u1)
+        u2_norm = normalize_map.get(u2.replace(' ', ''), u2)
+
+        if u1_norm == u2_norm:
+            return 0.0
+
+        # Check if both are concentration units (likely convertible)
+        conc_units = {'mg/dL', 'mmol/L', 'µmol/L', 'g/dL', 'ng/mL', 'pg/mL'}
+        if u1_norm in conc_units and u2_norm in conc_units:
+            return 0.5  # Possibly convertible, needs review
+
+        # Otherwise, incompatible
+        return 1.0
+
+
+def calculate_combined_distance(
+    test1: Dict,
+    test2: Dict,
+    unit_weight: float = 0.4
+) -> float:
+    """
+    Combined distance metric: 60% name similarity + 40% unit compatibility.
+
+    Args:
+        test1: Test dictionary with 'name' and 'unit' keys
+        test2: Test dictionary with 'name' and 'unit' keys
+        unit_weight: Weight for unit incompatibility (default 0.4)
+
+    Returns:
+        float: Distance in [0, 1], where 0=identical, 1=completely different
+    """
+    # Calculate name similarity and convert to distance
+    name_similarity = calculate_token_similarity(test1['name'], test2['name'])
+    name_distance = 1 - name_similarity
+
+    # Calculate unit incompatibility (already a distance)
+    unit_distance = calculate_unit_incompatibility(test1['unit'], test2['unit'])
+
+    # Weighted combination
+    combined = (1 - unit_weight) * name_distance + unit_weight * unit_distance
+
+    return combined
