@@ -23,6 +23,14 @@ warnings.filterwarnings('ignore')
 sys.path.insert(0, str(Path(__file__).parent.parent / 'module_1_core_infrastructure'))
 from module_01_core_infrastructure import PatientTimeline
 
+# Import enhanced harmonization modules
+from loinc_matcher import LoincMatcher
+from unit_converter import UnitConverter
+from hierarchical_clustering import (
+    perform_hierarchical_clustering,
+    flag_suspicious_clusters
+)
+
 # ============================================================================
 # CONSTANTS & CONFIGURATION
 # ============================================================================
@@ -36,6 +44,10 @@ PATIENT_TIMELINES_FILE = MODULE1_DIR / 'outputs' / 'patient_timelines.pkl'
 # Output paths
 OUTPUT_DIR = Path(__file__).parent / 'outputs'
 DISCOVERY_DIR = OUTPUT_DIR / 'discovery'
+
+# LOINC database paths
+LOINC_CSV_PATH = Path(__file__).parent / 'Loinc' / 'LoincTable' / 'Loinc.csv'
+LOINC_CACHE_DIR = Path(__file__).parent / 'cache'
 
 # Temporal phase names (must match Module 1)
 TEMPORAL_PHASES = ['BASELINE', 'ACUTE', 'SUBACUTE', 'RECOVERY']
@@ -415,6 +427,91 @@ def group_by_loinc(frequency_df):
     return loinc_df, unmapped_df, matched_tests
 
 
+def tier1_loinc_exact_match(frequency_df, loinc_matcher, unit_converter):
+    """
+    Tier 1: LOINC exact matching with unit validation.
+
+    Args:
+        frequency_df: Test frequency DataFrame with loinc_code column
+        loinc_matcher: LoincMatcher instance
+        unit_converter: UnitConverter instance
+
+    Returns:
+        pd.DataFrame: Tier 1 matches (auto-approved)
+        set: Matched test descriptions
+    """
+    print(f"\n{'='*80}")
+    print("TIER 1: LOINC EXACT MATCHING")
+    print(f"{'='*80}\n")
+
+    tier1_matches = []
+    matched_tests = set()
+
+    # Filter to tests with LOINC codes
+    has_loinc = frequency_df[frequency_df['loinc_code'].notna()].copy()
+    print(f"  Tests with LOINC codes: {len(has_loinc)}")
+
+    for _, row in has_loinc.iterrows():
+        loinc_code = row['loinc_code']
+        test_desc = row['test_description']
+
+        # Look up in LOINC database
+        loinc_data = loinc_matcher.match(loinc_code)
+
+        if loinc_data is None:
+            continue  # LOINC code not in database
+
+        # Extract metadata
+        component = loinc_data.get('component', '')
+        system = loinc_data.get('system', '')
+        loinc_units = loinc_data.get('units', '')
+        loinc_name = loinc_data.get('name', '')
+
+        # Create group name from component
+        group_name = component.lower().replace('.', '_').replace(' ', '_').replace(',', '')
+        if not group_name:
+            group_name = test_desc.lower().replace(' ', '_')
+
+        # Get conversion factor if needed
+        test_units = row['reference_units']
+        conversion_factors = {test_units: 1.0}
+
+        if test_units != loinc_units and loinc_units:
+            # Try to get conversion factor
+            factor = unit_converter.get_conversion_factor(
+                component.split('.')[0].lower(),  # Base component
+                test_units
+            )
+            if factor:
+                conversion_factors[test_units] = factor
+
+        tier1_matches.append({
+            'group_name': group_name,
+            'loinc_code': loinc_code,
+            'component': component,
+            'system': system,
+            'standard_unit': loinc_units or test_units,
+            'source_units': test_units,
+            'conversion_factors': str(conversion_factors),
+            'tier': 1,
+            'needs_review': False,
+            'review_reason': '',
+            'matched_tests': test_desc,
+            'patient_count': row['patient_count'],
+            'measurement_count': row['count']
+        })
+
+        matched_tests.add(test_desc)
+
+    tier1_df = pd.DataFrame(tier1_matches)
+    tier1_df = tier1_df.sort_values('patient_count', ascending=False).reset_index(drop=True)
+
+    print(f"  Tier 1 matches: {len(tier1_df)}")
+    print(f"  Coverage: {len(matched_tests)}/{len(frequency_df)} ({len(matched_tests)/len(frequency_df)*100:.1f}%)\n")
+
+    return tier1_df, matched_tests
+
+
 def fuzzy_match_orphans(unmapped_df, matched_tests, frequency_df):
     """
     Use fuzzy string matching to group similar test names.
@@ -568,13 +665,45 @@ def run_phase1(test_mode=False, test_n=100):
     else:
         output_prefix = "full"
 
+    output_dir = DISCOVERY_DIR
+
+    # Initialize LOINC matcher and unit converter
+    loinc_matcher = None
+    unit_converter = UnitConverter()
+
+    if LOINC_CSV_PATH.exists():
+        print(f"\nLoading LOINC database from {LOINC_CSV_PATH}...")
+        loinc_matcher = LoincMatcher(str(LOINC_CSV_PATH), cache_dir=str(LOINC_CACHE_DIR))
+        loinc_matcher.load()
+    else:
+        print(f"\nWARNING: LOINC database not found at {LOINC_CSV_PATH}")
+        print("  Tier 1 matching will be skipped")
+        print("  Download LOINC from https://loinc.org\n")
+
     # Load patient timelines
     timelines, patient_empis = load_patient_timelines(test_mode, test_n)
 
     # Scan lab data
     frequency_df = scan_lab_data(patient_empis, test_mode)
 
-    # LOINC grouping
+    # Tier 1: LOINC exact matching
+    if loinc_matcher is not None:
+        tier1_df, tier1_matched = tier1_loinc_exact_match(
+            frequency_df,
+            loinc_matcher,
+            unit_converter
+        )
+
+        # Save Tier 1 output
+        output_dir.mkdir(parents=True, exist_ok=True)
+        tier1_output = output_dir / f'{output_prefix}_tier1_loinc_exact.csv'
+        tier1_df.to_csv(tier1_output, index=False)
+        print(f"  Saved Tier 1 matches to: {tier1_output}\n")
+    else:
+        tier1_df = pd.DataFrame()
+        tier1_matched = set()
+
+    # LOINC grouping (original implementation)
     loinc_df, unmapped_df, matched_tests = group_by_loinc(frequency_df)
 
     # Fuzzy matching
