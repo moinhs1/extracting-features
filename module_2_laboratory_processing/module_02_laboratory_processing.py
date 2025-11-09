@@ -1181,22 +1181,35 @@ def load_harmonization_map(output_prefix):
 
         draft_df = pd.read_csv(draft_file)
 
-        # Convert to dict format for Phase 2
+        # Aggregate rows by group_name (multiple LOINC codes may map to same group)
         harmonization_map = {}
-        for _, row in draft_df.iterrows():
-            group_name = row['group_name']
-            test_descriptions = str(row['matched_tests']).split('|')
-            loinc_code = str(row['loinc_code']) if pd.notna(row['loinc_code']) else ''
+        for group_name, group_df in draft_df.groupby('group_name'):
+            # Collect all test descriptions from all rows for this group
+            all_test_descriptions = []
+            all_loinc_codes = []
+            for _, row in group_df.iterrows():
+                test_descriptions = str(row['matched_tests']).split('|')
+                all_test_descriptions.extend(test_descriptions)
+                loinc_code = str(row['loinc_code']) if pd.notna(row['loinc_code']) else ''
+                if loinc_code:
+                    all_loinc_codes.append(loinc_code)
+
+            # Remove duplicates and sort
+            all_test_descriptions = sorted(list(set(all_test_descriptions)))
+            all_loinc_codes = sorted(list(set(all_loinc_codes)))
+
+            # Get metadata from first row (same for all rows in group)
+            first_row = group_df.iloc[0]
 
             # Get forward-fill limit from config or default
             forward_fill_hours = FORWARD_FILL_LIMITS.get(group_name, FORWARD_FILL_LIMITS['default'])
 
             # Get QC thresholds from config or use placeholders from CSV
             qc_thresholds = QC_THRESHOLDS.get(group_name, {
-                'impossible_low': row.get('impossible_low', 0),
-                'impossible_high': row.get('impossible_high', 999999),
-                'extreme_low': row.get('extreme_low', 0),
-                'extreme_high': row.get('extreme_high', 999999)
+                'impossible_low': first_row.get('impossible_low', 0),
+                'impossible_high': first_row.get('impossible_high', 999999),
+                'extreme_low': first_row.get('extreme_low', 0),
+                'extreme_high': first_row.get('extreme_high', 999999)
             })
 
             # Get clinical thresholds if available
@@ -1204,15 +1217,15 @@ def load_harmonization_map(output_prefix):
 
             harmonization_map[group_name] = {
                 'canonical_name': group_name,
-                'variants': test_descriptions,
-                'loinc_codes': [loinc_code] if loinc_code else [],
-                'canonical_unit': str(row['standard_unit']) if pd.notna(row['standard_unit']) else '',
+                'variants': all_test_descriptions,
+                'loinc_codes': all_loinc_codes,
+                'canonical_unit': str(first_row['standard_unit']) if pd.notna(first_row['standard_unit']) else '',
                 'unit_conversions': {},  # TODO: parse from conversion_factors column
                 'forward_fill_max_hours': forward_fill_hours,
                 'qc_thresholds': qc_thresholds,
                 'clinical_thresholds': clinical_thresholds,
-                'tier': int(row['tier']),
-                'needs_review': bool(row['needs_review'])
+                'tier': int(first_row['tier']),
+                'needs_review': bool(first_row['needs_review'])
             }
 
         # Save default map
