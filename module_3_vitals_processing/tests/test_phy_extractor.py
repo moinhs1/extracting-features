@@ -1,4 +1,5 @@
 """Tests for Phy.txt structured vitals extractor."""
+import os
 import pytest
 import pandas as pd
 from module_3_vitals_processing.extractors.phy_extractor import (
@@ -307,3 +308,41 @@ class TestExtractPhyVitals:
         # Verify timestamp column exists and is datetime
         assert 'timestamp' in result_df.columns
         assert pd.api.types.is_datetime64_any_dtype(result_df['timestamp'])
+
+
+class TestIntegration:
+    """Integration tests with real data."""
+
+    @pytest.mark.skipif(
+        not os.path.exists("/home/moin/TDA_11_25/Data/Phy.txt"),
+        reason="Real data not available"
+    )
+    def test_extract_sample_from_real_data(self, tmp_path):
+        """Test extraction from first 10000 rows of real Phy.txt."""
+        # Create a sample file with first 10000 rows
+        sample_file = tmp_path / "sample_phy.txt"
+        with open("/home/moin/TDA_11_25/Data/Phy.txt", 'r') as f:
+            lines = [next(f) for _ in range(10001)]  # Header + 10000 rows
+        sample_file.write_text(''.join(lines))
+
+        output_file = tmp_path / "sample_output.parquet"
+
+        result_df = extract_phy_vitals(
+            str(sample_file),
+            str(output_file),
+            chunk_size=5000,
+            show_progress=False
+        )
+
+        # Basic sanity checks
+        assert len(result_df) > 0, "Should extract some vitals"
+        assert 'EMPI' in result_df.columns
+        assert 'timestamp' in result_df.columns
+        assert 'vital_type' in result_df.columns
+        assert 'value' in result_df.columns
+
+        # Check we got multiple vital types
+        vital_types = result_df['vital_type'].unique()
+        print(f"Extracted vital types: {vital_types}")
+        print(f"Total records: {len(result_df)}")
+        print(f"Records by type:\n{result_df['vital_type'].value_counts()}")
