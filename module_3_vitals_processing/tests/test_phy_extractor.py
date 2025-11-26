@@ -1,6 +1,9 @@
 """Tests for Phy.txt structured vitals extractor."""
 import pytest
-from module_3_vitals_processing.extractors.phy_extractor import parse_blood_pressure
+from module_3_vitals_processing.extractors.phy_extractor import (
+    parse_blood_pressure,
+    map_concept_to_canonical,
+)
 
 
 class TestParseBloodPressure:
@@ -59,3 +62,55 @@ class TestParseBloodPressure:
         sbp, dbp = parse_blood_pressure("130 / 77")
         assert sbp == 130.0
         assert dbp == 77.0
+
+
+class TestMapConceptToCanonical:
+    """Tests for map_concept_to_canonical function."""
+
+    def test_pulse_to_hr(self):
+        """Test Pulse maps to HR."""
+        assert map_concept_to_canonical("Pulse") == "HR"
+
+    def test_temperature(self):
+        """Test Temperature maps to TEMP."""
+        assert map_concept_to_canonical("Temperature") == "TEMP"
+
+    def test_blood_pressure_epic(self):
+        """Test Blood Pressure-Epic maps to BP."""
+        assert map_concept_to_canonical("Blood Pressure-Epic") == "BP"
+
+    def test_systolic_epic(self):
+        """Test Systolic-Epic maps to SBP."""
+        assert map_concept_to_canonical("Systolic-Epic") == "SBP"
+
+    def test_diastolic_epic(self):
+        """Test Diastolic-Epic maps to DBP."""
+        assert map_concept_to_canonical("Diastolic-Epic") == "DBP"
+
+    def test_o2_saturation(self):
+        """Test O2 Saturation-SPO2 maps to SPO2."""
+        assert map_concept_to_canonical("O2 Saturation-SPO2") == "SPO2"
+
+    def test_respiratory_rate(self):
+        """Test Respiratory rate maps to RR."""
+        assert map_concept_to_canonical("Respiratory rate") == "RR"
+
+    def test_weight(self):
+        """Test Weight maps to WEIGHT."""
+        assert map_concept_to_canonical("Weight") == "WEIGHT"
+
+    def test_height(self):
+        """Test Height maps to HEIGHT."""
+        assert map_concept_to_canonical("Height") == "HEIGHT"
+
+    def test_bmi(self):
+        """Test BMI maps to BMI."""
+        assert map_concept_to_canonical("BMI") == "BMI"
+
+    def test_unknown_concept(self):
+        """Test unknown concept returns None."""
+        assert map_concept_to_canonical("Flu-High Dose") is None
+
+    def test_none_input(self):
+        """Test None input returns None."""
+        assert map_concept_to_canonical(None) is None

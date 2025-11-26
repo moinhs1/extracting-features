@@ -7,6 +7,8 @@ Extracts vital signs from the structured Phy.txt file.
 import re
 from typing import Tuple, Optional
 
+from module_3_vitals_processing.config.vitals_config import VITAL_CONCEPTS
+
 
 def parse_blood_pressure(bp_string: Optional[str]) -> Tuple[Optional[float], Optional[float]]:
     """
@@ -38,3 +40,19 @@ def parse_blood_pressure(bp_string: Optional[str]) -> Tuple[Optional[float], Opt
         return sbp, dbp
     except (ValueError, TypeError):
         return None, None
+
+
+def map_concept_to_canonical(concept_name: Optional[str]) -> Optional[str]:
+    """
+    Map Phy.txt Concept_Name to canonical vital sign name.
+
+    Args:
+        concept_name: The Concept_Name from Phy.txt
+
+    Returns:
+        Canonical vital name (HR, SBP, DBP, etc.) or None if not a vital
+    """
+    if concept_name is None:
+        return None
+
+    return VITAL_CONCEPTS.get(concept_name)
