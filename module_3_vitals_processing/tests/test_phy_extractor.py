@@ -3,6 +3,7 @@ import pytest
 from module_3_vitals_processing.extractors.phy_extractor import (
     parse_blood_pressure,
     map_concept_to_canonical,
+    parse_result_value,
 )
 
 
@@ -114,3 +115,47 @@ class TestMapConceptToCanonical:
     def test_none_input(self):
         """Test None input returns None."""
         assert map_concept_to_canonical(None) is None
+
+
+class TestParseResultValue:
+    """Tests for parse_result_value function."""
+
+    def test_integer_value(self):
+        """Test parsing integer."""
+        assert parse_result_value("74") == 74.0
+
+    def test_float_value(self):
+        """Test parsing float."""
+        assert parse_result_value("98.6") == 98.6
+
+    def test_float_with_leading_zero(self):
+        """Test parsing float with leading zero."""
+        assert parse_result_value("0.5") == 0.5
+
+    def test_empty_string(self):
+        """Test empty string returns None."""
+        assert parse_result_value("") is None
+
+    def test_none_input(self):
+        """Test None input returns None."""
+        assert parse_result_value(None) is None
+
+    def test_text_value(self):
+        """Test non-numeric text returns None."""
+        assert parse_result_value("Left arm") is None
+
+    def test_whitespace(self):
+        """Test value with whitespace."""
+        assert parse_result_value("  74  ") == 74.0
+
+    def test_negative_value(self):
+        """Test negative value (should still parse)."""
+        assert parse_result_value("-5") == -5.0
+
+    def test_greater_than_symbol(self):
+        """Test value with > symbol."""
+        assert parse_result_value(">100") == 100.0
+
+    def test_less_than_symbol(self):
+        """Test value with < symbol."""
+        assert parse_result_value("<50") == 50.0

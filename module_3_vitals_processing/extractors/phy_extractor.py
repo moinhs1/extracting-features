@@ -56,3 +56,29 @@ def map_concept_to_canonical(concept_name: Optional[str]) -> Optional[str]:
         return None
 
     return VITAL_CONCEPTS.get(concept_name)
+
+
+def parse_result_value(result: Optional[str]) -> Optional[float]:
+    """
+    Parse Result field to numeric value.
+
+    Args:
+        result: The Result string from Phy.txt
+
+    Returns:
+        Float value or None if not parseable
+    """
+    if result is None or not isinstance(result, str):
+        return None
+
+    result = result.strip()
+    if not result:
+        return None
+
+    # Remove common prefixes like > or <
+    result = result.lstrip('<>').strip()
+
+    try:
+        return float(result)
+    except (ValueError, TypeError):
+        return None
