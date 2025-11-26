@@ -19,14 +19,23 @@ import json
 from typing import Dict, List, Tuple, Optional
 from dataclasses import dataclass, asdict
 import warnings
+from tqdm import tqdm
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+import multiprocessing as mp
+import os
+
+# Set max CPU usage
+N_CORES = mp.cpu_count()
+print(f"Using {N_CORES} CPU cores for parallel processing")
+
 warnings.filterwarnings('ignore')
 
 # ============================================================================
 # CONSTANTS & CONFIGURATION
 # ============================================================================
 
-DATA_DIR = Path("/home/moin/TDA_11_1/Data")
-OUTPUT_DIR = Path("/home/moin/TDA_11_1/module_1_core_infrastructure/outputs")
+DATA_DIR = Path("/home/moin/TDA_11_25/Data")
+OUTPUT_DIR = Path("/home/moin/TDA_11_25/module_1_core_infrastructure/outputs")
 OUTPUT_DIR.mkdir(exist_ok=True, parents=True)
 
 # Temporal windows (hours relative to Time Zero)
@@ -129,9 +138,26 @@ class PatientTimeline:
 # ============================================================================
 
 def load_pe_cohort() -> pd.DataFrame:
-    """Load PE cohort with Time Zero."""
-    print("Loading PE cohort...")
-    df = pd.read_csv(DATA_DIR / "PE_dataset_enhanced.csv", low_memory=False)
+    """Load PE cohort with Time Zero from Gemma-positive predictions."""
+    print("Loading PE cohort (Gemma_PE_Present = True)...")
+
+    # Load Gemma predictions file
+    gemma_df = pd.read_csv(DATA_DIR / "ALL_PE_POSITIVE_With_Gemma_Predictions.csv", low_memory=False)
+    print(f"  Loaded {len(gemma_df)} total reports")
+
+    # Filter for Gemma_PE_Present = "True" (string value)
+    gemma_df = gemma_df[gemma_df['Gemma_PE_Present'].astype(str).str.strip() == 'True'].copy()
+    print(f"  Filtered to {len(gemma_df)} Gemma PE-positive reports")
+    print(f"  Unique patients (EMPI): {gemma_df['EMPI'].nunique()}")
+
+    # Load Combined predictions file to get Report_Date_Time
+    combined_df = pd.read_csv(DATA_DIR / "Combined_PE_Predictions_All_Cohorts.txt",
+                              sep='|', low_memory=False,
+                              usecols=['Report_Number', 'Report_Date_Time'])
+
+    # Merge to get dates (keep only first match per Report_Number)
+    combined_df = combined_df.drop_duplicates(subset=['Report_Number'], keep='first')
+    df = gemma_df.merge(combined_df, on='Report_Number', how='left')
 
     # Parse Report_Date_Time as Time Zero
     df['time_zero'] = pd.to_datetime(df['Report_Date_Time'], errors='coerce')
@@ -139,7 +165,7 @@ def load_pe_cohort() -> pd.DataFrame:
     # Ensure EMPI is string for consistent merging
     df['EMPI'] = df['EMPI'].astype(str)
 
-    print(f"  Loaded {len(df)} PE events")
+    print(f"  Total PE events: {len(df)}")
     print(f"  Missing timestamps: {df['time_zero'].isna().sum()}")
 
     return df
@@ -150,7 +176,7 @@ def load_encounters() -> pd.DataFrame:
     print("Loading encounters...")
 
     # Read file with pipe delimiter
-    df = pd.read_csv(DATA_DIR / "FNR_20240409_091633_Enc.txt",
+    df = pd.read_csv(DATA_DIR / "Enc.txt",
                      sep='|', low_memory=False)
 
     # Parse dates (note: columns are Admit_Date and Discharge_Date, not *_Date_Time)
@@ -169,7 +195,7 @@ def load_procedures() -> pd.DataFrame:
     """Load procedure data (Prc.txt)."""
     print("Loading procedures...")
 
-    df = pd.read_csv(DATA_DIR / "FNR_20240409_091633_Prc.txt",
+    df = pd.read_csv(DATA_DIR / "Prc.txt",
                      sep='|', low_memory=False)
 
     # Parse dates
@@ -187,7 +213,7 @@ def load_diagnoses() -> pd.DataFrame:
     """Load diagnosis data (Dia.txt)."""
     print("Loading diagnoses...")
 
-    df = pd.read_csv(DATA_DIR / "FNR_20240409_091633_Dia.txt",
+    df = pd.read_csv(DATA_DIR / "Dia.txt",
                      sep='|', low_memory=False)
 
     # Parse dates
@@ -205,7 +231,7 @@ def load_medications() -> pd.DataFrame:
     """Load medication data (Med.txt)."""
     print("Loading medications...")
 
-    df = pd.read_csv(DATA_DIR / "FNR_20240409_091633_Med.txt",
+    df = pd.read_csv(DATA_DIR / "Med.txt",
                      sep='|', low_memory=False)
 
     # Parse dates
@@ -220,23 +246,21 @@ def load_medications() -> pd.DataFrame:
 
 
 def load_demographics() -> pd.DataFrame:
-    """Load demographics data (Dem files)."""
+    """Load demographics data (Dem.txt)."""
     print("Loading demographics...")
 
-    # Load both demographics files
-    dem1 = pd.read_csv(DATA_DIR / "FNR_20240409_091633-1_Dem.txt",
-                       sep='|', low_memory=False)
-    dem2 = pd.read_csv(DATA_DIR / "FNR_20240409_091633-2_Dem.txt",
-                       sep='|', low_memory=False)
-
-    # Combine them
-    df = pd.concat([dem1, dem2], ignore_index=True)
+    # Load single demographics file
+    df = pd.read_csv(DATA_DIR / "Dem.txt",
+                     sep='|', low_memory=False)
 
     # Remove duplicates (keep first occurrence)
     df = df.drop_duplicates(subset=['EMPI'], keep='first')
 
-    # Parse Date_Of_Death
-    df['Date_Of_Death'] = pd.to_datetime(df['Date_Of_Death'], errors='coerce')
+    # Parse Date_Of_Death if column exists
+    if 'Date_Of_Death' in df.columns:
+        df['Date_Of_Death'] = pd.to_datetime(df['Date_Of_Death'], errors='coerce')
+    else:
+        df['Date_Of_Death'] = pd.NaT
 
     # Ensure EMPI is string for consistent merging
     df['EMPI'] = df['EMPI'].astype(str)
@@ -303,15 +327,19 @@ def link_encounters_to_patients(pe_df: pd.DataFrame, enc_df: pd.DataFrame) -> pd
     pe_df['encounter_match_method'] = ''
     pe_df['encounter_match_confidence'] = ''
 
+    # Pre-group encounters by EMPI for O(1) lookup (OPTIMIZATION)
+    print("  Pre-grouping encounters by patient...")
+    enc_grouped = {empi: group for empi, group in enc_df.groupby('EMPI')}
+
     # Process each patient
     tier_counts = {'tier1': 0, 'tier2': 0, 'tier3': 0, 'tier4': 0}
 
-    for idx, patient in pe_df.iterrows():
+    for idx, patient in tqdm(pe_df.iterrows(), total=len(pe_df), desc="  Linking encounters"):
         empi = patient['EMPI']
         time_zero = patient['time_zero']
 
-        # Get all encounters for this patient
-        patient_encounters = enc_df[enc_df['EMPI'] == empi].copy()
+        # Get all encounters for this patient (O(1) lookup)
+        patient_encounters = enc_grouped.get(empi, pd.DataFrame()).copy()
 
         if len(patient_encounters) == 0:
             # No encounters at all - use Tier 4
@@ -492,7 +520,7 @@ def extract_mortality(pe_df: pd.DataFrame, dem_df: pd.DataFrame) -> pd.DataFrame
     )
 
     # Process each patient
-    for idx, patient in pe_df.iterrows():
+    for idx, patient in tqdm(pe_df.iterrows(), total=len(pe_df), desc="  Extracting mortality"):
         date_of_death = patient.get('Date_Of_Death')
         vital_status = str(patient.get('Vital_status', '')).lower()
         time_zero = patient['time_zero']
@@ -567,24 +595,27 @@ def extract_icu_admission(pe_df: pd.DataFrame, prc_df: pd.DataFrame) -> pd.DataF
     pe_df['icu_type'] = ''
     pe_df['critical_care_minutes'] = 0
 
-    # Filter procedures to critical care codes
-    icu_codes = CPT_CODES['icu_critical_care']
+    # Filter procedures to critical care codes and pre-group by EMPI
+    icu_codes = set(CPT_CODES['icu_critical_care'])
     icu_procs = prc_df[prc_df['Code'].isin(icu_codes)].copy()
+    icu_grouped = {empi: group for empi, group in icu_procs.groupby('EMPI')}
 
     print(f"  Found {len(icu_procs)} critical care procedures (CPT 99291/99292)")
 
     # Process each patient
-    for idx, patient in pe_df.iterrows():
+    for idx, patient in tqdm(pe_df.iterrows(), total=len(pe_df), desc="  Extracting ICU/critical care"):
         empi = patient['EMPI']
         time_zero = patient['time_zero']
         window_start = patient['window_start']
         window_end = patient['window_end']
 
-        # Get ICU procedures for this patient in temporal window
-        patient_icu = icu_procs[
-            (icu_procs['EMPI'] == empi) &
-            (icu_procs['Date'] >= window_start) &
-            (icu_procs['Date'] <= window_end)
+        # Get ICU procedures for this patient (O(1) lookup)
+        patient_procs = icu_grouped.get(empi, pd.DataFrame())
+        if len(patient_procs) == 0:
+            continue
+        patient_icu = patient_procs[
+            (patient_procs['Date'] >= window_start) &
+            (patient_procs['Date'] <= window_end)
         ].copy()
 
         if len(patient_icu) > 0:
@@ -645,25 +676,28 @@ def extract_ventilation(pe_df: pd.DataFrame, prc_df: pd.DataFrame) -> pd.DataFra
     intubation_codes = CPT_CODES['intubation']
     ventilation_codes = CPT_CODES['ventilation']
     cpap_codes = CPT_CODES['cpap']
+    all_vent_codes = set(intubation_codes + ventilation_codes + cpap_codes)
 
-    # Filter procedures
-    vent_procs = prc_df[
-        prc_df['Code'].isin(intubation_codes + ventilation_codes + cpap_codes)
-    ].copy()
+    # Filter procedures and pre-group by EMPI
+    vent_procs = prc_df[prc_df['Code'].isin(all_vent_codes)].copy()
+    vent_grouped = {empi: group for empi, group in vent_procs.groupby('EMPI')}
 
     print(f"  Found {len(vent_procs)} ventilation-related procedures")
 
     # Process each patient
-    for idx, patient in pe_df.iterrows():
+    for idx, patient in tqdm(pe_df.iterrows(), total=len(pe_df), desc="  Extracting ventilation"):
         empi = patient['EMPI']
         time_zero = patient['time_zero']
         window_start = patient['window_start']
         window_end = patient['window_end']
 
-        patient_vent = vent_procs[
-            (vent_procs['EMPI'] == empi) &
-            (vent_procs['Date'] >= window_start) &
-            (vent_procs['Date'] <= window_end)
+        # O(1) lookup
+        patient_procs = vent_grouped.get(empi, pd.DataFrame())
+        if len(patient_procs) == 0:
+            continue
+        patient_vent = patient_procs[
+            (patient_procs['Date'] >= window_start) &
+            (patient_procs['Date'] <= window_end)
         ].copy()
 
         if len(patient_vent) > 0:
@@ -714,23 +748,28 @@ def extract_dialysis(pe_df: pd.DataFrame, prc_df: pd.DataFrame) -> pd.DataFrame:
     # Get dialysis codes
     hd_codes = CPT_CODES['hemodialysis']
     crrt_codes = CPT_CODES['crrt_peritoneal']
-    all_dialysis_codes = hd_codes + crrt_codes
+    all_dialysis_codes = set(hd_codes + crrt_codes)
 
+    # Pre-group by EMPI
     dialysis_procs = prc_df[prc_df['Code'].isin(all_dialysis_codes)].copy()
+    dialysis_grouped = {empi: group for empi, group in dialysis_procs.groupby('EMPI')}
 
     print(f"  Found {len(dialysis_procs)} dialysis procedures")
 
     # Process each patient
-    for idx, patient in pe_df.iterrows():
+    for idx, patient in tqdm(pe_df.iterrows(), total=len(pe_df), desc="  Extracting dialysis"):
         empi = patient['EMPI']
         time_zero = patient['time_zero']
         window_start = patient['window_start']
         window_end = patient['window_end']
 
-        patient_dialysis = dialysis_procs[
-            (dialysis_procs['EMPI'] == empi) &
-            (dialysis_procs['Date'] >= window_start) &
-            (dialysis_procs['Date'] <= window_end)
+        # O(1) lookup
+        patient_procs = dialysis_grouped.get(empi, pd.DataFrame())
+        if len(patient_procs) == 0:
+            continue
+        patient_dialysis = patient_procs[
+            (patient_procs['Date'] >= window_start) &
+            (patient_procs['Date'] <= window_end)
         ].copy()
 
         if len(patient_dialysis) > 0:
@@ -788,18 +827,23 @@ def extract_advanced_interventions(pe_df: pd.DataFrame, prc_df: pd.DataFrame) ->
         intervention_procs = prc_df[prc_df['Code'].isin(codes)].copy()
 
         if len(intervention_procs) > 0:
+            # Pre-group by EMPI for O(1) lookup
+            intervention_grouped = {empi: group for empi, group in intervention_procs.groupby('EMPI')}
             print(f"  Found {len(intervention_procs)} {intervention_name} procedures")
 
-            for idx, patient in pe_df.iterrows():
+            for idx, patient in tqdm(pe_df.iterrows(), total=len(pe_df), desc=f"  Extracting {intervention_name}"):
                 empi = patient['EMPI']
                 time_zero = patient['time_zero']
                 window_start = patient['window_start']
                 window_end = patient['window_end']
 
-                patient_intervention = intervention_procs[
-                    (intervention_procs['EMPI'] == empi) &
-                    (intervention_procs['Date'] >= window_start) &
-                    (intervention_procs['Date'] <= window_end)
+                # O(1) lookup
+                patient_procs = intervention_grouped.get(empi, pd.DataFrame())
+                if len(patient_procs) == 0:
+                    continue
+                patient_intervention = patient_procs[
+                    (patient_procs['Date'] >= window_start) &
+                    (patient_procs['Date'] <= window_end)
                 ].copy()
 
                 if len(patient_intervention) > 0:
@@ -837,6 +881,7 @@ def extract_vasopressors_inotropes(pe_df: pd.DataFrame, prc_df: pd.DataFrame, me
 
     # Source 1: Procedure codes (ICD-10-PCS vasopressor administration)
     vasopressor_procs = prc_df[prc_df['Code'].isin(VASOPRESSOR_PCS_CODES)].copy()
+    vaso_proc_grouped = {empi: group for empi, group in vasopressor_procs.groupby('EMPI')}
     print(f"  Found {len(vasopressor_procs)} vasopressor procedure codes")
 
     # Source 2: Medications
@@ -847,41 +892,43 @@ def extract_vasopressors_inotropes(pe_df: pd.DataFrame, prc_df: pd.DataFrame, me
     vasopressor_meds = med_df[
         med_df['Medication'].str.contains(vasopressor_pattern, case=False, na=False)
     ].copy()
+    vaso_med_grouped = {empi: group for empi, group in vasopressor_meds.groupby('EMPI')}
 
     inotrope_meds = med_df[
         med_df['Medication'].str.contains(inotrope_pattern, case=False, na=False)
     ].copy()
+    inotrope_grouped = {empi: group for empi, group in inotrope_meds.groupby('EMPI')}
 
     print(f"  Found {len(vasopressor_meds)} vasopressor medication records")
     print(f"  Found {len(inotrope_meds)} inotrope medication records")
 
     # Process each patient
-    for idx, patient in pe_df.iterrows():
+    for idx, patient in tqdm(pe_df.iterrows(), total=len(pe_df), desc="  Extracting vasopressors"):
         empi = patient['EMPI']
         time_zero = patient['time_zero']
         window_start = patient['window_start']
         window_end = patient['window_end']
 
-        # Check vasopressor procedures
-        patient_vaso_proc = vasopressor_procs[
-            (vasopressor_procs['EMPI'] == empi) &
-            (vasopressor_procs['Date'] >= window_start) &
-            (vasopressor_procs['Date'] <= window_end)
-        ]
+        # Check vasopressor procedures (O(1) lookup)
+        vaso_procs = vaso_proc_grouped.get(empi, pd.DataFrame())
+        patient_vaso_proc = vaso_procs[
+            (vaso_procs['Date'] >= window_start) &
+            (vaso_procs['Date'] <= window_end)
+        ] if len(vaso_procs) > 0 else pd.DataFrame()
 
-        # Check vasopressor medications
-        patient_vaso_med = vasopressor_meds[
-            (vasopressor_meds['EMPI'] == empi) &
-            (vasopressor_meds['Medication_Date'] >= window_start) &
-            (vasopressor_meds['Medication_Date'] <= window_end)
-        ]
+        # Check vasopressor medications (O(1) lookup)
+        vaso_meds = vaso_med_grouped.get(empi, pd.DataFrame())
+        patient_vaso_med = vaso_meds[
+            (vaso_meds['Medication_Date'] >= window_start) &
+            (vaso_meds['Medication_Date'] <= window_end)
+        ] if len(vaso_meds) > 0 else pd.DataFrame()
 
-        # Check inotrope medications
-        patient_inotrope = inotrope_meds[
-            (inotrope_meds['EMPI'] == empi) &
-            (inotrope_meds['Medication_Date'] >= window_start) &
-            (inotrope_meds['Medication_Date'] <= window_end)
-        ]
+        # Check inotrope medications (O(1) lookup)
+        inotrope_data = inotrope_grouped.get(empi, pd.DataFrame())
+        patient_inotrope = inotrope_data[
+            (inotrope_data['Medication_Date'] >= window_start) &
+            (inotrope_data['Medication_Date'] <= window_end)
+        ] if len(inotrope_data) > 0 else pd.DataFrame()
 
         # Vasopressors
         if len(patient_vaso_proc) > 0 or len(patient_vaso_med) > 0:
@@ -974,20 +1021,24 @@ def extract_bleeding(pe_df: pd.DataFrame, dia_df: pd.DataFrame) -> pd.DataFrame:
         return code_series.str.contains(pattern, case=False, na=False, regex=True)
 
     bleeding_dx = dia_df[matches_code_pattern(dia_df['Code'].astype(str), all_bleeding_codes)].copy()
+    bleeding_grouped = {empi: group for empi, group in bleeding_dx.groupby('EMPI')}
 
     print(f"  Found {len(bleeding_dx)} bleeding diagnosis records")
 
     # Process each patient
-    for idx, patient in pe_df.iterrows():
+    for idx, patient in tqdm(pe_df.iterrows(), total=len(pe_df), desc="  Extracting bleeding"):
         empi = patient['EMPI']
         time_zero = patient['time_zero']
         window_start = patient['window_start']
         window_end = patient['window_end']
 
-        patient_bleeding = bleeding_dx[
-            (bleeding_dx['EMPI'] == empi) &
-            (bleeding_dx['Date'] >= window_start) &
-            (bleeding_dx['Date'] <= window_end)
+        # O(1) lookup
+        patient_dx = bleeding_grouped.get(empi, pd.DataFrame())
+        if len(patient_dx) == 0:
+            continue
+        patient_bleeding = patient_dx[
+            (patient_dx['Date'] >= window_start) &
+            (patient_dx['Date'] <= window_end)
         ].copy()
 
         if len(patient_bleeding) > 0:
@@ -1078,19 +1129,24 @@ def extract_readmissions_shock(pe_df: pd.DataFrame, enc_df: pd.DataFrame, dia_df
     pe_df['shock_flag'] = 0
     pe_df['time_to_shock_hours'] = np.nan
 
+    # Pre-group encounters by EMPI for O(1) lookup
+    enc_grouped = {empi: group for empi, group in enc_df.groupby('EMPI')}
+
     # Process each patient
-    for idx, patient in pe_df.iterrows():
+    for idx, patient in tqdm(pe_df.iterrows(), total=len(pe_df), desc="  Extracting readmissions"):
         empi = patient['EMPI']
         discharge_date = patient['window_end']
 
         if pd.notna(discharge_date):
             readmit_window_end = discharge_date + pd.Timedelta(days=30)
 
-            # Get all encounters within 30 days post-discharge
-            all_encounters = enc_df[
-                (enc_df['EMPI'] == empi) &
-                (enc_df['Admit_Date_Time'] > discharge_date) &
-                (enc_df['Admit_Date_Time'] <= readmit_window_end)
+            # Get all encounters within 30 days post-discharge (O(1) lookup)
+            patient_enc = enc_grouped.get(empi, pd.DataFrame())
+            if len(patient_enc) == 0:
+                continue
+            all_encounters = patient_enc[
+                (patient_enc['Admit_Date_Time'] > discharge_date) &
+                (patient_enc['Admit_Date_Time'] <= readmit_window_end)
             ].copy()
 
             if len(all_encounters) > 0:
@@ -1145,23 +1201,28 @@ def extract_readmissions_shock(pe_df: pd.DataFrame, enc_df: pd.DataFrame, dia_df
                         ]
                         pe_df.at[idx, 'pulmonary_visits_30d'] = len(pulm_visits)
 
-    # SHOCK EXTRACTION (unchanged)
+    # SHOCK EXTRACTION (optimized with pre-grouping)
     shock_codes = ICD10_SHOCK + ICD9_SHOCK
     shock_pattern = '|'.join([f'^{code}' for code in shock_codes])
     shock_dx = dia_df[dia_df['Code'].astype(str).str.contains(shock_pattern, case=False, na=False, regex=True)].copy()
+    shock_grouped = {empi: group for empi, group in shock_dx.groupby('EMPI')}
 
     print(f"  Found {len(shock_dx)} shock diagnosis records")
 
-    for idx, patient in pe_df.iterrows():
+    for idx, patient in tqdm(pe_df.iterrows(), total=len(pe_df), desc="  Extracting shock"):
         empi = patient['EMPI']
         time_zero = patient['time_zero']
         window_start = patient['window_start']
         window_end = patient['window_end']
 
-        patient_shock = shock_dx[
-            (shock_dx['EMPI'] == empi) &
-            (shock_dx['Date'] >= window_start) &
-            (shock_dx['Date'] <= window_end)
+        # O(1) lookup instead of O(n) filter
+        patient_dx = shock_grouped.get(empi, pd.DataFrame())
+        if len(patient_dx) == 0:
+            continue
+
+        patient_shock = patient_dx[
+            (patient_dx['Date'] >= window_start) &
+            (patient_dx['Date'] <= window_end)
         ]
 
         if len(patient_shock) > 0:
@@ -1330,6 +1391,26 @@ def main(test_mode=False, test_n_patients=100):
         print(f"  Filtered to {len(dia_df)} diagnoses")
         print(f"  Filtered to {len(med_df)} medications")
         print(f"  Filtered to {len(dem_df)} demographics")
+
+    # PRE-GROUP ALL DATA BY EMPI FOR O(1) LOOKUPS (MAJOR OPTIMIZATION)
+    print("\n" + "="*80)
+    print("OPTIMIZATION: PRE-GROUPING DATA BY PATIENT")
+    print("="*80)
+
+    print("  Pre-grouping procedures by EMPI...")
+    global prc_grouped
+    prc_grouped = {empi: group for empi, group in prc_df.groupby('EMPI')}
+
+    print("  Pre-grouping diagnoses by EMPI...")
+    global dia_grouped
+    dia_grouped = {empi: group for empi, group in dia_df.groupby('EMPI')}
+
+    print("  Pre-grouping medications by EMPI...")
+    global med_grouped
+    med_grouped = {empi: group for empi, group in med_df.groupby('EMPI')}
+
+    print(f"  Done! Pre-grouped data for {len(prc_grouped)} procedure patients, "
+          f"{len(dia_grouped)} diagnosis patients, {len(med_grouped)} medication patients")
 
     pe_df = link_encounters_to_patients(pe_df, enc_df)
     pe_df = create_temporal_windows(pe_df)

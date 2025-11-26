@@ -1,14 +1,20 @@
-# Session Brief: Module 2 Complete - 100% Patient Coverage + HDF5 Fixed
-*Last Updated: 2025-11-09 17:45 EST*
+# Session Brief: Module 1 Rerun on Expanded Cohort (8,713 patients)
+*Last Updated: 2025-11-25 21:15 EST*
 
 ---
 
 ## 🎯 Active TODO List
 
-**All Module 2 tasks complete. Ready for Module 3.**
+**Module 1 rerun complete with expanded Gemma-positive cohort.**
+
+**Completed:**
+- [x] Module 1: Rerun on 8,713 Gemma PE-positive patients
+- [x] Optimized script with O(1) lookups via pre-grouping
+- [x] Added tqdm progress bars for monitoring
 
 **Next Steps:**
-- [ ] Module 3: Vitals Processing (READY TO START)
+- [ ] Module 2: Rerun Laboratory Processing on new cohort
+- [ ] Module 3: Vitals Processing
 - [ ] Module 4: Medications Processing
 - [ ] Module 5: Diagnoses/Procedures Processing
 - [ ] Module 6: Temporal Alignment
@@ -16,14 +22,75 @@
 
 ---
 
-## ✅ MODULE 2 STATUS: COMPLETE - PRODUCTION READY
+## ✅ MODULE 1 STATUS: COMPLETE - EXPANDED COHORT
 
-**Completion Date:** 2025-11-09
-**Full Cohort Analysis:** 3,565 patients
+**Completion Date:** 2025-11-25
+**Full Cohort Analysis:** 8,713 patients (up from 3,565)
+**Cohort Source:** Gemma PE-positive predictions
+**Time Zero:** Report_Date_Time from CT PE studies
+
+### Module 1 Outcome Summary (8,713 patients)
+
+| Metric | Count | Rate |
+|--------|-------|------|
+| Total PE events | 8,713 | - |
+| Unique patients | 8,713 | 100% |
+| Valid timestamps | 8,713 | 100% |
+
+**Encounter Matching:**
+| Tier | Count | Rate |
+|------|-------|------|
+| Tier 1 (direct match) | 8,669 | 99.5% |
+| Tier 3/4 (fallback) | 44 | 0.5% |
+
+**Clinical Outcomes:**
+| Outcome | Count | Rate |
+|---------|-------|------|
+| 30-day mortality | 972 | 11.2% |
+| 90-day mortality | 1,720 | 19.7% |
+| 1-year mortality | 2,939 | 33.7% |
+| ICU admission | 3,122 | 35.8% |
+| Ventilation | 678 | 7.8% |
+| Vasopressor use | 2,326 | 26.7% |
+| Shock | 777 | 8.9% |
+| 30-day readmission | 2,591 | 29.7% |
+| Major bleeding | 1,251 | 14.4% |
+
+### Major Accomplishments This Session (Nov 25)
+
+**1. Expanded Cohort from Gemma PE-Positive Predictions**
+- Source: `ALL_PE_POSITIVE_With_Gemma_Predictions.csv` (32,552 reports)
+- Filter: `Gemma_PE_Present == "True"` → 13,638 reports, 8,713 unique patients
+- Merged with `Combined_PE_Predictions_All_Cohorts.txt` for Report_Date_Time
+- 145% increase in cohort size (3,565 → 8,713 patients)
+
+**2. Performance Optimizations**
+- **Pre-grouping by EMPI:** Changed from O(n) filtering to O(1) dictionary lookup
+  - All DataFrames pre-grouped by EMPI at startup
+  - 10+ extraction loops now use dict.get() instead of DataFrame filter
+- **tqdm Progress Bars:** Added to all 10 patient iteration loops
+- **Multiprocessing Support:** Added N_CORES detection (22 cores available)
+
+**3. Data Path Updates**
+- DATA_DIR: `/home/moin/TDA_11_25/Data`
+- OUTPUT_DIR: `/home/moin/TDA_11_25/module_1_core_infrastructure/outputs`
+- Updated file names: `Enc.txt`, `Prc.txt`, `Dia.txt`, `Med.txt`, `Dem.txt`
+
+**Output Files:**
+- `outcomes.csv` (33 MB) - 8,713 patient outcomes
+- `patient_timelines.pkl` (36 MB) - PatientTimeline objects
+
+---
+
+## ✅ MODULE 2 STATUS: COMPLETE (Previous Cohort)
+
+*Note: Module 2 needs to be rerun on the expanded 8,713 patient cohort.*
+
+**Previous Full Cohort Analysis:** 3,565 patients
 **Lab Coverage:** 100% of patients have lab data
 **Total Measurements:** 7.6 million
 
-### Major Accomplishments This Session
+### Major Accomplishments (Nov 8-9)
 
 **1. Enhanced Three-Tier Harmonization System (Nov 8)**
 - Implemented LOINC exact matching (Tier 1): 96.7% coverage

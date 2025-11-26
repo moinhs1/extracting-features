@@ -11,6 +11,7 @@ This module establishes the foundation for the PE (Pulmonary Embolism) trajector
 ## Implementation Date
 **Initial:** 2025-11-02
 **Updated (V2 - Major Fixes):** 2025-11-02
+**Updated (V3 - Expanded Cohort + Optimization):** 2025-11-25
 
 ---
 
@@ -31,22 +32,28 @@ This module establishes the foundation for the PE (Pulmonary Embolism) trajector
 
 ## Quick Status
 
-**Version:** 2.0 (Major Fixes Completed)
-**Last Tested:** 2025-11-02
-**Test Results (10 patients):**
+**Version:** 3.0 (Expanded Cohort + Performance Optimization)
+**Last Tested:** 2025-11-25
+**Full Cohort Results (8,713 patients):**
 
-| Metric | Result | Status |
-|--------|--------|--------|
-| **Encounter Matching** | 100% (10/10) | ✅ Fixed (was 2%) |
-| **Mortality Extraction** | 0% deaths | ✅ Implemented (needs full cohort) |
-| **ICU Admission** | 50% (5/10) | ✅ Working |
-| **Intubation** | 10% (1/10) | ⚠️ Low (missing ICD-10-PCS codes) |
-| **Vasopressors** | 20% (2/10) | ✅ Working |
-| **Major Bleeding** | 10% (1/10) | ✅ Working |
-| **Inpatient Readmissions** | 30% (3/10) | ✅ Fixed (was 87%) |
-| **Healthcare Utilization** | 8 new metrics | ✅ Added in V2 |
+| Metric | Count | Rate | Status |
+|--------|-------|------|--------|
+| **Total Patients** | 8,713 | 100% | ✅ Expanded from 3,565 |
+| **Valid Timestamps** | 8,713 | 100% | ✅ All have Time Zero |
+| **Tier 1 Encounter Match** | 8,669 | 99.5% | ✅ Excellent |
+| **30-day Mortality** | 972 | 11.2% | ✅ Within expected range |
+| **90-day Mortality** | 1,720 | 19.7% | ✅ Working |
+| **1-year Mortality** | 2,939 | 33.7% | ✅ Working |
+| **ICU Admission** | 3,122 | 35.8% | ✅ Working |
+| **Ventilation** | 678 | 7.8% | ✅ Working |
+| **Vasopressor Use** | 2,326 | 26.7% | ✅ Working |
+| **Shock** | 777 | 8.9% | ✅ Working |
+| **30-day Readmission** | 2,591 | 29.7% | ✅ Working |
+| **Major Bleeding** | 1,251 | 14.4% | ✅ Working |
 
-**Ready for:** Full cohort run (3,565 patients, est. 2-3 hours)
+**Output Files:**
+- `outcomes.csv` - 33 MB (8,713 patients × 100+ columns)
+- `patient_timelines.pkl` - 36 MB (PatientTimeline objects)
 
 ---
 
@@ -56,47 +63,59 @@ This module establishes the foundation for the PE (Pulmonary Embolism) trajector
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
-| **Time Zero** | `Report_Date_Time` from PE_dataset_enhanced.csv | Direct PE diagnosis timestamp |
+| **Cohort Source** | Gemma PE-positive predictions | Most accurate PE classification (ML-based) |
+| **Time Zero** | `Report_Date_Time` from Combined_PE_Predictions | CT PE study timestamp |
 | **Index Event** | First PE diagnosis per patient | Studies longitudinal progression from initial PE |
-| **Encounter Matching** | 4-tier hierarchical fallback strategy | Achieves 100% match rate vs 2% with single-tier approach |
+| **Encounter Matching** | 4-tier hierarchical fallback strategy | Achieves 99.5% Tier 1 match rate |
 | **Temporal Strategy** | Flexible windows based on encounter boundaries | Captures clinical trajectory regardless of admission status |
 | **Mortality Source** | Demographics files (Dem.txt) | Contains Vital_status and Date_Of_Death fields |
 | **Readmissions** | Inpatient-only encounters | Distinguishes true hospital readmissions from outpatient follow-up |
 | **Outcome Priority** | Extract from structured data first | Most reliable, scalable; flag low-capture outcomes for NLP |
 | **Vasopressor Source** | Merge Prc.txt codes + Med.txt names | Comprehensive capture from both sources |
+| **Performance** | Pre-group DataFrames by EMPI | O(1) lookups vs O(n) filtering per patient |
 
-### Patient Inclusion Criteria
+### Patient Inclusion Criteria (V3)
 
 **Included:**
-- All patients in PE_dataset_enhanced.csv
-- PE diagnosis ≥ 2010 (data quality threshold)
-- Valid Time Zero (non-null Report_Date_Time)
+- All patients with `Gemma_PE_Present == "True"` in `ALL_PE_POSITIVE_With_Gemma_Predictions.csv`
+- 13,638 PE-positive reports → 8,713 unique patients
+- Valid Time Zero from `Combined_PE_Predictions_All_Cohorts.txt`
 
 **Excluded:**
-- Missing Time Zero
-- Time Zero before 2010
-- No temporal data coverage (future QC step)
+- Gemma_PE_Present != "True" (19,000+ non-PE reports filtered out)
+- Missing Report_Date_Time (0 patients - none excluded)
+- Invalid EMPI (0 patients)
 
 ---
 
 ## Data Sources
 
-### Primary Input
-- **PE Cohort:** `/home/moin/TDA_11_1/Data/PE_dataset_enhanced.csv`
-  - All patients are PE cases (no controls)
-  - `Report_Date_Time` = Time Zero
+### Primary Input (V3 - Updated)
+
+**Cohort Definition Files:**
+- **Gemma Predictions:** `/home/moin/TDA_11_25/Data/ALL_PE_POSITIVE_With_Gemma_Predictions.csv`
+  - 32,552 total reports
+  - Filter: `Gemma_PE_Present == "True"` → 13,638 reports
+  - Key fields: EMPI, Report_Number, Gemma_PE_Present, Gemma_Location, Gemma_Acuity
+
+- **Timestamps:** `/home/moin/TDA_11_25/Data/Combined_PE_Predictions_All_Cohorts.txt`
+  - 234,066 rows (pipe-delimited)
+  - Key fields: Report_Number, Report_Date_Time
+  - Merged on Report_Number to get Time Zero
 
 ### Supporting Data Files
 
-| File | Description | Key Fields | Size |
-|------|-------------|------------|------|
-| `Enc.txt` | Hospital encounters | Admit_Date, Discharge_Date, Inpatient_Outpatient, Encounter_number | 5.7 GB |
-| `Prc.txt` | Procedures (CPT codes) | Code, Date, Clinic, EMPI | 14 GB |
-| `Dia.txt` | Diagnoses (ICD codes) | Code, Date, EMPI | 11 GB |
-| `Med.txt` | Medications | Medication, Medication_Date, EMPI | 7.4 GB |
-| `Dem.txt` | Demographics (2 files) | Vital_status, Date_Of_Death, EMPI | Combined: 34,005 patients |
+**Location:** `/home/moin/TDA_11_25/Data/`
 
-**Note:** Column names in Enc.txt are `Admit_Date` and `Discharge_Date` (not *_Date_Time suffix). The field `Inpatient_Outpatient` distinguishes encounter types.
+| File | Description | Key Fields | Notes |
+|------|-------------|------------|-------|
+| `Enc.txt` | Hospital encounters | Admit_Date, Discharge_Date, Inpatient_Outpatient, Encounter_number | Pipe-delimited |
+| `Prc.txt` | Procedures (CPT codes) | Code, Date, Clinic, EMPI | Pipe-delimited |
+| `Dia.txt` | Diagnoses (ICD codes) | Code, Date, EMPI | Pipe-delimited |
+| `Med.txt` | Medications | Medication, Medication_Date, EMPI | Pipe-delimited |
+| `Dem.txt` | Demographics | Vital_status, Date_Of_Death, EMPI | Single file (V3) |
+
+**Note:** V3 uses simplified file names (`Enc.txt` instead of `FNR_20240409_091633_Enc.txt`) and a single `Dem.txt` file instead of two separate files.
 
 ---
 
@@ -581,53 +600,52 @@ module_01_core_infrastructure.py
 
 ### Running the Pipeline
 
-#### Test Mode (Recommended for Development)
+#### Full Cohort (Production - V3)
 ```bash
-cd /home/moin/TDA_11_1/module_1_core_infrastructure
+cd /home/moin/TDA_11_25/module_1_core_infrastructure
+python module_01_core_infrastructure.py
+```
+
+**Full Cohort Runtime (V3 Optimized):** ~30-45 minutes (8,713 patients)
+
+#### Test Mode (Development)
+```bash
+cd /home/moin/TDA_11_25/module_1_core_infrastructure
 
 # Test with 100 patients (default)
 python module_01_core_infrastructure.py --test
 
 # Test with custom number of patients
 python module_01_core_infrastructure.py --test --n=50
-python module_01_core_infrastructure.py --test --n=10
 ```
 
-**Test Mode Runtime:** ~3-5 minutes (100 patients)
+### Expected Runtime Breakdown (V3 - Optimized)
 
-#### Full Cohort (Production)
-```bash
-cd /home/moin/TDA_11_1/module_1_core_infrastructure
-python module_01_core_infrastructure.py
-```
-
-**Full Cohort Runtime:** ~2-3 hours (3,565 patients)
-
-### Expected Runtime Breakdown
-
-**Test Mode (100 patients):**
-- Data loading: 2-3 min (loads ALL data, then filters)
-- Time Zero & encounter matching: 10-20 sec
-- Outcome extraction: 30-60 sec
-- **Total: ~3-5 minutes**
-
-**Full Cohort (3,565 patients):**
+**Full Cohort (8,713 patients):**
 - Data loading: 2-3 min
+- Pre-grouping by EMPI: 1-2 min (NEW - enables O(1) lookups)
 - Time Zero & encounter matching: 2-5 min
-- Outcome extraction: 90-150 min (Prc.txt, Dia.txt, Med.txt processing)
-- **Total: ~2-3 hours**
+- Outcome extraction: 20-30 min (optimized with pre-grouped data)
+- **Total: ~30-45 minutes** (was 2-3 hours before optimization)
+
+**Performance Optimizations (V3):**
+- Pre-group all DataFrames by EMPI at startup
+- O(1) dictionary lookups vs O(n) DataFrame filtering per patient
+- tqdm progress bars on all 10 extraction loops
+- Multiprocessing support (22 CPU cores detected)
 
 ### Memory Requirements
-- Peak memory: ~8-12 GB (loads full data files even in test mode)
-- Recommend: 16 GB RAM minimum
+- Peak memory: ~12-16 GB (loads full data files)
+- Recommend: 32 GB RAM for comfortable operation
 
 ### Output Files
 
-**Test Mode:**
-- `outputs/outcomes_test.csv` - Test results
+**Location:** `/home/moin/TDA_11_25/module_1_core_infrastructure/outputs/`
 
-**Full Cohort:**
-- `outputs/outcomes.csv` - Complete cohort results
+| File | Size | Description |
+|------|------|-------------|
+| `outcomes.csv` | 33 MB | 8,713 patients × 100+ outcome columns |
+| `patient_timelines.pkl` | 36 MB | PatientTimeline objects for downstream modules |
 
 ---
 
@@ -716,6 +734,37 @@ For questions or issues:
 
 ## Change Log
 
+### Version 3.0 (2025-11-25) - Expanded Cohort + Performance Optimization
+**Major update with new cohort and optimizations:**
+
+1. **Expanded Cohort from Gemma PE-Positive Predictions**
+   - **Previous:** 3,565 patients from PE_dataset_enhanced.csv
+   - **New:** 8,713 patients from Gemma PE-positive predictions
+   - **Source:** `ALL_PE_POSITIVE_With_Gemma_Predictions.csv` filtered by `Gemma_PE_Present == "True"`
+   - **Impact:** 145% increase in cohort size
+
+2. **Performance Optimization - O(1) Lookups**
+   - **Problem:** O(n) DataFrame filtering for each patient in 10+ extraction loops
+   - **Solution:** Pre-group all DataFrames by EMPI at startup
+   - **Implementation:** Dictionary comprehension `{empi: group for empi, group in df.groupby('EMPI')}`
+   - **Result:** ~4x speedup (2-3 hours → 30-45 minutes)
+
+3. **Progress Monitoring**
+   - Added tqdm progress bars to all 10 patient iteration loops
+   - Added CPU core detection (`N_CORES = mp.cpu_count()`)
+   - Real-time visibility into extraction progress
+
+4. **Data Path Updates**
+   - DATA_DIR: `/home/moin/TDA_11_25/Data` (was `/home/moin/TDA_11_1/Data`)
+   - File names simplified: `Enc.txt`, `Prc.txt`, `Dia.txt`, `Med.txt`, `Dem.txt`
+   - Single `Dem.txt` file (was two separate files)
+
+**Results Validated:**
+- 99.5% Tier 1 encounter matching
+- 11.2% 30-day mortality (within expected range)
+- 35.8% ICU admission
+- All outcome rates clinically plausible
+
 ### Version 2.0 (2025-11-02) - Major Fixes
 **Three critical fixes implemented:**
 
@@ -730,20 +779,12 @@ For questions or issues:
    - **Solution:** Load and merge both Dem.txt files
    - **Implementation:** Extract Vital_status and Date_Of_Death
    - **Metrics:** 30d, 90d, 1-year, and in-hospital mortality
-   - **Status:** Implemented (0% in test subset - needs full cohort validation)
 
 3. **Inpatient-Only Readmission Logic**
    - **Problem:** 87% readmission rate (counted ALL encounters including labs/imaging)
    - **Solution:** Filter to `Inpatient_Outpatient == 'Inpatient'` only
    - **Result:** 28-30% readmission rate (clinically valid)
    - **Bonus:** Added 8 healthcare utilization metrics
-
-**Additional Improvements:**
-- Test mode support (`--test` and `--n=X` flags)
-- 8 new healthcare utilization columns
-- Match quality tracking columns
-- EMPI type standardization across all dataframes
-- Column name corrections (Admit_Date vs Admit_Date_Time)
 
 ### Version 1.0 (2025-11-02) - Initial Implementation
 - Comprehensive outcome extraction from structured data
@@ -752,14 +793,11 @@ For questions or issues:
 - CPT/ICD code dictionaries
 - Vasopressor/inotrope medication tracking
 
-### Planned for Version 2.1
-- Full cohort run (3,565 patients)
-- Mortality validation
-- ICD-10-PCS intubation codes
-- PatientTimeline object creation
-- Gap analysis and NLP priority flagging
+### Planned for Version 3.1
+- Rerun Module 2 (Laboratory Processing) on 8,713 patient cohort
+- Module 3: Vitals Processing
 - QC report generation
-- Composite outcomes
+- Composite outcomes calculation
 
 ---
 
