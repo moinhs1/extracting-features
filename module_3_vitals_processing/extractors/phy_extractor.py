@@ -223,3 +223,42 @@ def extract_phy_vitals(
     df.to_parquet(output_path, index=False)
 
     return df
+
+
+if __name__ == "__main__":
+    import argparse
+    import time
+
+    parser = argparse.ArgumentParser(description="Extract vitals from Phy.txt")
+    parser.add_argument(
+        "--input", "-i",
+        default="/home/moin/TDA_11_25/Data/Phy.txt",
+        help="Path to Phy.txt input file"
+    )
+    parser.add_argument(
+        "--output", "-o",
+        default="/home/moin/TDA_11_25/module_3_vitals_processing/outputs/discovery/phy_vitals_raw.parquet",
+        help="Path to output parquet file"
+    )
+    parser.add_argument(
+        "--chunk-size", "-c",
+        type=int,
+        default=CHUNK_SIZE,
+        help=f"Chunk size for processing (default: {CHUNK_SIZE})"
+    )
+
+    args = parser.parse_args()
+
+    print(f"Extracting vitals from: {args.input}")
+    print(f"Output file: {args.output}")
+    print(f"Chunk size: {args.chunk_size}")
+
+    start_time = time.time()
+    df = extract_phy_vitals(args.input, args.output, args.chunk_size)
+    elapsed = time.time() - start_time
+
+    print(f"\nExtraction complete in {elapsed:.1f} seconds")
+    print(f"Total records: {len(df):,}")
+    print(f"\nRecords by vital type:")
+    print(df['vital_type'].value_counts().to_string())
+    print(f"\nOutput saved to: {args.output}")
