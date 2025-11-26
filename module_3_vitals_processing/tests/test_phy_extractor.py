@@ -1,9 +1,11 @@
 """Tests for Phy.txt structured vitals extractor."""
 import pytest
+import pandas as pd
 from module_3_vitals_processing.extractors.phy_extractor import (
     parse_blood_pressure,
     map_concept_to_canonical,
     parse_result_value,
+    process_vital_row,
 )
 
 
@@ -159,3 +161,92 @@ class TestParseResultValue:
     def test_less_than_symbol(self):
         """Test value with < symbol."""
         assert parse_result_value("<50") == 50.0
+
+
+class TestProcessVitalRow:
+    """Tests for process_vital_row function."""
+
+    def test_pulse_row(self):
+        """Test processing a Pulse row."""
+        row = pd.Series({
+            'EMPI': '100003884',
+            'Date': '7/21/2015',
+            'Concept_Name': 'Pulse',
+            'Result': '74',
+            'Units': 'beats/minute',
+            'Inpatient_Outpatient': 'Outpatient',
+            'Encounter_number': 'EPIC-3085982676'
+        })
+        result = process_vital_row(row)
+        assert len(result) == 1
+        assert result[0]['EMPI'] == '100003884'
+        assert result[0]['vital_type'] == 'HR'
+        assert result[0]['value'] == 74.0
+        assert result[0]['units'] == 'beats/minute'
+
+    def test_blood_pressure_row(self):
+        """Test processing a Blood Pressure row produces two records."""
+        row = pd.Series({
+            'EMPI': '100003884',
+            'Date': '7/21/2015',
+            'Concept_Name': 'Blood Pressure-Epic',
+            'Result': '130/77',
+            'Units': 'millimeter of mercury',
+            'Inpatient_Outpatient': 'Outpatient',
+            'Encounter_number': 'EPIC-3085982676'
+        })
+        result = process_vital_row(row)
+        assert len(result) == 2
+
+        # Check SBP
+        sbp_record = [r for r in result if r['vital_type'] == 'SBP'][0]
+        assert sbp_record['value'] == 130.0
+
+        # Check DBP
+        dbp_record = [r for r in result if r['vital_type'] == 'DBP'][0]
+        assert dbp_record['value'] == 77.0
+
+    def test_invalid_bp_row(self):
+        """Test that invalid BP like 'Left arm' produces no records."""
+        row = pd.Series({
+            'EMPI': '100003884',
+            'Date': '7/21/2015',
+            'Concept_Name': 'Blood Pressure-Epic',
+            'Result': 'Left arm',
+            'Units': '',
+            'Inpatient_Outpatient': 'Outpatient',
+            'Encounter_number': 'EPIC-3085982676'
+        })
+        result = process_vital_row(row)
+        assert len(result) == 0
+
+    def test_non_vital_row(self):
+        """Test that non-vital concept produces no records."""
+        row = pd.Series({
+            'EMPI': '100003884',
+            'Date': '7/21/2015',
+            'Concept_Name': 'Flu-High Dose',
+            'Result': '76',
+            'Units': '',
+            'Inpatient_Outpatient': 'Outpatient',
+            'Encounter_number': 'EPIC-3085982676'
+        })
+        result = process_vital_row(row)
+        assert len(result) == 0
+
+    def test_temperature_row(self):
+        """Test processing a Temperature row."""
+        row = pd.Series({
+            'EMPI': '100003884',
+            'Date': '7/21/2015',
+            'Concept_Name': 'Temperature',
+            'Result': '98.6',
+            'Units': 'degrees Fahrenheit',
+            'Inpatient_Outpatient': 'Inpatient',
+            'Encounter_number': 'EPIC-3085982676'
+        })
+        result = process_vital_row(row)
+        assert len(result) == 1
+        assert result[0]['vital_type'] == 'TEMP'
+        assert result[0]['value'] == 98.6
+        assert result[0]['encounter_type'] == 'Inpatient'

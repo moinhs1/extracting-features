@@ -5,7 +5,9 @@ Submodule 3.1: Structured Vitals Extractor (Phy.txt)
 Extracts vital signs from the structured Phy.txt file.
 """
 import re
-from typing import Tuple, Optional
+from typing import Tuple, Optional, List, Dict, Any
+
+import pandas as pd
 
 from module_3_vitals_processing.config.vitals_config import VITAL_CONCEPTS
 
@@ -82,3 +84,55 @@ def parse_result_value(result: Optional[str]) -> Optional[float]:
         return float(result)
     except (ValueError, TypeError):
         return None
+
+
+def process_vital_row(row: pd.Series) -> List[Dict[str, Any]]:
+    """
+    Process a single row from Phy.txt and extract vital sign records.
+
+    Args:
+        row: A pandas Series representing one row from Phy.txt
+
+    Returns:
+        List of vital sign dictionaries. Blood Pressure rows produce 2 records.
+        Non-vital rows or invalid values produce empty list.
+    """
+    concept_name = row.get('Concept_Name')
+    canonical = map_concept_to_canonical(concept_name)
+
+    if canonical is None:
+        return []
+
+    empi = str(row.get('EMPI', ''))
+    date_str = row.get('Date', '')
+    result = row.get('Result', '')
+    units = row.get('Units', '')
+    encounter_type = row.get('Inpatient_Outpatient', '')
+    encounter_number = row.get('Encounter_number', '')
+
+    base_record = {
+        'EMPI': empi,
+        'date_str': date_str,
+        'units': units,
+        'source': 'phy',
+        'encounter_type': encounter_type,
+        'encounter_number': encounter_number,
+    }
+
+    # Handle Blood Pressure (combined SBP/DBP)
+    if canonical == 'BP':
+        sbp, dbp = parse_blood_pressure(result)
+        if sbp is None or dbp is None:
+            return []
+
+        return [
+            {**base_record, 'vital_type': 'SBP', 'value': sbp},
+            {**base_record, 'vital_type': 'DBP', 'value': dbp},
+        ]
+
+    # Handle regular vitals
+    value = parse_result_value(result)
+    if value is None:
+        return []
+
+    return [{**base_record, 'vital_type': canonical, 'value': value}]
