@@ -6,6 +6,7 @@ from module_3_vitals_processing.extractors.phy_extractor import (
     map_concept_to_canonical,
     parse_result_value,
     process_vital_row,
+    extract_phy_vitals,
 )
 
 
@@ -250,3 +251,59 @@ class TestProcessVitalRow:
         assert result[0]['vital_type'] == 'TEMP'
         assert result[0]['value'] == 98.6
         assert result[0]['encounter_type'] == 'Inpatient'
+
+
+class TestExtractPhyVitals:
+    """Tests for extract_phy_vitals main function."""
+
+    def test_extract_from_sample_file(self, tmp_path):
+        """Test extraction from a sample Phy.txt file."""
+        # Create sample data
+        lines = [
+            "EMPI|EPIC_PMRN|MRN_Type|MRN|Date|Concept_Name|Code_Type|Code|Result|Units|Provider|Clinic|Hospital|Inpatient_Outpatient|Encounter_number",
+            "100003884|10040029737|BWH|00667360|7/21/2015|Pulse|EPIC|PUL|74|beats/minute|Doctor|Clinic|BWH|Outpatient|EPIC-001",
+            "100003884|10040029737|BWH|00667360|7/21/2015|Blood Pressure-Epic|EPIC|BP|130/77|millimeter of mercury|Doctor|Clinic|BWH|Outpatient|EPIC-001",
+            "100003884|10040029737|BWH|00667360|7/21/2015|Temperature|EPIC|TEMP|98.6|degrees Fahrenheit|Doctor|Clinic|BWH|Inpatient|EPIC-002",
+            "100003884|10040029737|BWH|00667360|7/21/2015|Flu-High Dose|EPIC|76||units|Doctor|Clinic|BWH|Outpatient|EPIC-001",
+            "100003884|10040029737|BWH|00667360|7/21/2015|Blood Pressure-Epic|EPIC|BP|Left arm|units|Doctor|Clinic|BWH|Outpatient|EPIC-001",
+        ]
+        sample_data = "\n".join(lines)
+
+        # Write sample file
+        sample_file = tmp_path / "test_phy.txt"
+        sample_file.write_text(sample_data)
+
+        # Run extraction
+        output_file = tmp_path / "output.parquet"
+        result_df = extract_phy_vitals(str(sample_file), str(output_file), show_progress=False)
+
+        # Verify results
+        assert len(result_df) == 4  # 1 Pulse + 2 BP (SBP/DBP) + 1 Temp = 4
+        assert set(result_df['vital_type'].unique()) == {'HR', 'SBP', 'DBP', 'TEMP'}
+        assert result_df[result_df['vital_type'] == 'HR']['value'].iloc[0] == 74.0
+        assert result_df[result_df['vital_type'] == 'SBP']['value'].iloc[0] == 130.0
+        assert result_df[result_df['vital_type'] == 'DBP']['value'].iloc[0] == 77.0
+        assert result_df[result_df['vital_type'] == 'TEMP']['value'].iloc[0] == 98.6
+
+        # Verify parquet file was created
+        assert output_file.exists()
+
+    def test_date_parsing(self, tmp_path):
+        """Test that dates are parsed correctly."""
+        lines = [
+            "EMPI|EPIC_PMRN|MRN_Type|MRN|Date|Concept_Name|Code_Type|Code|Result|Units|Provider|Clinic|Hospital|Inpatient_Outpatient|Encounter_number",
+            "100003884|10040029737|BWH|00667360|7/21/2015|Pulse|EPIC|PUL|74|beats/minute|Doctor|Clinic|BWH|Outpatient|EPIC-001",
+            "100003884|10040029737|BWH|00667360|12/25/2020|Pulse|EPIC|PUL|80|beats/minute|Doctor|Clinic|BWH|Outpatient|EPIC-002",
+        ]
+        sample_data = "\n".join(lines)
+
+        sample_file = tmp_path / "test_phy.txt"
+        sample_file.write_text(sample_data)
+        output_file = tmp_path / "output.parquet"
+
+        result_df = extract_phy_vitals(str(sample_file), str(output_file), show_progress=False)
+
+        assert len(result_df) == 2
+        # Verify timestamp column exists and is datetime
+        assert 'timestamp' in result_df.columns
+        assert pd.api.types.is_datetime64_any_dtype(result_df['timestamp'])

@@ -9,7 +9,12 @@ from typing import Tuple, Optional, List, Dict, Any
 
 import pandas as pd
 
-from module_3_vitals_processing.config.vitals_config import VITAL_CONCEPTS
+from pathlib import Path
+from tqdm import tqdm
+
+from module_3_vitals_processing.config.vitals_config import (
+    VITAL_CONCEPTS, PHY_COLUMNS, CHUNK_SIZE
+)
 
 
 def parse_blood_pressure(bp_string: Optional[str]) -> Tuple[Optional[float], Optional[float]]:
@@ -136,3 +141,85 @@ def process_vital_row(row: pd.Series) -> List[Dict[str, Any]]:
         return []
 
     return [{**base_record, 'vital_type': canonical, 'value': value}]
+
+
+def extract_phy_vitals(
+    phy_file: str,
+    output_file: str,
+    chunk_size: int = CHUNK_SIZE,
+    show_progress: bool = True
+) -> pd.DataFrame:
+    """
+    Extract vital signs from Phy.txt structured file.
+
+    Args:
+        phy_file: Path to Phy.txt input file
+        output_file: Path to output parquet file
+        chunk_size: Number of rows to process per chunk
+        show_progress: Whether to show progress bar
+
+    Returns:
+        DataFrame with extracted vitals
+    """
+    phy_path = Path(phy_file)
+    output_path = Path(output_file)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Get vital concept names for filtering
+    vital_concept_names = set(VITAL_CONCEPTS.keys())
+
+    all_records = []
+
+    # Count total lines for progress bar
+    if show_progress:
+        with open(phy_path, 'r') as f:
+            total_lines = sum(1 for _ in f) - 1  # Subtract header
+
+    # Process in chunks
+    chunks = pd.read_csv(
+        phy_path,
+        sep='|',
+        names=PHY_COLUMNS,
+        header=0,
+        dtype=str,
+        chunksize=chunk_size,
+        low_memory=False
+    )
+
+    if show_progress:
+        chunks = tqdm(chunks, desc="Processing Phy.txt", total=total_lines // chunk_size + 1)
+
+    for chunk in chunks:
+        # Filter to only vital sign concepts
+        mask = chunk['Concept_Name'].isin(vital_concept_names)
+        vital_chunk = chunk[mask]
+
+        # Process each row
+        for _, row in vital_chunk.iterrows():
+            records = process_vital_row(row)
+            all_records.extend(records)
+
+    # Create DataFrame
+    if not all_records:
+        # Return empty DataFrame with correct schema
+        df = pd.DataFrame(columns=[
+            'EMPI', 'timestamp', 'vital_type', 'value', 'units',
+            'source', 'encounter_type', 'encounter_number'
+        ])
+    else:
+        df = pd.DataFrame(all_records)
+
+        # Parse dates
+        df['timestamp'] = pd.to_datetime(df['date_str'], format='%m/%d/%Y', errors='coerce')
+        df = df.drop(columns=['date_str'])
+
+        # Reorder columns
+        df = df[[
+            'EMPI', 'timestamp', 'vital_type', 'value', 'units',
+            'source', 'encounter_type', 'encounter_number'
+        ]]
+
+    # Save to parquet
+    df.to_parquet(output_path, index=False)
+
+    return df
