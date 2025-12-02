@@ -1,5 +1,6 @@
 """Tests for hnp_extractor module."""
 import pytest
+from datetime import datetime
 
 
 class TestIdentifySections:
@@ -420,3 +421,59 @@ class TestExtractTemperature:
         text = "Temperature not obtained"
         results = extract_temperature(text)
         assert len(results) == 0
+
+
+class TestExtractTimestamp:
+    """Test timestamp extraction and estimation."""
+
+    def test_extracts_explicit_timestamp_12h(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_timestamp
+        text = "Vitals at 10/23/2021 7:34 PM: HR 80 BP 120/80"
+        report_dt = datetime(2021, 10, 24, 9, 0, 0)
+        ts, source, offset = extract_timestamp(text, 'vitals', report_dt)
+        assert source == 'explicit'
+        assert ts.year == 2021
+        assert ts.month == 10
+        assert ts.day == 23
+
+    def test_extracts_explicit_timestamp_military(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_timestamp
+        text = "03/08/22 1500 BP: 186/87"
+        report_dt = datetime(2022, 3, 8, 18, 0, 0)
+        ts, source, offset = extract_timestamp(text, 'vitals', report_dt)
+        assert source == 'explicit'
+        assert ts.hour == 15
+
+    def test_estimates_ed_section_offset(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_timestamp
+        text = "BP 100/60 HR 90"  # No explicit timestamp
+        report_dt = datetime(2021, 10, 24, 12, 0, 0)
+        ts, source, offset = extract_timestamp(text, 'ed_course', report_dt)
+        assert source == 'estimated'
+        assert offset == -6
+        assert ts.hour == 6  # 12 - 6 = 6
+
+    def test_estimates_exam_section_offset(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_timestamp
+        text = "BP 120/80 HR 72"
+        report_dt = datetime(2021, 10, 24, 12, 0, 0)
+        ts, source, offset = extract_timestamp(text, 'exam', report_dt)
+        assert source == 'estimated'
+        assert offset == -1
+        assert ts.hour == 11
+
+    def test_estimates_vitals_section_offset(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_timestamp
+        text = "HR 75 BP 118/72"
+        report_dt = datetime(2021, 10, 24, 12, 0, 0)
+        ts, source, offset = extract_timestamp(text, 'vitals', report_dt)
+        assert source == 'estimated'
+        assert offset == -1
+
+    def test_estimates_unknown_section_default_offset(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_timestamp
+        text = "HR 80 BP 125/80"
+        report_dt = datetime(2021, 10, 24, 12, 0, 0)
+        ts, source, offset = extract_timestamp(text, 'other', report_dt)
+        assert source == 'estimated'
+        assert offset == -2  # Default offset

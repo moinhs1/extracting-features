@@ -5,7 +5,8 @@ from datetime import datetime, timedelta
 
 from .hnp_patterns import (
     SECTION_PATTERNS, NEGATION_PATTERNS, HR_PATTERNS, BP_PATTERNS,
-    RR_PATTERNS, SPO2_PATTERNS, TEMP_PATTERNS, VALID_RANGES
+    RR_PATTERNS, SPO2_PATTERNS, TEMP_PATTERNS, TIMESTAMP_PATTERNS,
+    VALID_RANGES, DEFAULT_TIMESTAMP_OFFSET
 )
 
 
@@ -318,3 +319,69 @@ def extract_temperature(text: str) -> List[Dict]:
             seen_positions.add(position)
 
     return results
+
+
+def extract_timestamp(
+    text: str,
+    section: str,
+    report_datetime: datetime
+) -> Tuple[datetime, str, float]:
+    """
+    Extract explicit timestamp or estimate from section context.
+
+    Args:
+        text: Text window to search for timestamp
+        section: Section name (ed_course, exam, vitals, etc.)
+        report_datetime: Report_Date_Time from the note
+
+    Returns:
+        Tuple of (timestamp, source, offset_hours)
+        source is 'explicit' or 'estimated'
+    """
+    # Try explicit timestamp extraction
+    for pattern in TIMESTAMP_PATTERNS:
+        match = re.search(pattern, text)
+        if match:
+            try:
+                date_str = match.group(1)
+                time_str = match.group(2)
+
+                # Parse date
+                for fmt in ['%m/%d/%Y', '%m/%d/%y']:
+                    try:
+                        date_part = datetime.strptime(date_str, fmt)
+                        break
+                    except ValueError:
+                        continue
+                else:
+                    continue
+
+                # Parse time
+                time_str = time_str.strip()
+                for fmt in ['%I:%M %p', '%I:%M:%S %p', '%H:%M', '%H%M']:
+                    try:
+                        time_part = datetime.strptime(time_str, fmt)
+                        break
+                    except ValueError:
+                        continue
+                else:
+                    continue
+
+                timestamp = date_part.replace(
+                    hour=time_part.hour,
+                    minute=time_part.minute,
+                    second=getattr(time_part, 'second', 0)
+                )
+                return timestamp, 'explicit', 0.0
+
+            except (ValueError, AttributeError):
+                continue
+
+    # Fall back to estimation based on section
+    if section in SECTION_PATTERNS:
+        _, offset = SECTION_PATTERNS[section]
+    else:
+        offset = DEFAULT_TIMESTAMP_OFFSET
+
+    estimated_ts = report_datetime + timedelta(hours=offset)
+    return estimated_ts, 'estimated', float(offset)
