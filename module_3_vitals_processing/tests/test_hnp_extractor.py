@@ -83,3 +83,73 @@ class TestCheckNegation:
         text = "Unable to obtain vitals earlier. Later: BP 120/80 normal values"
         # Position at "BP 120/80" - negation is far away
         assert check_negation(text, position=40, window=20) is False
+
+
+class TestExtractHeartRate:
+    """Test heart rate extraction patterns."""
+
+    def test_extracts_heart_rate_full_label(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_heart_rate
+        text = "Vitals: Heart Rate: 88 BP 120/80"
+        results = extract_heart_rate(text)
+        assert len(results) >= 1
+        assert results[0]['value'] == 88
+        assert results[0]['confidence'] == 1.0
+
+    def test_extracts_hr_abbreviation(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_heart_rate
+        text = "HR 72 BP 130/85"
+        results = extract_heart_rate(text)
+        assert len(results) >= 1
+        assert results[0]['value'] == 72
+        assert results[0]['confidence'] == 0.95
+
+    def test_extracts_pulse_p(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_heart_rate
+        text = "37.2 °C P 79 BP 149/65"
+        results = extract_heart_rate(text)
+        assert len(results) >= 1
+        assert results[0]['value'] == 79
+
+    def test_extracts_pulse_full(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_heart_rate
+        text = "Pulse 86 regular"
+        results = extract_heart_rate(text)
+        assert len(results) >= 1
+        assert results[0]['value'] == 86
+
+    def test_extracts_abnormal_flagged(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_heart_rate
+        text = "P (!) 117 BP 170/87"
+        results = extract_heart_rate(text)
+        assert len(results) >= 1
+        assert results[0]['value'] == 117
+        assert results[0]['is_flagged_abnormal'] is True
+
+    def test_extracts_range_then_value(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_heart_rate
+        text = "Heart Rate: [62-72] 72"
+        results = extract_heart_rate(text)
+        # Should get the current value 72
+        values = [r['value'] for r in results]
+        assert 72 in values
+
+    def test_rejects_invalid_range(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_heart_rate
+        text = "HR 500"  # Invalid
+        results = extract_heart_rate(text)
+        assert len(results) == 0
+
+    def test_skips_negated(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_heart_rate
+        text = "Heart rate not obtained"
+        results = extract_heart_rate(text)
+        assert len(results) == 0
+
+    def test_multiple_extractions(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_heart_rate
+        text = "ED: HR 90... Exam: Heart Rate: 75"
+        results = extract_heart_rate(text)
+        values = [r['value'] for r in results]
+        assert 90 in values
+        assert 75 in values

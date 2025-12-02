@@ -3,7 +3,9 @@ import re
 from typing import Dict, List, Optional, Tuple
 from datetime import datetime, timedelta
 
-from .hnp_patterns import SECTION_PATTERNS, NEGATION_PATTERNS
+from .hnp_patterns import (
+    SECTION_PATTERNS, NEGATION_PATTERNS, HR_PATTERNS, VALID_RANGES
+)
 
 
 def identify_sections(text: str, window_size: int = 500) -> Dict[str, str]:
@@ -50,3 +52,54 @@ def check_negation(text: str, position: int, window: int = 50) -> bool:
             return True
 
     return False
+
+
+def extract_heart_rate(text: str) -> List[Dict]:
+    """
+    Extract heart rate values from text.
+
+    Args:
+        text: Text to search for heart rate values
+
+    Returns:
+        List of dicts with value, confidence, position, is_flagged_abnormal
+    """
+    results = []
+    seen_positions = set()
+
+    for pattern, confidence in HR_PATTERNS:
+        for match in re.finditer(pattern, text, re.IGNORECASE):
+            position = match.start()
+
+            # Skip if we already found a value at similar position
+            if any(abs(position - p) < 10 for p in seen_positions):
+                continue
+
+            # Check for negation
+            if check_negation(text, position):
+                continue
+
+            try:
+                value = float(match.group(1))
+            except (ValueError, IndexError):
+                continue
+
+            # Validate range
+            min_val, max_val = VALID_RANGES['HR']
+            if not (min_val <= value <= max_val):
+                continue
+
+            # Check for abnormal flag (!)
+            context_start = max(0, position - 10)
+            context = text[context_start:position + 5]
+            is_flagged = '(!)' in context or '(!)' in match.group(0)
+
+            results.append({
+                'value': value,
+                'confidence': confidence,
+                'position': position,
+                'is_flagged_abnormal': is_flagged,
+            })
+            seen_positions.add(position)
+
+    return results
