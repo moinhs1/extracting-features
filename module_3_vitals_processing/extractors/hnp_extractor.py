@@ -610,3 +610,53 @@ def extract_hnp_vitals(
     print(f"Output saved to: {output_path}")
 
     return df
+
+
+if __name__ == '__main__':
+    import argparse
+    import sys
+
+    # Add parent directory to path to allow imports
+    sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+
+    from module_3_vitals_processing.config.vitals_config import DATA_DIR, OUTPUT_DIR
+
+    parser = argparse.ArgumentParser(
+        description='Extract vital signs from Hnp.txt (H&P notes)'
+    )
+    parser.add_argument(
+        '-i', '--input',
+        default=str(DATA_DIR / 'Hnp.txt'),
+        help='Input Hnp.txt file path'
+    )
+    parser.add_argument(
+        '-o', '--output',
+        default=str(OUTPUT_DIR / 'discovery' / 'hnp_vitals_raw.parquet'),
+        help='Output parquet file path'
+    )
+    parser.add_argument(
+        '-w', '--workers',
+        type=int,
+        default=None,
+        help='Number of parallel workers (default: CPU count)'
+    )
+    parser.add_argument(
+        '-c', '--chunk-size',
+        type=int,
+        default=10000,
+        help='Rows per processing chunk'
+    )
+
+    args = parser.parse_args()
+
+    print(f"Extracting vitals from: {args.input}")
+    print(f"Output to: {args.output}")
+    print(f"Workers: {args.workers or 'auto'}")
+    print(f"Chunk size: {args.chunk_size}")
+
+    extract_hnp_vitals(
+        args.input,
+        args.output,
+        n_workers=args.workers,
+        chunk_size=args.chunk_size
+    )
