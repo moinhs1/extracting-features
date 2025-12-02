@@ -6,6 +6,8 @@ Enhanced laboratory test harmonization and feature engineering with LOINC integr
 
 This module extracts and harmonizes laboratory test data from electronic health records, achieving **100% test coverage** through a three-tier harmonization system.
 
+**Current Cohort:** 8,713 PE patients | 22.2M lab measurements | 289 harmonized test groups
+
 **Key Features:**
 - 🎯 **Three-Tier Harmonization**: LOINC exact → LOINC family → Hierarchical clustering
 - 🧬 **66,497 LOINC Codes**: With 64x speedup caching
@@ -13,6 +15,7 @@ This module extracts and harmonizes laboratory test data from electronic health 
 - 🔄 **Unit Conversion**: Automated conversion for 6 common lab tests
 - ⏱️ **Temporal Features**: AUC, slopes, deltas across phases
 - 🎨 **Triple Encoding**: Values, masks, timestamps for time-aware ML
+- 🔀 **POC Variant Merging**: Consolidates point-of-care tests with main lab groups
 
 ---
 
@@ -31,16 +34,16 @@ open outputs/discovery/test_n10_harmonization_explorer.html
 python module_02_laboratory_processing.py --phase2 --test --n=10
 ```
 
-### Full Cohort (3,565 patients)
+### Full Cohort (8,713 patients)
 
 ```bash
-# Phase 1
+# Phase 1: Discovery & Harmonization
 python module_02_laboratory_processing.py --phase1
 
-# Review harmonization_map_draft.csv
-# Edit QC thresholds and review flags as needed
+# Review outputs/discovery/full_harmonization_map_consolidated.csv
+# Optionally merge POC variants using merge_plan.csv
 
-# Phase 2
+# Phase 2: Feature Engineering
 python module_02_laboratory_processing.py --phase2
 ```
 
@@ -51,16 +54,16 @@ python module_02_laboratory_processing.py --phase2
 ### Architecture
 
 ```
-Input: 330 unique lab tests
+Input: 3,236 unique lab test variants
   ↓
 ┌─────────────────────────────────────────┐
 │ Tier 1: LOINC Exact Matching           │
 │ - Matches any test with LOINC code     │
 │ - Uses COMPONENT field for grouping    │
-│ - Coverage: 96.7% (319/330 tests)      │
+│ - Coverage: 95.2% (2,883 groups)       │
 │ - Status: Auto-approved                │
 └─────────────────────────────────────────┘
-  ↓ Unmapped tests (11 remaining)
+  ↓ Unmapped tests (353 remaining)
 ┌─────────────────────────────────────────┐
 │ Tier 2: LOINC Family Matching          │
 │ - Groups by LOINC component            │
@@ -68,16 +71,23 @@ Input: 330 unique lab tests
 │ - Coverage: 0% (local codes)           │
 │ - Status: Needs review if flagged      │
 └─────────────────────────────────────────┘
-  ↓ Unmapped tests (11 remaining)
+  ↓ Unmapped tests (353 remaining)
 ┌─────────────────────────────────────────┐
 │ Tier 3: Hierarchical Clustering        │
 │ - Ward's method clustering             │
 │ - Combined distance metric             │
-│ - Coverage: 3.3% (11/330 tests)        │
+│ - Coverage: 4.8% (147 groups)          │
 │ - Status: Review singletons & flags    │
 └─────────────────────────────────────────┘
   ↓
-Output: 325 groups, 100% coverage
+┌─────────────────────────────────────────┐
+│ Post-Processing: POC Variant Merging   │
+│ - Consolidates POC with main tests     │
+│ - 34 merges applied                    │
+│ - Final: 289 harmonized groups         │
+└─────────────────────────────────────────┘
+  ↓
+Output: 289 groups, 100% coverage
 ```
 
 ### Tier 1: LOINC Exact Matching
@@ -189,47 +199,80 @@ Result: 0.09 < 0.1 → Cluster together ✓
 
 ---
 
+## POC Variant Merging
+
+After harmonization, point-of-care (POC) test variants are consolidated with their main lab counterparts.
+
+### Merge Plan
+
+The following 34 merges were applied:
+
+| Target Group | Merged Variants | Measurements |
+|--------------|-----------------|--------------|
+| `glucose` | glucose-wb, glucose_istat, istat_wb_glucose, point_of_care_glucose | 1.9M |
+| `temperature` | art_temp_out, patient_temperature, temp_blood, venous_temp_out + 4 more | 48K |
+| `oxygen_saturation` | oxygen_saturation_venous, venous_oxygen_sat, sao2_rest, saturated_oxygen_istat | 215K |
+| `carbon_dioxide` | pco2, pco2uncorrected, tco2, total_co2-poc | 13K |
+| `oxygen` | po2uncorrected (3 variants) | 4K |
+| `coagulation_surface_induced` | aptt_after_hepzyme, ptt_after_hepzyme, ptt_mixing_study | 1K |
+| `glomerular_filtration_rate` | egfr_poc, egfr-poc | 0.7K |
+| `sodium` | sodium variant, sodium-poc | 1.8K |
+| `coagulation_tissue_factor_induced_inr` | inr_poc | 0.4K |
+| `coagulation_tissue_factor_induced` | pt_poc | 0.2K |
+
+### Preserved Distinctions
+
+Clinically distinct tests are NOT merged:
+- **Troponin T vs Troponin I** - different biomarkers
+- **Hemoglobin subtypes** - HbA1c, HbA2, HbS, HbF
+- **LDH isoenzymes** - LDH1-5
+- **CK isoenzymes** - CK-MB, CK-MM, CK-BB
+
+---
+
 ## Outputs
 
 ### Phase 1: Discovery Files
 
 ```
 outputs/discovery/
-├── harmonization_map_draft.csv          ← SINGLE SOURCE OF TRUTH
-│   Columns: group_name, loinc_code, component, system,
-│            standard_unit, conversion_factors, tier,
-│            needs_review, matched_tests, patient_count
+├── full_harmonization_map_consolidated.csv  ← SINGLE SOURCE OF TRUTH
+│   289 harmonized groups with all test variants
 │
-├── tier1_loinc_exact.csv               ← Tier 1 details
-│   319 groups, 96.7% coverage
+├── full_tier1_loinc_exact.csv              ← Tier 1 details
+│   2,883 groups, 95.2% coverage
 │
-├── tier2_loinc_family.csv              ← Tier 2 details
-│   0 groups (expected for this dataset)
+├── full_tier3_cluster_suggestions.csv      ← Tier 3 details
+│   147 clusters from 353 unmapped tests
 │
-├── tier3_cluster_suggestions.csv       ← Tier 3 details
-│   6 clusters from 11 unmapped tests
+├── merge_plan.csv                          ← POC variant merge plan
+│   34 recommended merges (glucose POC → glucose, etc.)
 │
-├── cluster_dendrogram.png              ← Static visualization
-│   117 KB, 2986x1484 pixels
+├── all_labs_with_mapping.csv               ← Complete lab list
+│   3,236 unique test variants with group mappings
 │
-├── cluster_dendrogram_interactive.html ← Interactive dendrogram
-│   Plotly with zoom/pan/hover
+├── cluster_dendrogram.png                  ← Static visualization
 │
-└── harmonization_explorer.html         ← 4-panel dashboard
-    - Coverage by tier (pie chart)
-    - Review status (bar chart)
-    - Patient coverage (histogram)
-    - Tests per group (histogram)
+└── harmonization_explorer.html             ← 4-panel dashboard
 ```
 
 ### Phase 2: Feature Files
 
 ```
 outputs/
-├── lab_features.csv                    ← Temporal features (CSV)
-├── lab_features.h5                     ← Temporal features (HDF5)
-└── lab_sequences.h5                    ← Time series (HDF5)
-    Triple encoding: (values, masks, timestamps)
+├── full_lab_features.csv              ← Temporal features (229 MB)
+│   8,713 patients × 17,064 features
+│
+├── full_lab_sequences.h5              ← Time series (2.2 GB)
+│   Triple encoding per test:
+│   - values: measurement values
+│   - timestamps: epoch timestamps
+│   - original_units: source units
+│   - masks: validity flags
+│   - qc_flags: quality control flags
+│
+└── full_lab_harmonization_map.json    ← JSON map for Phase 2
+    289 groups with 3,236 test variants
 ```
 
 ---
@@ -599,14 +642,18 @@ flags = flag_suspicious_clusters(clusters, unmapped_tests)
 | Tier 3 clustering | <1s |
 | **Total Phase 1** | **~3 min** |
 
-### Full Dataset (n=3,565)
+### Full Dataset (n=8,713)
 
 | Operation | Time |
 |-----------|------|
-| Lab data scan | ~20 min |
-| Harmonization | ~2 min |
-| Feature engineering | ~3 min |
-| **Total** | **~25 min** |
+| Lab data scan | ~25 min |
+| Tier 1 LOINC matching | ~5 min |
+| Tier 3 clustering (62K pairs) | ~3 min |
+| **Total Phase 1** | **~35 min** |
+| | |
+| Sequence extraction (45 chunks) | ~8 min |
+| Feature calculation | ~2 min |
+| **Total Phase 2** | **~10 min** |
 
 ---
 
@@ -628,6 +675,13 @@ Available at: https://loinc.org
 
 ## Changelog
 
+### 2025-11-29 - Expanded Cohort & POC Merging
+- 📈 Expanded to 8,713 patients (from 3,565)
+- 🔀 POC variant merging: 34 merges consolidating POC tests
+- 📊 Final: 289 harmonized groups from 3,236 test variants
+- ⚡ Vectorized sequence extraction with tqdm progress bars
+- 🔧 Fixed HDF5 group name sanitization for special characters
+
 ### 2025-11-08 - Enhanced Harmonization
 - ✨ Three-tier harmonization system
 - ✨ LOINC integration (66,497 codes)
@@ -645,5 +699,8 @@ Available at: https://loinc.org
 ---
 
 **Status:** ✅ Production Ready
-**Coverage:** 100% (330/330 tests)
-**Last Updated:** 2025-11-08
+**Cohort:** 8,713 PE patients
+**Lab Measurements:** 22.2M
+**Harmonized Groups:** 289
+**Features:** 17,064 per patient
+**Last Updated:** 2025-11-29

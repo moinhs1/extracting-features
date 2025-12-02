@@ -35,3 +35,21 @@ outputs/*.csv
 
 # Log files
 *.log
+
+# Large data files
+*.h5
+module_2_laboratory_processing/Loinc/
+module_2_laboratory_processing/Loinc_2.81.zip
+
+# Session transcripts
+2025-*.txt
+module_2_laboratory_processing/2025-*.txt
+
+# Output data directories (preserve in .gitkeep)
+module_2_laboratory_processing/outputs/outputs/
+module_3_vitals_processing/outputs/discovery/*.parquet
+module_3_vitals_processing/outputs/features/
+module_3_vitals_processing/outputs/validation/
+
+# Large feature files
+module_2_laboratory_processing/outputs/full_lab_features.csv

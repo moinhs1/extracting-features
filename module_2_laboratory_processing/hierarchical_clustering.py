@@ -7,6 +7,7 @@ import re
 from typing import Dict, List, Tuple, Set
 from scipy.cluster.hierarchy import linkage, fcluster
 from scipy.spatial.distance import squareform
+from tqdm import tqdm
 
 
 def calculate_token_similarity(name1: str, name2: str) -> float:
@@ -154,17 +155,20 @@ def perform_hierarchical_clustering(
     if n == 1:
         return {0: [0]}, None, None
 
-    # Calculate pairwise distance matrix
+    # Calculate pairwise distance matrix with progress bar
     distances = np.zeros((n, n))
-    for i in range(n):
-        for j in range(i+1, n):
-            dist = calculate_combined_distance(
-                unmapped_tests[i],
-                unmapped_tests[j],
-                unit_weight=unit_weight
-            )
-            distances[i, j] = dist
-            distances[j, i] = dist
+    total_pairs = n * (n - 1) // 2
+    with tqdm(total=total_pairs, desc="  Computing pairwise distances") as pbar:
+        for i in range(n):
+            for j in range(i+1, n):
+                dist = calculate_combined_distance(
+                    unmapped_tests[i],
+                    unmapped_tests[j],
+                    unit_weight=unit_weight
+                )
+                distances[i, j] = dist
+                distances[j, i] = dist
+                pbar.update(1)
 
     # Convert to condensed distance matrix for scipy
     condensed_dist = squareform(distances)

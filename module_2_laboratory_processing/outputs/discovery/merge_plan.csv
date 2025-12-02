@@ -1,0 +1,35 @@
+from,to,reason
+glucose-wb_test_bcgluwb8,glucose,Whole blood glucose
+glucose_istat_test_ncgluis,glucose,iSTAT glucose
+istat_wb_glucose_test_mcsq-glui7,glucose,iSTAT WB glucose
+point_of_care_glucose_test_fc600.0010,glucose,POC glucose
+egfr_poc_test_bcgfrpoc,glomerular_filtration_rate,EGFR POC
+egfr-poc_test_bc1-1450,glomerular_filtration_rate,EGFR POC
+sodium_test_el_5200009660,sodium,Sodium variant
+sodium-poc_test_ncsqe-na7,sodium,Sodium POC
+inr_poc_test_mhsq-pti7,coagulation_tissue_factor_induced_inr,INR POC
+pt_poc_test_mhsq-pt7,coagulation_tissue_factor_induced,PT POC
+art_temp_out_test_mcsq-tempa,temperature,Temperature variant
+patient_temperature_test_wc301.0700,temperature,Temperature variant
+temp._blood_test_el_5200013725,temperature,Temperature variant
+temp._blood_test_el_5200014195,temperature,Temperature variant
+temp_test_mcsq-tempo,temperature,Temperature variant
+temp_test_mctemout,temperature,Temperature variant
+temperature_test_sc301.1400,temperature,Temperature variant
+venous_temp_out_test_mcsq-tempv,temperature,Temperature variant
+oxygen_saturation_venous,oxygen_saturation,Venous O2 sat
+venous_oxygen_sat_test_fcvo2sat,oxygen_saturation,Venous O2 sat
+sao2_rest_test_ncsao2r,oxygen_saturation,SaO2 rest
+saturated_oxygen_istat_test_nco2is,oxygen_saturation,iSTAT O2 sat
+pco2_test_el_5200010456,carbon_dioxide,PCO2 variant
+pco2uncorrected_blood_test_el_5200010462,carbon_dioxide,PCO2 uncorrected
+pco2uncorrected_test_mcsq-pco2u,carbon_dioxide,PCO2 uncorrected
+po2uncorrected_blood_test_el_5200010942,oxygen,PO2 uncorrected
+po2uncorrected_test_mcsq-po2u,oxygen,PO2 uncorrected
+po2_uncorrected_test_el_5200015511,oxygen,PO2 uncorrected
+tco2_test_el_5200013657,carbon_dioxide,TCO2 variant
+total_co2-poc_test_mcsq-tco27,carbon_dioxide,Total CO2 POC
+aptt_after_hepzyme_test_mhsq-ptthpz,coagulation_surface_induced,PTT post-hepzyme
+ptt_after_hepzyme_test_el_5210000397,coagulation_surface_induced,PTT post-hepzyme
+ptt_mixing_study_test_mhsq-pttmx,coagulation_surface_induced,PTT mixing
+aptt_after_hepzyme_test_mhsq-ptthpz,coagulation_surface_induced,APTT post-hepzyme

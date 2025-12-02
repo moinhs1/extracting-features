@@ -16,6 +16,7 @@ from typing import Dict, List, Tuple, Any
 from collections import defaultdict
 from fuzzywuzzy import fuzz
 from scipy.integrate import trapezoid
+from tqdm import tqdm
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -36,9 +37,9 @@ from hierarchical_clustering import (
 # ============================================================================
 
 # Data paths
-DATA_DIR = Path('/home/moin/TDA_11_1/Data')
-LAB_FILE = DATA_DIR / 'FNR_20240409_091633_Lab.txt'
-MODULE1_DIR = Path('/home/moin/TDA_11_1/module_1_core_infrastructure')
+DATA_DIR = Path('/home/moin/TDA_11_25/Data')
+LAB_FILE = DATA_DIR / 'Lab.txt'
+MODULE1_DIR = Path('/home/moin/TDA_11_25/module_1_core_infrastructure')
 PATIENT_TIMELINES_FILE = MODULE1_DIR / 'outputs' / 'patient_timelines.pkl'
 
 # Output paths
@@ -294,8 +295,9 @@ def scan_lab_data(patient_empis, test_mode=False):
 
         print(f"  Chunk {chunk_num}: {len(chunk):,} rows → {len(cohort_chunk):,} cohort rows")
 
-        # Accumulate statistics for each test
-        for _, row in cohort_chunk.iterrows():
+        # Accumulate statistics for each test (with progress bar)
+        for _, row in tqdm(cohort_chunk.iterrows(), total=len(cohort_chunk),
+                           desc=f"    Scanning chunk {chunk_num}", leave=False):
             test_desc = str(row.get('Test_Description', '')).strip().upper()
             if not test_desc or test_desc == 'NAN':
                 continue
@@ -454,7 +456,8 @@ def tier1_loinc_exact_match(frequency_df, loinc_matcher, unit_converter):
     has_loinc = frequency_df[frequency_df['loinc_code'].notna()].copy()
     print(f"  Tests with LOINC codes: {len(has_loinc)}")
 
-    for _, row in has_loinc.iterrows():
+    for _, row in tqdm(has_loinc.iterrows(), total=len(has_loinc),
+                       desc="  Matching LOINC codes"):
         loinc_code = row['loinc_code']
         test_desc = row['test_description']
 
@@ -1282,6 +1285,9 @@ def extract_lab_sequences(patient_timelines, patient_empis, harmonization_map,
         for variant in info['variants']:
             test_to_canonical[variant.upper()] = canonical_name
 
+    # Build set of harmonized test descriptions for fast lookup
+    harmonized_tests = set(test_to_canonical.keys())
+
     # Read lab data in chunks
     chunk_num = 0
     total_measurements = 0
@@ -1298,64 +1304,92 @@ def extract_lab_sequences(patient_timelines, patient_empis, harmonization_map,
 
         print(f"  Chunk {chunk_num}: {len(cohort_chunk):,} cohort rows")
 
-        # Parse timestamps
+        # VECTORIZED PROCESSING (much faster than row-by-row)
+
+        # Step 1: Normalize test descriptions
+        cohort_chunk['test_desc_upper'] = cohort_chunk['Test_Description'].fillna('').str.strip().str.upper()
+
+        # Step 2: Filter to only harmonized tests
+        cohort_chunk = cohort_chunk[cohort_chunk['test_desc_upper'].isin(harmonized_tests)].copy()
+        if len(cohort_chunk) == 0:
+            print(f"    → 0 harmonized test rows")
+            continue
+        print(f"    → {len(cohort_chunk):,} harmonized test rows")
+
+        # Step 3: Map to canonical names
+        cohort_chunk['canonical_name'] = cohort_chunk['test_desc_upper'].map(test_to_canonical)
+
+        # Step 4: Parse timestamps and filter invalid
         cohort_chunk['Seq_Date_Time'] = pd.to_datetime(
             cohort_chunk['Seq_Date_Time'], errors='coerce'
         )
+        cohort_chunk = cohort_chunk[cohort_chunk['Seq_Date_Time'].notna()].copy()
 
-        # Process each row
-        for _, row in cohort_chunk.iterrows():
-            patient_id = str(row['EMPI'])
-            test_desc = str(row.get('Test_Description', '')).strip().upper()
+        # Step 5: Parse numeric values and filter invalid
+        cohort_chunk['value'] = pd.to_numeric(cohort_chunk['Result'], errors='coerce')
+        cohort_chunk = cohort_chunk[cohort_chunk['value'].notna()].copy()
 
-            # Check if this test is harmonized
-            canonical_name = test_to_canonical.get(test_desc)
-            if not canonical_name:
+        if len(cohort_chunk) == 0:
+            continue
+
+        # Step 6: Apply QC flags vectorized
+        cohort_chunk['qc_flag'] = 0  # Default: valid
+
+        # Apply QC thresholds per canonical test
+        for canonical_name, info in harmonization_map.items():
+            qc_thresholds = info['qc_thresholds']
+            mask = cohort_chunk['canonical_name'] == canonical_name
+
+            if mask.sum() == 0:
                 continue
 
-            # Get timestamp
-            timestamp = row['Seq_Date_Time']
-            if pd.isna(timestamp):
-                continue
+            # Impossible values → qc_flag=3, value=NaN
+            if 'impossible_low' in qc_thresholds:
+                impossible_low_mask = mask & (cohort_chunk['value'] < qc_thresholds['impossible_low'])
+                cohort_chunk.loc[impossible_low_mask, 'qc_flag'] = 3
+                cohort_chunk.loc[impossible_low_mask, 'value'] = np.nan
 
-            # Get value
-            try:
-                value = float(row['Result'])
-            except (ValueError, TypeError):
-                continue  # Skip non-numeric results
+            if 'impossible_high' in qc_thresholds:
+                impossible_high_mask = mask & (cohort_chunk['value'] > qc_thresholds['impossible_high'])
+                cohort_chunk.loc[impossible_high_mask, 'qc_flag'] = 3
+                cohort_chunk.loc[impossible_high_mask, 'value'] = np.nan
 
-            # Get unit
-            original_unit = str(row.get('Reference_Units', '')).strip()
+            # Extreme values → qc_flag=1 (only if not already flagged as impossible)
+            if 'extreme_high' in qc_thresholds:
+                extreme_high_mask = mask & (cohort_chunk['qc_flag'] == 0) & (cohort_chunk['value'] > qc_thresholds['extreme_high'])
+                cohort_chunk.loc[extreme_high_mask, 'qc_flag'] = 1
 
-            # Apply QC
-            qc_thresholds = harmonization_map[canonical_name]['qc_thresholds']
-            qc_flag = 0  # 0=valid
+            if 'extreme_low' in qc_thresholds:
+                extreme_low_mask = mask & (cohort_chunk['qc_flag'] == 0) & (cohort_chunk['value'] < qc_thresholds['extreme_low'])
+                cohort_chunk.loc[extreme_low_mask, 'qc_flag'] = 1
 
-            if 'impossible_low' in qc_thresholds and value < qc_thresholds['impossible_low']:
-                qc_flag = 3  # Impossible
-                value = np.nan
-            elif 'impossible_high' in qc_thresholds and value > qc_thresholds['impossible_high']:
-                qc_flag = 3  # Impossible
-                value = np.nan
-            elif 'extreme_high' in qc_thresholds and value > qc_thresholds['extreme_high']:
-                qc_flag = 1  # Extreme
-            elif 'extreme_low' in qc_thresholds and value < qc_thresholds['extreme_low']:
-                qc_flag = 1  # Extreme
+        # Step 7: Clean up units
+        cohort_chunk['original_unit'] = cohort_chunk['Reference_Units'].fillna('').astype(str).str.strip()
 
-            # Store measurement
-            sequences[patient_id][canonical_name]['timestamps'].append(timestamp)
-            sequences[patient_id][canonical_name]['values'].append(value)
-            sequences[patient_id][canonical_name]['masks'].append(1)  # Observed
-            sequences[patient_id][canonical_name]['qc_flags'].append(qc_flag)
-            sequences[patient_id][canonical_name]['original_units'].append(original_unit)
+        # Step 8: Group by patient and canonical_name, then bulk insert
+        grouped = cohort_chunk.groupby(['EMPI', 'canonical_name'])
 
-            total_measurements += 1
+        for (patient_id, canonical_name), group in tqdm(grouped, desc=f"    Storing chunk {chunk_num}", leave=False):
+            patient_id = str(patient_id)
+            timestamps = group['Seq_Date_Time'].tolist()
+            values = group['value'].tolist()
+            qc_flags = group['qc_flag'].tolist()
+            units = group['original_unit'].tolist()
+
+            # Extend existing lists
+            sequences[patient_id][canonical_name]['timestamps'].extend(timestamps)
+            sequences[patient_id][canonical_name]['values'].extend(values)
+            sequences[patient_id][canonical_name]['masks'].extend([1] * len(timestamps))
+            sequences[patient_id][canonical_name]['qc_flags'].extend(qc_flags)
+            sequences[patient_id][canonical_name]['original_units'].extend(units)
+
+            total_measurements += len(timestamps)
 
     print(f"\n  Total measurements extracted: {total_measurements:,}")
 
     # Sort sequences by timestamp
-    print(f"  Sorting sequences by timestamp...\n")
-    for patient_id in sequences:
+    print(f"  Sorting sequences by timestamp...")
+    for patient_id in tqdm(sequences, desc="  Sorting sequences"):
         for test_name in sequences[patient_id]:
             data = sequences[patient_id][test_name]
 
@@ -1390,7 +1424,8 @@ def calculate_temporal_features(sequences, patient_timelines, harmonization_map)
 
     all_features = []
 
-    for patient_id, timeline in patient_timelines.items():
+    for patient_id, timeline in tqdm(patient_timelines.items(), total=len(patient_timelines),
+                                      desc="  Calculating features"):
         patient_features = {'patient_id': patient_id}
 
         # Get phase boundaries
