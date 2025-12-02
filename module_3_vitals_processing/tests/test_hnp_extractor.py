@@ -46,3 +46,40 @@ class TestIdentifySections:
         text = "History... EXAM ON ADMISSION Vitals: HR 88 BP 140/90 Gen: alert"
         sections = identify_sections(text)
         assert 'exam' in sections
+
+
+class TestCheckNegation:
+    """Test negation detection in context window."""
+
+    def test_detects_not_obtained(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import check_negation
+        text = "Blood pressure not obtained due to patient condition"
+        assert check_negation(text, position=15, window=50) is True
+
+    def test_detects_unable_to_measure(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import check_negation
+        text = "Vitals: HR 80, BP unable to measure, RR 18"
+        # Position at "BP"
+        assert check_negation(text, position=14, window=50) is True
+
+    def test_detects_refused(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import check_negation
+        text = "Patient refused vital signs assessment"
+        assert check_negation(text, position=20, window=50) is True
+
+    def test_detects_no_vitals(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import check_negation
+        text = "There were no vitals filed for this visit"
+        assert check_negation(text, position=15, window=50) is True
+
+    def test_returns_false_for_normal_vitals(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import check_negation
+        text = "Vitals: BP 120/80 HR 72 RR 16 SpO2 98%"
+        assert check_negation(text, position=10, window=50) is False
+
+    def test_respects_window_size(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import check_negation
+        # Negation far from position
+        text = "Unable to obtain vitals earlier. Later: BP 120/80 normal values"
+        # Position at "BP 120/80" - negation is far away
+        assert check_negation(text, position=40, window=20) is False
