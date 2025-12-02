@@ -34,9 +34,9 @@ BP_PATTERNS = [
 
 # Respiratory Rate patterns: (regex, confidence)
 RR_PATTERNS = [
-    (r'Respiratory\s*Rate\s*:?\s*(\d{1,2})', 1.0),
-    (r'(?:RR|Resp|TRR)\s*:?\s*(\d{1,2})', 0.9),
-    (r'\[\d{1,2}-\d{1,2}\]\s*(\d{1,2})', 0.85),
+    (r'Respiratory\s*Rate\s*:?\s*(\d{1,2})\b', 1.0),
+    (r'(?:RR|Resp|TRR)\s*:?\s*(\d{1,2})\b', 0.9),
+    (r'\[\d{1,2}-\d{1,2}\]\s*(\d{1,2})\b', 0.85),
 ]
 
 # SpO2 patterns: (regex, confidence)

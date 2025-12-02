@@ -223,3 +223,55 @@ class TestExtractBloodPressure:
         sbps = [r['sbp'] for r in results]
         assert 100 in sbps
         assert 120 in sbps
+
+
+class TestExtractRespiratoryRate:
+    """Test respiratory rate extraction patterns."""
+
+    def test_extracts_respiratory_rate_full_label(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_respiratory_rate
+        text = "Respiratory Rate: 16 SpO2 98%"
+        results = extract_respiratory_rate(text)
+        assert len(results) >= 1
+        assert results[0]['value'] == 16
+        assert results[0]['confidence'] == 1.0
+
+    def test_extracts_rr_abbreviation(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_respiratory_rate
+        text = "HR 72 RR 18 SpO2 97%"
+        results = extract_respiratory_rate(text)
+        assert len(results) >= 1
+        assert results[0]['value'] == 18
+
+    def test_extracts_resp_abbreviation(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_respiratory_rate
+        text = "Resp 20 unlabored"
+        results = extract_respiratory_rate(text)
+        assert len(results) >= 1
+        assert results[0]['value'] == 20
+
+    def test_extracts_trr_triage(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_respiratory_rate
+        text = "TRR 22 on arrival"
+        results = extract_respiratory_rate(text)
+        assert len(results) >= 1
+        assert results[0]['value'] == 22
+
+    def test_extracts_range_then_value(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_respiratory_rate
+        text = "Respiratory Rate: [14-22] 18"
+        results = extract_respiratory_rate(text)
+        values = [r['value'] for r in results]
+        assert 18 in values
+
+    def test_rejects_invalid_range(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_respiratory_rate
+        text = "RR 100"  # Invalid
+        results = extract_respiratory_rate(text)
+        assert len(results) == 0
+
+    def test_skips_negated(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_respiratory_rate
+        text = "RR not measured"
+        results = extract_respiratory_rate(text)
+        assert len(results) == 0
