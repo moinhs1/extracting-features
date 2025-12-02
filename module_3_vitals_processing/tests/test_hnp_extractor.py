@@ -153,3 +153,73 @@ class TestExtractHeartRate:
         values = [r['value'] for r in results]
         assert 90 in values
         assert 75 in values
+
+
+class TestExtractBloodPressure:
+    """Test blood pressure extraction patterns."""
+
+    def test_extracts_bp_full_label(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_blood_pressure
+        text = "Blood pressure 130/85 measured sitting"
+        results = extract_blood_pressure(text)
+        assert len(results) >= 1
+        assert results[0]['sbp'] == 130
+        assert results[0]['dbp'] == 85
+        assert results[0]['confidence'] == 1.0
+
+    def test_extracts_bp_abbreviation(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_blood_pressure
+        text = "BP: 120/80 HR 72"
+        results = extract_blood_pressure(text)
+        assert len(results) >= 1
+        assert results[0]['sbp'] == 120
+        assert results[0]['dbp'] == 80
+
+    def test_extracts_bp_with_mmhg(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_blood_pressure
+        text = "measured 145/92 mmHg in left arm"
+        results = extract_blood_pressure(text)
+        assert len(results) >= 1
+        assert results[0]['sbp'] == 145
+
+    def test_extracts_abnormal_flagged(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_blood_pressure
+        text = "BP (!) 180/110 HR 88"
+        results = extract_blood_pressure(text)
+        assert len(results) >= 1
+        assert results[0]['is_flagged_abnormal'] is True
+
+    def test_extracts_range_then_value(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_blood_pressure
+        text = "BP: (115-154)/(59-69) 145/67"
+        results = extract_blood_pressure(text)
+        # Should extract 145/67
+        assert any(r['sbp'] == 145 and r['dbp'] == 67 for r in results)
+
+    def test_swaps_if_sbp_less_than_dbp(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_blood_pressure
+        text = "BP 70/120"  # Swapped values
+        results = extract_blood_pressure(text)
+        assert len(results) >= 1
+        assert results[0]['sbp'] == 120  # Should be swapped
+        assert results[0]['dbp'] == 70
+
+    def test_rejects_invalid_range(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_blood_pressure
+        text = "BP 400/300"  # Invalid
+        results = extract_blood_pressure(text)
+        assert len(results) == 0
+
+    def test_skips_negated(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_blood_pressure
+        text = "BP not obtained due to combative patient"
+        results = extract_blood_pressure(text)
+        assert len(results) == 0
+
+    def test_multiple_extractions(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_blood_pressure
+        text = "Triage: BP 100/60... Exam: BP 120/75"
+        results = extract_blood_pressure(text)
+        sbps = [r['sbp'] for r in results]
+        assert 100 in sbps
+        assert 120 in sbps

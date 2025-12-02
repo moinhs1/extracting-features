@@ -4,7 +4,7 @@ from typing import Dict, List, Optional, Tuple
 from datetime import datetime, timedelta
 
 from .hnp_patterns import (
-    SECTION_PATTERNS, NEGATION_PATTERNS, HR_PATTERNS, VALID_RANGES
+    SECTION_PATTERNS, NEGATION_PATTERNS, HR_PATTERNS, BP_PATTERNS, VALID_RANGES
 )
 
 
@@ -96,6 +96,64 @@ def extract_heart_rate(text: str) -> List[Dict]:
 
             results.append({
                 'value': value,
+                'confidence': confidence,
+                'position': position,
+                'is_flagged_abnormal': is_flagged,
+            })
+            seen_positions.add(position)
+
+    return results
+
+
+def extract_blood_pressure(text: str) -> List[Dict]:
+    """
+    Extract blood pressure values from text.
+
+    Args:
+        text: Text to search for BP values
+
+    Returns:
+        List of dicts with sbp, dbp, confidence, position, is_flagged_abnormal
+    """
+    results = []
+    seen_positions = set()
+
+    for pattern, confidence in BP_PATTERNS:
+        for match in re.finditer(pattern, text, re.IGNORECASE):
+            position = match.start()
+
+            # Skip if we already found a value at similar position
+            if any(abs(position - p) < 10 for p in seen_positions):
+                continue
+
+            # Check for negation
+            if check_negation(text, position):
+                continue
+
+            try:
+                sbp = float(match.group(1))
+                dbp = float(match.group(2))
+            except (ValueError, IndexError):
+                continue
+
+            # Swap if SBP < DBP (likely transposed)
+            if sbp < dbp:
+                sbp, dbp = dbp, sbp
+
+            # Validate ranges
+            sbp_min, sbp_max = VALID_RANGES['SBP']
+            dbp_min, dbp_max = VALID_RANGES['DBP']
+            if not (sbp_min <= sbp <= sbp_max and dbp_min <= dbp <= dbp_max):
+                continue
+
+            # Check for abnormal flag (!)
+            context_start = max(0, position - 10)
+            context = text[context_start:position + 5]
+            is_flagged = '(!)' in context or '(!)' in match.group(0)
+
+            results.append({
+                'sbp': sbp,
+                'dbp': dbp,
                 'confidence': confidence,
                 'position': position,
                 'is_flagged_abnormal': is_flagged,
