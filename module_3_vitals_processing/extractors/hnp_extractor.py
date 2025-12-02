@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 
 from .hnp_patterns import (
     SECTION_PATTERNS, NEGATION_PATTERNS, HR_PATTERNS, BP_PATTERNS,
-    RR_PATTERNS, SPO2_PATTERNS, VALID_RANGES
+    RR_PATTERNS, SPO2_PATTERNS, TEMP_PATTERNS, VALID_RANGES
 )
 
 
@@ -249,6 +249,68 @@ def extract_spo2(text: str) -> List[Dict]:
 
             results.append({
                 'value': value,
+                'confidence': confidence,
+                'position': position,
+                'is_flagged_abnormal': is_flagged,
+            })
+            seen_positions.add(position)
+
+    return results
+
+
+def extract_temperature(text: str) -> List[Dict]:
+    """
+    Extract temperature values from text.
+
+    Args:
+        text: Text to search for temperature values
+
+    Returns:
+        List of dicts with value, units, confidence, position, is_flagged_abnormal
+    """
+    results = []
+    seen_positions = set()
+
+    for pattern, confidence in TEMP_PATTERNS:
+        for match in re.finditer(pattern, text, re.IGNORECASE):
+            position = match.start()
+
+            if any(abs(position - p) < 10 for p in seen_positions):
+                continue
+
+            if check_negation(text, position):
+                continue
+
+            try:
+                value = float(match.group(1))
+                # Get unit from capture group if available
+                units = match.group(2).upper() if match.lastindex >= 2 and match.group(2) else None
+            except (ValueError, IndexError):
+                continue
+
+            # Auto-detect unit from value if not captured
+            if units is None:
+                if value > 50:
+                    units = 'F'
+                else:
+                    units = 'C'
+
+            # Validate range based on unit
+            if units == 'C':
+                min_val, max_val = VALID_RANGES['TEMP_C']
+            else:
+                min_val, max_val = VALID_RANGES['TEMP_F']
+
+            if not (min_val <= value <= max_val):
+                continue
+
+            context_start = max(0, position - 10)
+            context = text[context_start:position + 5]
+            is_flagged = '(!)' in context
+
+            results.append({
+                'value': value,
+                'units': units,
                 'confidence': confidence,
                 'position': position,
                 'is_flagged_abnormal': is_flagged,

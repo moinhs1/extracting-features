@@ -341,3 +341,82 @@ class TestExtractSpO2:
         text = "SpO2 unable to measure"
         results = extract_spo2(text)
         assert len(results) == 0
+
+
+class TestExtractTemperature:
+    """Test temperature extraction patterns."""
+
+    def test_extracts_temperature_full_label_celsius(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_temperature
+        text = "Temperature: 37.2 °C (99 °F)"
+        results = extract_temperature(text)
+        assert len(results) >= 1
+        assert results[0]['value'] == 37.2
+        assert results[0]['units'] == 'C'
+
+    def test_extracts_temp_abbreviation(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_temperature
+        text = "Temp 36.8 ?C HR 72"
+        results = extract_temperature(text)
+        assert len(results) >= 1
+        assert results[0]['value'] == 36.8
+        assert results[0]['units'] == 'C'
+
+    def test_extracts_t_abbreviation(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_temperature
+        text = "T 98.6F P 80 BP 120/80"
+        results = extract_temperature(text)
+        assert len(results) >= 1
+        assert results[0]['value'] == 98.6
+        assert results[0]['units'] == 'F'
+
+    def test_extracts_tcurrent(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_temperature
+        text = "Tcurrent 37.3 ?C (99.2 ?F)"
+        results = extract_temperature(text)
+        assert len(results) >= 1
+        assert results[0]['value'] == 37.3
+
+    def test_extracts_encoding_question_mark(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_temperature
+        text = "36.5 ?C (97.7 ?F)"
+        results = extract_temperature(text)
+        assert len(results) >= 1
+        assert results[0]['value'] == 36.5
+        assert results[0]['units'] == 'C'
+
+    def test_autodetects_fahrenheit_from_value(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_temperature
+        # Value > 50 with no unit should be detected as Fahrenheit
+        text = "Temp: 98.6"
+        results = extract_temperature(text)
+        assert len(results) >= 1
+        assert results[0]['value'] == 98.6
+        assert results[0]['units'] == 'F'
+
+    def test_autodetects_celsius_from_value(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_temperature
+        # Value < 50 with no unit should be detected as Celsius
+        text = "Temp: 37.0"
+        results = extract_temperature(text)
+        assert len(results) >= 1
+        assert results[0]['value'] == 37.0
+        assert results[0]['units'] == 'C'
+
+    def test_rejects_invalid_celsius(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_temperature
+        text = "Temp 50 C"  # Invalid Celsius
+        results = extract_temperature(text)
+        assert len(results) == 0
+
+    def test_rejects_invalid_fahrenheit(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_temperature
+        text = "Temp 150 F"  # Invalid Fahrenheit
+        results = extract_temperature(text)
+        assert len(results) == 0
+
+    def test_skips_negated(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_temperature
+        text = "Temperature not obtained"
+        results = extract_temperature(text)
+        assert len(results) == 0

@@ -49,7 +49,9 @@ SPO2_PATTERNS = [
 TEMP_PATTERNS = [
     (r'(?:Temperature|Temp)\s*:?\s*(\d{2,3}\.?\d?)\s*[°?]?\s*([CF])', 1.0),
     (r'Tcurrent\s+(\d{2,3}\.?\d?)\s*[°?]?\s*([CF])', 0.9),
-    (r'T\s+(\d{2,3}\.?\d?)\s*[°?]\s*([CF])', 0.9),
+    (r'T\s+(\d{2,3}\.?\d?)([CF])', 0.9),  # T 98.6F (no space before unit)
+    (r'T\s+(\d{2,3}\.?\d?)\s*[°?]\s*([CF])', 0.9),  # T 98.6 °F
+    (r'(?:Temperature|Temp)\s*:?\s*(\d{2,3}\.?\d?)\b', 0.85),  # Temp: 98.6 (no unit)
     (r'(\d{2,3}\.\d)\s*[°?]\s*([CF])', 0.8),
 ]
 
