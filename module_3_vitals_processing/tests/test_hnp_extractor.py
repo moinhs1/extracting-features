@@ -590,3 +590,44 @@ class TestExtractHnpVitals:
         df = extract_hnp_vitals(str(input_file), str(output_file), n_workers=1)
 
         assert len(df) == 0
+
+
+class TestIntegration:
+    """Integration test with real data sample."""
+
+    def test_real_data_sample(self, tmp_path):
+        """Test extraction on first 1000 rows of real Hnp.txt."""
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_hnp_vitals
+
+        real_file = "/home/moin/TDA_11_25/Data/Hnp.txt"
+        if not os.path.exists(real_file):
+            pytest.skip("Real data file not available")
+
+        # Create sample file with first 1000 rows
+        sample_file = tmp_path / "sample_hnp.txt"
+        with open(real_file, 'r') as f_in:
+            with open(sample_file, 'w') as f_out:
+                for i, line in enumerate(f_in):
+                    f_out.write(line)
+                    if i >= 1000:
+                        break
+
+        output_file = tmp_path / "sample_output.parquet"
+
+        df = extract_hnp_vitals(str(sample_file), str(output_file), n_workers=1)
+
+        # Verify extraction produced results
+        assert len(df) > 0, "Should extract some vitals from real data"
+
+        # Check vital types present
+        vital_types = df['vital_type'].unique()
+        print(f"Extracted vital types: {vital_types}")
+        print(f"Total records: {len(df)}")
+        print(f"Records by type:\n{df['vital_type'].value_counts()}")
+
+        # At least some vital types should be present
+        assert len(vital_types) >= 3, "Should extract multiple vital types"
+
+        # Check data quality
+        assert df['value'].notna().all(), "All values should be non-null"
+        assert df['confidence'].between(0, 1).all(), "Confidence should be 0-1"
