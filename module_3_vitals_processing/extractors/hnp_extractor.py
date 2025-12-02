@@ -3,11 +3,13 @@ import re
 from typing import Dict, List, Optional, Tuple
 from datetime import datetime, timedelta
 import pandas as pd
+from multiprocessing import Pool, cpu_count
+from pathlib import Path
 
 from .hnp_patterns import (
     SECTION_PATTERNS, NEGATION_PATTERNS, HR_PATTERNS, BP_PATTERNS,
     RR_PATTERNS, SPO2_PATTERNS, TEMP_PATTERNS, TIMESTAMP_PATTERNS,
-    VALID_RANGES, DEFAULT_TIMESTAMP_OFFSET
+    VALID_RANGES, DEFAULT_TIMESTAMP_OFFSET, HNP_COLUMNS
 )
 
 
@@ -524,3 +526,87 @@ def process_hnp_row(row: pd.Series) -> List[Dict]:
             })
 
     return results
+
+
+def _process_chunk(chunk: pd.DataFrame) -> List[Dict]:
+    """Process a chunk of rows (for multiprocessing)."""
+    results = []
+    for _, row in chunk.iterrows():
+        results.extend(process_hnp_row(row))
+    return results
+
+
+def extract_hnp_vitals(
+    input_path: str,
+    output_path: str,
+    n_workers: Optional[int] = None,
+    chunk_size: int = 10000
+) -> pd.DataFrame:
+    """
+    Extract vital signs from Hnp.txt file with parallel processing.
+
+    Args:
+        input_path: Path to Hnp.txt file
+        output_path: Path for output parquet file
+        n_workers: Number of parallel workers (default: CPU count)
+        chunk_size: Rows per chunk for processing
+
+    Returns:
+        DataFrame with extracted vitals (also saved to parquet)
+    """
+    if n_workers is None:
+        n_workers = cpu_count()
+
+    # Ensure output directory exists
+    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+
+    all_results = []
+
+    # Read and process in chunks
+    chunks_processed = 0
+    for chunk in pd.read_csv(
+        input_path,
+        sep='|',
+        names=HNP_COLUMNS,
+        header=0,
+        chunksize=chunk_size,
+        dtype=str,
+        on_bad_lines='skip'
+    ):
+        chunks_processed += 1
+
+        if n_workers > 1:
+            # Split chunk for parallel processing
+            chunk_splits = [
+                chunk.iloc[i:i + chunk_size // n_workers]
+                for i in range(0, len(chunk), max(1, chunk_size // n_workers))
+            ]
+
+            with Pool(n_workers) as pool:
+                chunk_results = pool.map(_process_chunk, chunk_splits)
+
+            for result_list in chunk_results:
+                all_results.extend(result_list)
+        else:
+            # Single-threaded processing
+            all_results.extend(_process_chunk(chunk))
+
+        print(f"Processed chunk {chunks_processed}, total records: {len(all_results)}")
+
+    # Create DataFrame
+    if all_results:
+        df = pd.DataFrame(all_results)
+    else:
+        df = pd.DataFrame(columns=[
+            'EMPI', 'timestamp', 'timestamp_source', 'timestamp_offset_hours',
+            'vital_type', 'value', 'units', 'source', 'extraction_context',
+            'confidence', 'is_flagged_abnormal', 'report_number', 'report_date_time'
+        ])
+
+    # Save to parquet
+    df.to_parquet(output_path, index=False)
+
+    print(f"Extraction complete. Total records: {len(df)}")
+    print(f"Output saved to: {output_path}")
+
+    return df

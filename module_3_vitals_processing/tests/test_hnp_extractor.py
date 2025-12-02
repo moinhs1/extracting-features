@@ -2,6 +2,8 @@
 import pytest
 from datetime import datetime
 import pandas as pd
+import tempfile
+import os
 
 
 class TestIdentifySections:
@@ -549,3 +551,42 @@ class TestProcessHnpRow:
         })
         results = process_hnp_row(row)
         assert results == []
+
+
+class TestExtractHnpVitals:
+    """Test main extraction function."""
+
+    def test_extracts_from_small_file(self, tmp_path):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_hnp_vitals
+
+        # Create test input file
+        input_file = tmp_path / "test_hnp.txt"
+        input_file.write_text(
+            "EMPI|EPIC_PMRN|MRN_Type|MRN|Report_Number|Report_Date_Time|Report_Description|Report_Status|Report_Type|Report_Text\n"
+            "12345|PMR1|BWH|MRN1|RPT001|10/23/2021 9:00:00 PM|H&P|F|BHPHP|Physical Exam: BP 120/80 HR 72 RR 16 SpO2 98%\n"
+            "67890|PMR2|BWH|MRN2|RPT002|10/24/2021 10:00:00 AM|H&P|F|BHPHP|Vitals: T 37.2 C HR 88 BP 130/85\n"
+        )
+
+        output_file = tmp_path / "output.parquet"
+
+        df = extract_hnp_vitals(str(input_file), str(output_file), n_workers=1)
+
+        assert os.path.exists(output_file)
+        assert len(df) > 0
+        assert 'EMPI' in df.columns
+        assert 'vital_type' in df.columns
+        assert 'value' in df.columns
+
+    def test_handles_empty_file(self, tmp_path):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_hnp_vitals
+
+        input_file = tmp_path / "empty_hnp.txt"
+        input_file.write_text(
+            "EMPI|EPIC_PMRN|MRN_Type|MRN|Report_Number|Report_Date_Time|Report_Description|Report_Status|Report_Type|Report_Text\n"
+        )
+
+        output_file = tmp_path / "output.parquet"
+
+        df = extract_hnp_vitals(str(input_file), str(output_file), n_workers=1)
+
+        assert len(df) == 0
