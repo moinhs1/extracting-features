@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 
 from .hnp_patterns import (
     SECTION_PATTERNS, NEGATION_PATTERNS, HR_PATTERNS, BP_PATTERNS,
-    RR_PATTERNS, VALID_RANGES
+    RR_PATTERNS, SPO2_PATTERNS, VALID_RANGES
 )
 
 
@@ -193,6 +193,53 @@ def extract_respiratory_rate(text: str) -> List[Dict]:
                 continue
 
             min_val, max_val = VALID_RANGES['RR']
+            if not (min_val <= value <= max_val):
+                continue
+
+            context_start = max(0, position - 10)
+            context = text[context_start:position + 5]
+            is_flagged = '(!)' in context
+
+            results.append({
+                'value': value,
+                'confidence': confidence,
+                'position': position,
+                'is_flagged_abnormal': is_flagged,
+            })
+            seen_positions.add(position)
+
+    return results
+
+
+def extract_spo2(text: str) -> List[Dict]:
+    """
+    Extract SpO2 values from text.
+
+    Args:
+        text: Text to search for SpO2 values
+
+    Returns:
+        List of dicts with value, confidence, position, is_flagged_abnormal
+    """
+    results = []
+    seen_positions = set()
+
+    for pattern, confidence in SPO2_PATTERNS:
+        for match in re.finditer(pattern, text, re.IGNORECASE):
+            position = match.start()
+
+            if any(abs(position - p) < 10 for p in seen_positions):
+                continue
+
+            if check_negation(text, position):
+                continue
+
+            try:
+                value = float(match.group(1))
+            except (ValueError, IndexError):
+                continue
+
+            min_val, max_val = VALID_RANGES['SPO2']
             if not (min_val <= value <= max_val):
                 continue
 

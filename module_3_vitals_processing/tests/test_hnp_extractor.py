@@ -275,3 +275,69 @@ class TestExtractRespiratoryRate:
         text = "RR not measured"
         results = extract_respiratory_rate(text)
         assert len(results) == 0
+
+
+class TestExtractSpO2:
+    """Test SpO2 extraction patterns."""
+
+    def test_extracts_spo2_full_label(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_spo2
+        text = "SpO2: 98% on room air"
+        results = extract_spo2(text)
+        assert len(results) >= 1
+        assert results[0]['value'] == 98
+        assert results[0]['confidence'] == 1.0
+
+    def test_extracts_spo2_no_colon(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_spo2
+        text = "HR 72 SpO2 97 % RR 16"
+        results = extract_spo2(text)
+        assert len(results) >= 1
+        assert results[0]['value'] == 97
+
+    def test_extracts_sao2(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_spo2
+        text = "SaO2 >99% on 2L NC"
+        results = extract_spo2(text)
+        assert len(results) >= 1
+        assert results[0]['value'] == 99
+
+    def test_extracts_o2_sat(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_spo2
+        text = "O2 Sat: 95% on RA"
+        results = extract_spo2(text)
+        assert len(results) >= 1
+        assert results[0]['value'] == 95
+
+    def test_extracts_o2_saturation(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_spo2
+        text = "O2 Saturation 94%"
+        results = extract_spo2(text)
+        assert len(results) >= 1
+        assert results[0]['value'] == 94
+
+    def test_extracts_percentage_with_context(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_spo2
+        text = "satting 92% on RA"
+        results = extract_spo2(text)
+        assert len(results) >= 1
+        assert results[0]['value'] == 92
+
+    def test_extracts_abnormal_flagged(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_spo2
+        text = "SpO2 (!) 89 % on 3L"
+        results = extract_spo2(text)
+        assert len(results) >= 1
+        assert results[0]['is_flagged_abnormal'] is True
+
+    def test_rejects_invalid_range(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_spo2
+        text = "SpO2 150%"  # Invalid
+        results = extract_spo2(text)
+        assert len(results) == 0
+
+    def test_skips_negated(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import extract_spo2
+        text = "SpO2 unable to measure"
+        results = extract_spo2(text)
+        assert len(results) == 0
