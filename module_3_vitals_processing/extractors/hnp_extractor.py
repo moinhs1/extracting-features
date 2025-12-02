@@ -2,6 +2,7 @@
 import re
 from typing import Dict, List, Optional, Tuple
 from datetime import datetime, timedelta
+import pandas as pd
 
 from .hnp_patterns import (
     SECTION_PATTERNS, NEGATION_PATTERNS, HR_PATTERNS, BP_PATTERNS,
@@ -385,3 +386,141 @@ def extract_timestamp(
 
     estimated_ts = report_datetime + timedelta(hours=offset)
     return estimated_ts, 'estimated', float(offset)
+
+
+def process_hnp_row(row: pd.Series) -> List[Dict]:
+    """
+    Process a single H&P note row and extract all vitals.
+
+    Args:
+        row: DataFrame row with EMPI, Report_Number, Report_Date_Time, Report_Text
+
+    Returns:
+        List of vital sign records
+    """
+    text = row.get('Report_Text')
+    if not text or pd.isna(text):
+        return []
+
+    empi = str(row.get('EMPI', ''))
+    report_number = str(row.get('Report_Number', ''))
+
+    # Parse report datetime
+    report_dt_str = row.get('Report_Date_Time', '')
+    try:
+        report_datetime = datetime.strptime(report_dt_str, '%m/%d/%Y %I:%M:%S %p')
+    except (ValueError, TypeError):
+        try:
+            report_datetime = datetime.strptime(report_dt_str, '%m/%d/%Y %H:%M:%S')
+        except (ValueError, TypeError):
+            report_datetime = datetime.now()
+
+    results = []
+
+    # Identify sections
+    sections = identify_sections(text)
+
+    # If no sections found, use full text as 'other'
+    if not sections:
+        sections = {'other': text}
+
+    # Process each section
+    for section_name, section_text in sections.items():
+        # Get timestamp for this section
+        timestamp, ts_source, ts_offset = extract_timestamp(
+            section_text, section_name, report_datetime
+        )
+
+        # Extract each vital type
+        # Heart Rate
+        for hr in extract_heart_rate(section_text):
+            results.append({
+                'EMPI': empi,
+                'timestamp': timestamp,
+                'timestamp_source': ts_source,
+                'timestamp_offset_hours': ts_offset,
+                'vital_type': 'HR',
+                'value': hr['value'],
+                'units': 'bpm',
+                'source': 'hnp',
+                'extraction_context': section_name,
+                'confidence': hr['confidence'],
+                'is_flagged_abnormal': hr['is_flagged_abnormal'],
+                'report_number': report_number,
+                'report_date_time': report_datetime,
+            })
+
+        # Blood Pressure (creates SBP and DBP records)
+        for bp in extract_blood_pressure(section_text):
+            for vital_type, value in [('SBP', bp['sbp']), ('DBP', bp['dbp'])]:
+                results.append({
+                    'EMPI': empi,
+                    'timestamp': timestamp,
+                    'timestamp_source': ts_source,
+                    'timestamp_offset_hours': ts_offset,
+                    'vital_type': vital_type,
+                    'value': value,
+                    'units': 'mmHg',
+                    'source': 'hnp',
+                    'extraction_context': section_name,
+                    'confidence': bp['confidence'],
+                    'is_flagged_abnormal': bp['is_flagged_abnormal'],
+                    'report_number': report_number,
+                    'report_date_time': report_datetime,
+                })
+
+        # Respiratory Rate
+        for rr in extract_respiratory_rate(section_text):
+            results.append({
+                'EMPI': empi,
+                'timestamp': timestamp,
+                'timestamp_source': ts_source,
+                'timestamp_offset_hours': ts_offset,
+                'vital_type': 'RR',
+                'value': rr['value'],
+                'units': 'breaths/min',
+                'source': 'hnp',
+                'extraction_context': section_name,
+                'confidence': rr['confidence'],
+                'is_flagged_abnormal': rr['is_flagged_abnormal'],
+                'report_number': report_number,
+                'report_date_time': report_datetime,
+            })
+
+        # SpO2
+        for spo2 in extract_spo2(section_text):
+            results.append({
+                'EMPI': empi,
+                'timestamp': timestamp,
+                'timestamp_source': ts_source,
+                'timestamp_offset_hours': ts_offset,
+                'vital_type': 'SPO2',
+                'value': spo2['value'],
+                'units': '%',
+                'source': 'hnp',
+                'extraction_context': section_name,
+                'confidence': spo2['confidence'],
+                'is_flagged_abnormal': spo2['is_flagged_abnormal'],
+                'report_number': report_number,
+                'report_date_time': report_datetime,
+            })
+
+        # Temperature
+        for temp in extract_temperature(section_text):
+            results.append({
+                'EMPI': empi,
+                'timestamp': timestamp,
+                'timestamp_source': ts_source,
+                'timestamp_offset_hours': ts_offset,
+                'vital_type': 'TEMP',
+                'value': temp['value'],
+                'units': temp['units'],
+                'source': 'hnp',
+                'extraction_context': section_name,
+                'confidence': temp['confidence'],
+                'is_flagged_abnormal': temp['is_flagged_abnormal'],
+                'report_number': report_number,
+                'report_date_time': report_datetime,
+            })
+
+    return results

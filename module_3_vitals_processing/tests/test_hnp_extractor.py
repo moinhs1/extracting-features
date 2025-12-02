@@ -1,6 +1,7 @@
 """Tests for hnp_extractor module."""
 import pytest
 from datetime import datetime
+import pandas as pd
 
 
 class TestIdentifySections:
@@ -477,3 +478,74 @@ class TestExtractTimestamp:
         ts, source, offset = extract_timestamp(text, 'other', report_dt)
         assert source == 'estimated'
         assert offset == -2  # Default offset
+
+
+class TestProcessHnpRow:
+    """Test full row processing."""
+
+    def test_processes_row_with_vitals(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import process_hnp_row
+        row = pd.Series({
+            'EMPI': '12345',
+            'Report_Number': 'RPT001',
+            'Report_Date_Time': '10/23/2021 9:00:00 PM',
+            'Report_Text': 'Physical Exam: BP 120/80 HR 72 RR 16 SpO2 98% Temp 37.0 C'
+        })
+        results = process_hnp_row(row)
+        assert len(results) >= 5  # BP produces SBP+DBP, plus HR, RR, SPO2, TEMP
+
+        # Check all vitals extracted
+        vital_types = [r['vital_type'] for r in results]
+        assert 'HR' in vital_types
+        assert 'SBP' in vital_types
+        assert 'DBP' in vital_types
+        assert 'RR' in vital_types
+        assert 'SPO2' in vital_types
+        assert 'TEMP' in vital_types
+
+    def test_tags_extraction_context(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import process_hnp_row
+        row = pd.Series({
+            'EMPI': '12345',
+            'Report_Number': 'RPT001',
+            'Report_Date_Time': '10/23/2021 9:00:00 PM',
+            'Report_Text': 'ED Course: BP 100/60... Physical Exam: BP 120/80'
+        })
+        results = process_hnp_row(row)
+        contexts = [r['extraction_context'] for r in results]
+        assert 'ed_course' in contexts
+        assert 'exam' in contexts
+
+    def test_preserves_empi_and_report_number(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import process_hnp_row
+        row = pd.Series({
+            'EMPI': '99999',
+            'Report_Number': 'RPT555',
+            'Report_Date_Time': '10/23/2021 9:00:00 PM',
+            'Report_Text': 'Vitals: HR 80'
+        })
+        results = process_hnp_row(row)
+        assert all(r['EMPI'] == '99999' for r in results)
+        assert all(r['report_number'] == 'RPT555' for r in results)
+
+    def test_returns_empty_for_no_vitals(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import process_hnp_row
+        row = pd.Series({
+            'EMPI': '12345',
+            'Report_Number': 'RPT001',
+            'Report_Date_Time': '10/23/2021 9:00:00 PM',
+            'Report_Text': 'Patient presents with headache. No vitals documented.'
+        })
+        results = process_hnp_row(row)
+        assert len(results) == 0
+
+    def test_handles_missing_report_text(self):
+        from module_3_vitals_processing.extractors.hnp_extractor import process_hnp_row
+        row = pd.Series({
+            'EMPI': '12345',
+            'Report_Number': 'RPT001',
+            'Report_Date_Time': '10/23/2021 9:00:00 PM',
+            'Report_Text': None
+        })
+        results = process_hnp_row(row)
+        assert results == []
