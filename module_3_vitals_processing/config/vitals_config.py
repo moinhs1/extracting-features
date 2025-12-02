@@ -36,3 +36,14 @@ CANONICAL_VITALS = ['HR', 'SBP', 'DBP', 'RR', 'SPO2', 'TEMP', 'WEIGHT', 'HEIGHT'
 
 # Processing config
 CHUNK_SIZE = 500_000  # Rows per chunk for large file processing
+
+# Hnp.txt columns
+HNP_COLUMNS = [
+    'EMPI', 'EPIC_PMRN', 'MRN_Type', 'MRN', 'Report_Number',
+    'Report_Date_Time', 'Report_Description', 'Report_Status',
+    'Report_Type', 'Report_Text'
+]
+
+# Default output paths for Hnp extractor
+HNP_INPUT_PATH = DATA_DIR / 'Hnp.txt'
+HNP_OUTPUT_PATH = OUTPUT_DIR / 'discovery' / 'hnp_vitals_raw.parquet'
