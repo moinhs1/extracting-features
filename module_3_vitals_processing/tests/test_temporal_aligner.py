@@ -1,0 +1,50 @@
+"""Tests for temporal_aligner module."""
+import pytest
+from datetime import datetime, timedelta
+from processing.temporal_aligner import calculate_hours_from_pe
+
+
+class TestHoursFromPE:
+    """Tests for PE-relative time calculation."""
+
+    def test_exact_pe_time_is_zero(self):
+        """Timestamp at PE index time is hour 0."""
+        pe_time = datetime(2023, 6, 15, 10, 30, 0)
+        vital_time = datetime(2023, 6, 15, 10, 30, 0)
+        result = calculate_hours_from_pe(vital_time, pe_time)
+        assert result == 0.0
+
+    def test_one_hour_after_pe(self):
+        """One hour after PE is +1.0."""
+        pe_time = datetime(2023, 6, 15, 10, 0, 0)
+        vital_time = datetime(2023, 6, 15, 11, 0, 0)
+        result = calculate_hours_from_pe(vital_time, pe_time)
+        assert result == 1.0
+
+    def test_one_hour_before_pe(self):
+        """One hour before PE is -1.0."""
+        pe_time = datetime(2023, 6, 15, 10, 0, 0)
+        vital_time = datetime(2023, 6, 15, 9, 0, 0)
+        result = calculate_hours_from_pe(vital_time, pe_time)
+        assert result == -1.0
+
+    def test_30_minutes_is_half_hour(self):
+        """30 minutes is 0.5 hours."""
+        pe_time = datetime(2023, 6, 15, 10, 0, 0)
+        vital_time = datetime(2023, 6, 15, 10, 30, 0)
+        result = calculate_hours_from_pe(vital_time, pe_time)
+        assert result == 0.5
+
+    def test_24_hours_before_pe(self):
+        """24 hours before PE is -24.0."""
+        pe_time = datetime(2023, 6, 15, 10, 0, 0)
+        vital_time = datetime(2023, 6, 14, 10, 0, 0)
+        result = calculate_hours_from_pe(vital_time, pe_time)
+        assert result == -24.0
+
+    def test_720_hours_after_pe(self):
+        """30 days after PE is +720.0."""
+        pe_time = datetime(2023, 6, 15, 10, 0, 0)
+        vital_time = pe_time + timedelta(days=30)
+        result = calculate_hours_from_pe(vital_time, pe_time)
+        assert result == 720.0
