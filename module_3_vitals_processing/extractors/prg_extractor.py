@@ -2,7 +2,7 @@
 import re
 import json
 from dataclasses import dataclass, asdict
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 from pathlib import Path
 
@@ -298,6 +298,58 @@ def extract_prg_vitals_from_text(text: str) -> List[Dict]:
             'confidence': temp['confidence'],
             'is_flagged_abnormal': False,
             'temp_method': temp.get('method'),
+        })
+
+    return results
+
+
+def process_prg_row(row: pd.Series) -> List[Dict]:
+    """
+    Process a single progress note row and extract all vitals.
+
+    Args:
+        row: DataFrame row with EMPI, Report_Number, Report_Date_Time, Report_Text
+
+    Returns:
+        List of vital sign records
+    """
+    text = row.get('Report_Text')
+    if not text or pd.isna(text):
+        return []
+
+    empi = str(row.get('EMPI', ''))
+    report_number = str(row.get('Report_Number', ''))
+
+    # Parse report datetime
+    report_dt_str = row.get('Report_Date_Time', '')
+    try:
+        report_datetime = datetime.strptime(report_dt_str, '%m/%d/%Y %I:%M:%S %p')
+    except (ValueError, TypeError):
+        try:
+            report_datetime = datetime.strptime(report_dt_str, '%m/%d/%Y %H:%M:%S')
+        except (ValueError, TypeError):
+            report_datetime = datetime.now()
+
+    # Extract vitals from text
+    extracted = extract_prg_vitals_from_text(text)
+
+    results = []
+    for vital in extracted:
+        results.append({
+            'EMPI': empi,
+            'timestamp': report_datetime,
+            'timestamp_source': 'estimated',
+            'timestamp_offset_hours': 0.0,
+            'vital_type': vital['vital_type'],
+            'value': vital['value'],
+            'units': vital['units'],
+            'source': 'prg',
+            'extraction_context': 'full_text',
+            'confidence': vital['confidence'],
+            'is_flagged_abnormal': vital['is_flagged_abnormal'],
+            'report_number': report_number,
+            'report_date_time': report_datetime,
+            'temp_method': vital.get('temp_method'),
         })
 
     return results

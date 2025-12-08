@@ -255,3 +255,59 @@ class TestExtractPrgVitalsFromText:
         text = "Patient presents for follow-up. Doing well."
         results = extract_prg_vitals_from_text(text)
         assert results == []
+
+
+class TestProcessPrgRow:
+    """Test single row processing."""
+
+    def test_processes_row_with_vitals(self):
+        from module_3_vitals_processing.extractors.prg_extractor import process_prg_row
+        import pandas as pd
+        row = pd.Series({
+            'EMPI': '12345',
+            'Report_Number': 'RPT001',
+            'Report_Date_Time': '01/15/2024 10:30:00 AM',
+            'Report_Text': 'Physical Exam: BP 120/80 HR 72'
+        })
+        results = process_prg_row(row)
+        assert len(results) >= 3  # SBP, DBP, HR
+        assert all(r['EMPI'] == '12345' for r in results)
+        assert all(r['source'] == 'prg' for r in results)
+
+    def test_processes_row_without_vitals(self):
+        from module_3_vitals_processing.extractors.prg_extractor import process_prg_row
+        import pandas as pd
+        row = pd.Series({
+            'EMPI': '12345',
+            'Report_Number': 'RPT001',
+            'Report_Date_Time': '01/15/2024 10:30:00 AM',
+            'Report_Text': 'Patient doing well. Follow up in 3 months.'
+        })
+        results = process_prg_row(row)
+        assert results == []
+
+    def test_handles_empty_report_text(self):
+        from module_3_vitals_processing.extractors.prg_extractor import process_prg_row
+        import pandas as pd
+        row = pd.Series({
+            'EMPI': '12345',
+            'Report_Number': 'RPT001',
+            'Report_Date_Time': '01/15/2024 10:30:00 AM',
+            'Report_Text': None
+        })
+        results = process_prg_row(row)
+        assert results == []
+
+    def test_includes_temp_method_in_results(self):
+        from module_3_vitals_processing.extractors.prg_extractor import process_prg_row
+        import pandas as pd
+        row = pd.Series({
+            'EMPI': '12345',
+            'Report_Number': 'RPT001',
+            'Report_Date_Time': '01/15/2024 10:30:00 AM',
+            'Report_Text': 'Vitals: Temp 36.8 °C (98.2 °F) (Oral)'
+        })
+        results = process_prg_row(row)
+        temp_results = [r for r in results if r['vital_type'] == 'TEMP']
+        assert len(temp_results) >= 1
+        assert temp_results[0]['temp_method'] == 'oral'
