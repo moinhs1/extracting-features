@@ -167,3 +167,67 @@ class TestCreateFullGrid:
         hr_1 = result[(result["hour_from_pe"] == 1) &
                       (result["vital_type"] == "HR")].iloc[0]
         assert hr_1["mask"] == 0
+
+
+class TestImputation:
+    """Tests for three-tier imputation."""
+
+    def test_forward_fill_within_limit(self):
+        """Forward-fill works within vital-specific limit."""
+        from processing.layer2_builder import apply_imputation
+
+        # HR with 6-hour limit: hours 0-5 should fill from hour 0
+        df = pd.DataFrame({
+            "EMPI": ["E001"] * 10,
+            "hour_from_pe": list(range(10)),
+            "vital_type": ["HR"] * 10,
+            "mean": [72.0] + [np.nan] * 9,
+            "mask": [1] + [0] * 9,
+        })
+
+        result = apply_imputation(df)
+
+        # Hours 1-6 should be forward-filled (tier 2)
+        for h in range(1, 7):
+            row = result[(result["hour_from_pe"] == h)].iloc[0]
+            assert row["mean"] == 72.0
+            assert row["imputation_tier"] == 2
+
+    def test_forward_fill_respects_limit(self):
+        """Forward-fill stops at vital-specific limit."""
+        from processing.layer2_builder import apply_imputation
+
+        # HR with 6-hour limit: hour 7+ should NOT forward-fill
+        df = pd.DataFrame({
+            "EMPI": ["E001"] * 10,
+            "hour_from_pe": list(range(10)),
+            "vital_type": ["HR"] * 10,
+            "mean": [72.0] + [np.nan] * 9,
+            "mask": [1] + [0] * 9,
+        })
+
+        result = apply_imputation(df)
+
+        # Hours 7+ should use patient mean (tier 3), not forward-fill
+        row_7 = result[(result["hour_from_pe"] == 7)].iloc[0]
+        assert row_7["imputation_tier"] == 3
+
+    def test_patient_mean_imputation(self):
+        """Patient mean used when forward-fill exhausted."""
+        from processing.layer2_builder import apply_imputation
+
+        # Patient has observations at hour 0 and 100
+        df = pd.DataFrame({
+            "EMPI": ["E001"] * 10,
+            "hour_from_pe": [0, 1, 2, 3, 4, 5, 6, 7, 8, 100],
+            "vital_type": ["HR"] * 10,
+            "mean": [70.0] + [np.nan] * 8 + [80.0],
+            "mask": [1] + [0] * 8 + [1],
+        })
+
+        result = apply_imputation(df)
+
+        # Hour 8 should use patient mean of 75.0
+        row_8 = result[(result["hour_from_pe"] == 8)].iloc[0]
+        assert row_8["mean"] == 75.0  # (70 + 80) / 2
+        assert row_8["imputation_tier"] == 3
