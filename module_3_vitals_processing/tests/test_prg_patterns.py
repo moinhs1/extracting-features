@@ -71,3 +71,70 @@ class TestPrgSkipPatterns:
         text = "Reactions: hives, swelling"
         matched = any(re.search(p, text, re.IGNORECASE) for p in PRG_SKIP_PATTERNS)
         assert matched
+
+
+class TestPrgVitalsPatterns:
+    """Test Prg-specific vitals patterns."""
+
+    def test_bp_patterns_exist(self):
+        from module_3_vitals_processing.extractors.prg_patterns import PRG_BP_PATTERNS
+        assert isinstance(PRG_BP_PATTERNS, list)
+        assert len(PRG_BP_PATTERNS) >= 2
+
+    def test_bp_spelled_out_matches(self):
+        from module_3_vitals_processing.extractors.prg_patterns import PRG_BP_PATTERNS
+        text = "Blood pressure 130/85"
+        for pattern, _ in PRG_BP_PATTERNS:
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match:
+                assert match.group(1) == '130'
+                assert match.group(2) == '85'
+                break
+        else:
+            pytest.fail("No BP pattern matched 'Blood pressure 130/85'")
+
+    def test_hr_patterns_exist(self):
+        from module_3_vitals_processing.extractors.prg_patterns import PRG_HR_PATTERNS
+        assert isinstance(PRG_HR_PATTERNS, list)
+        assert len(PRG_HR_PATTERNS) >= 2
+
+    def test_hr_p_format_matches(self):
+        from module_3_vitals_processing.extractors.prg_patterns import PRG_HR_PATTERNS
+        text = "BP 120/80, P 72"
+        for pattern, _ in PRG_HR_PATTERNS:
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match:
+                assert match.group(1) == '72'
+                break
+        else:
+            pytest.fail("No HR pattern matched 'P 72'")
+
+    def test_spo2_patterns_exist(self):
+        from module_3_vitals_processing.extractors.prg_patterns import PRG_SPO2_PATTERNS
+        assert isinstance(PRG_SPO2_PATTERNS, list)
+
+    def test_spo2_o2_sat_matches(self):
+        from module_3_vitals_processing.extractors.prg_patterns import PRG_SPO2_PATTERNS
+        text = "O2 sat 97"
+        for pattern, _ in PRG_SPO2_PATTERNS:
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match:
+                assert match.group(1) == '97'
+                break
+        else:
+            pytest.fail("No SpO2 pattern matched 'O2 sat 97'")
+
+    def test_rr_patterns_exist(self):
+        from module_3_vitals_processing.extractors.prg_patterns import PRG_RR_PATTERNS
+        assert isinstance(PRG_RR_PATTERNS, list)
+
+    def test_rr_resp_format_matches(self):
+        from module_3_vitals_processing.extractors.prg_patterns import PRG_RR_PATTERNS
+        text = "Resp: 18"
+        for pattern, _ in PRG_RR_PATTERNS:
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match:
+                assert match.group(1) == '18'
+                break
+        else:
+            pytest.fail("No RR pattern matched 'Resp: 18'")

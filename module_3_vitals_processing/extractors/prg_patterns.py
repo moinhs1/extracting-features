@@ -53,3 +53,35 @@ PRG_SKIP_PATTERNS = [
     r'Review\s+of\s+Systems[:\s]',
     r'ROS[:\s]',
 ]
+
+# Prg-specific Blood Pressure patterns (extend Hnp)
+PRG_BP_PATTERNS = [
+    # Spelled out format
+    (r'Blood\s+pressure\s+(\d{2,3})/(\d{2,3})', 0.95),
+    # With ranges in parentheses
+    (r'BP:\s*\(\d+-\d+\)/\(\d+-\d+\)\s*(\d{2,3})/(\d{2,3})', 0.9),
+]
+
+# Prg-specific Heart Rate patterns (extend Hnp)
+PRG_HR_PATTERNS = [
+    # P format common in Prg (with word boundary to avoid matching in words)
+    (r'\bP\s+(\d{2,3})\b', 0.85),
+    # With abnormal flag
+    (r'Pulse\s*\(!\)\s*(\d{2,3})', 0.9),
+    # With ranges
+    (r'Heart\s+Rate:\s*\[\d+-\d+\]\s*(\d{2,3})', 0.95),
+]
+
+# Prg-specific SpO2 patterns (extend Hnp)
+PRG_SPO2_PATTERNS = [
+    # O2 sat alternate notation
+    (r'O2\s*sat\s*(\d{2,3})', 0.85),
+    # With space before %
+    (r'SpO2\s*:?\s*(\d{2,3})\s*%', 0.95),
+]
+
+# Prg-specific Respiratory Rate patterns (extend Hnp)
+PRG_RR_PATTERNS = [
+    # Resp format
+    (r'Resp[:\s]+(\d{1,2})\b', 0.9),
+]
