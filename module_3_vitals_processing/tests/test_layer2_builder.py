@@ -231,3 +231,83 @@ class TestImputation:
         row_8 = result[(result["hour_from_pe"] == 8)].iloc[0]
         assert row_8["mean"] == 75.0  # (70 + 80) / 2
         assert row_8["imputation_tier"] == 3
+
+
+class TestHDF5TensorGeneration:
+    """Tests for HDF5 tensor generation."""
+
+    def test_create_tensors_correct_shape(self, tmp_path):
+        """Tensors have correct shape (n_patients, 745, 7)."""
+        from processing.layer2_builder import create_hdf5_tensors
+        import h5py
+
+        # Create minimal grid data
+        grid = pd.DataFrame({
+            "EMPI": ["E001"] * (745 * 7),
+            "hour_from_pe": sorted(HOUR_RANGE * 7),
+            "vital_type": VITAL_ORDER * 745,
+            "mean": [72.0] * (745 * 7),
+            "mask": [1] * (745 * 7),
+            "imputation_tier": [1] * (745 * 7),
+        })
+
+        output_path = tmp_path / "test_tensors.h5"
+        create_hdf5_tensors(grid, output_path)
+
+        with h5py.File(output_path, "r") as f:
+            assert f["values"].shape == (1, 745, 7)
+            assert f["masks"].shape == (1, 745, 7)
+            assert f["imputation_tier"].shape == (1, 745, 7)
+
+    def test_create_tensors_patient_index(self, tmp_path):
+        """Patient index maps EMPIs correctly."""
+        from processing.layer2_builder import create_hdf5_tensors
+        import h5py
+
+        # Two patients
+        grid_e1 = pd.DataFrame({
+            "EMPI": ["E001"] * (745 * 7),
+            "hour_from_pe": sorted(HOUR_RANGE * 7),
+            "vital_type": VITAL_ORDER * 745,
+            "mean": [72.0] * (745 * 7),
+            "mask": [1] * (745 * 7),
+            "imputation_tier": [1] * (745 * 7),
+        })
+        grid_e2 = pd.DataFrame({
+            "EMPI": ["E002"] * (745 * 7),
+            "hour_from_pe": sorted(HOUR_RANGE * 7),
+            "vital_type": VITAL_ORDER * 745,
+            "mean": [80.0] * (745 * 7),
+            "mask": [1] * (745 * 7),
+            "imputation_tier": [1] * (745 * 7),
+        })
+        grid = pd.concat([grid_e1, grid_e2], ignore_index=True)
+
+        output_path = tmp_path / "test_tensors.h5"
+        create_hdf5_tensors(grid, output_path)
+
+        with h5py.File(output_path, "r") as f:
+            patient_index = [p.decode() for p in f["patient_index"][:]]
+            assert patient_index == ["E001", "E002"]
+            assert f["values"].shape[0] == 2
+
+    def test_create_tensors_vital_index(self, tmp_path):
+        """Vital index has correct order."""
+        from processing.layer2_builder import create_hdf5_tensors
+        import h5py
+
+        grid = pd.DataFrame({
+            "EMPI": ["E001"] * (745 * 7),
+            "hour_from_pe": sorted(HOUR_RANGE * 7),
+            "vital_type": VITAL_ORDER * 745,
+            "mean": [72.0] * (745 * 7),
+            "mask": [1] * (745 * 7),
+            "imputation_tier": [1] * (745 * 7),
+        })
+
+        output_path = tmp_path / "test_tensors.h5"
+        create_hdf5_tensors(grid, output_path)
+
+        with h5py.File(output_path, "r") as f:
+            vital_index = [v.decode() for v in f["vital_index"][:]]
+            assert vital_index == VITAL_ORDER
