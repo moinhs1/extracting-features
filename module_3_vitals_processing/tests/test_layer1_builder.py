@@ -158,3 +158,52 @@ class TestNormalizeHnpPrg:
 
         result = normalize_prg_source(prg_df)
         assert result["confidence"].iloc[0] == 0.9
+
+
+class TestMAPCalculation:
+    """Tests for Mean Arterial Pressure calculation."""
+
+    def test_calculate_map_formula(self):
+        """MAP = DBP + (SBP - DBP) / 3."""
+        from processing.layer1_builder import calculate_map
+        # Standard BP 120/80
+        result = calculate_map(120, 80)
+        expected = 80 + (120 - 80) / 3  # 93.33
+        assert abs(result - expected) < 0.01
+
+    def test_calculate_map_normal_values(self):
+        """Normal MAP is around 70-105."""
+        from processing.layer1_builder import calculate_map
+        result = calculate_map(120, 80)
+        assert 70 <= result <= 105
+
+    def test_generate_calculated_maps(self):
+        """Generate MAP rows from SBP/DBP pairs at same timestamp."""
+        from processing.layer1_builder import generate_calculated_maps
+
+        df = pd.DataFrame({
+            "EMPI": ["E001", "E001", "E001", "E002"],
+            "timestamp": pd.to_datetime([
+                "2023-06-15 10:00", "2023-06-15 10:00",  # Same time - pair
+                "2023-06-15 11:00",  # SBP only - no pair
+                "2023-06-15 10:00",  # Different patient
+            ]),
+            "vital_type": ["SBP", "DBP", "SBP", "SBP"],
+            "value": [120.0, 80.0, 130.0, 140.0],
+            "units": ["mmHg", "mmHg", "mmHg", "mmHg"],
+            "source": ["phy", "phy", "phy", "phy"],
+            "source_detail": ["IP", "IP", "IP", "IP"],
+            "confidence": [1.0, 1.0, 1.0, 1.0],
+            "is_calculated": [False, False, False, False],
+            "is_flagged_abnormal": [False, False, False, False],
+            "report_number": ["", "", "", ""],
+            "hours_from_pe": [0.0, 0.0, 1.0, 0.0],
+        })
+
+        maps = generate_calculated_maps(df)
+
+        # Should generate 1 MAP (E001 at 10:00)
+        assert len(maps) == 1
+        assert maps["vital_type"].iloc[0] == "MAP"
+        assert maps["is_calculated"].iloc[0] == True
+        assert abs(maps["value"].iloc[0] - 93.33) < 0.1
