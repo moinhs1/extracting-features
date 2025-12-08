@@ -32,3 +32,42 @@ class TestPrgSectionPatterns:
         from module_3_vitals_processing.extractors.prg_patterns import PRG_SECTION_PATTERNS
         pattern, _ = PRG_SECTION_PATTERNS['objective']
         assert re.search(pattern, "Objective: Physical Exam", re.IGNORECASE)
+
+
+class TestPrgSkipPatterns:
+    """Test Prg skip section patterns."""
+
+    def test_skip_patterns_exist(self):
+        from module_3_vitals_processing.extractors.prg_patterns import PRG_SKIP_PATTERNS
+        assert isinstance(PRG_SKIP_PATTERNS, list)
+        assert len(PRG_SKIP_PATTERNS) >= 10
+
+    def test_allergies_pattern_matches(self):
+        from module_3_vitals_processing.extractors.prg_patterns import PRG_SKIP_PATTERNS
+        text = "Allergies: atenolol - fatigue, HR 50"
+        matched = any(re.search(p, text, re.IGNORECASE) for p in PRG_SKIP_PATTERNS)
+        assert matched
+
+    def test_medications_pattern_matches(self):
+        from module_3_vitals_processing.extractors.prg_patterns import PRG_SKIP_PATTERNS
+        text = "Medications: lisinopril 10mg daily"
+        matched = any(re.search(p, text, re.IGNORECASE) for p in PRG_SKIP_PATTERNS)
+        assert matched
+
+    def test_past_medical_history_matches(self):
+        from module_3_vitals_processing.extractors.prg_patterns import PRG_SKIP_PATTERNS
+        text = "Past Medical History: hypertension, diabetes"
+        matched = any(re.search(p, text, re.IGNORECASE) for p in PRG_SKIP_PATTERNS)
+        assert matched
+
+    def test_family_history_matches(self):
+        from module_3_vitals_processing.extractors.prg_patterns import PRG_SKIP_PATTERNS
+        text = "Family History: father with MI"
+        matched = any(re.search(p, text, re.IGNORECASE) for p in PRG_SKIP_PATTERNS)
+        assert matched
+
+    def test_reactions_pattern_matches(self):
+        from module_3_vitals_processing.extractors.prg_patterns import PRG_SKIP_PATTERNS
+        text = "Reactions: hives, swelling"
+        matched = any(re.search(p, text, re.IGNORECASE) for p in PRG_SKIP_PATTERNS)
+        assert matched

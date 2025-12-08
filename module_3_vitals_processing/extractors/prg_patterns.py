@@ -29,3 +29,27 @@ PRG_SECTION_PATTERNS = {
     # SOAP format
     'assessment_plan': (r'Assessment\s*(?:&|and|/)?\s*Plan[:\s]', 0),
 }
+
+# Skip sections (false positive sources)
+# HR/BP values in these sections are NOT vital measurements
+PRG_SKIP_PATTERNS = [
+    # Allergies/Reactions (HR values as side effects)
+    r'Allerg(?:ies|ic|en)[:\s]',
+    r'[Rr]eaction\(?s?\)?[:\s]',
+
+    # Medication lists
+    r'Medications?[:\s]',
+    r'(?:Outpatient\s+)?Prescriptions?[:\s]',
+    r'Scheduled\s+Meds[:\s]',
+
+    # History sections (historical mentions)
+    r'Past\s+(?:Medical\s+)?History[:\s]',
+    r'Family\s+History[:\s]',
+    r'(?:History\s+of\s+)?Present\s+Illness[:\s]',
+    r'Social\s+History[:\s]',
+    r'Surgical\s+History[:\s]',
+
+    # Other non-vitals
+    r'Review\s+of\s+Systems[:\s]',
+    r'ROS[:\s]',
+]
