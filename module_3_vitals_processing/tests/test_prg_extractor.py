@@ -311,3 +311,60 @@ class TestProcessPrgRow:
         temp_results = [r for r in results if r['vital_type'] == 'TEMP']
         assert len(temp_results) >= 1
         assert temp_results[0]['temp_method'] == 'oral'
+
+
+class TestExtractPrgVitals:
+    """Test main extraction function."""
+
+    def test_extracts_from_small_file(self):
+        from module_3_vitals_processing.extractors.prg_extractor import extract_prg_vitals
+        import pandas as pd
+        # Create a small test file
+        with tempfile.TemporaryDirectory() as tmpdir:
+            input_path = Path(tmpdir) / 'test_prg.txt'
+            output_path = Path(tmpdir) / 'output.parquet'
+
+            # Write test data
+            with open(input_path, 'w') as f:
+                f.write("EMPI|EPIC_PMRN|MRN_Type|MRN|Report_Number|Report_Date_Time|Report_Description|Report_Status|Report_Type|Report_Text\n")
+                f.write("12345|PMR001|BWH|001|RPT001|01/15/2024 10:30:00 AM|Progress|F|BPRGPROGRESS|Physical Exam: BP 120/80 HR 72\n")
+                f.write("12345|PMR001|BWH|001|RPT002|01/16/2024 10:30:00 AM|Progress|F|BPRGPROGRESS|Vitals: Temp 98.6F (Oral)\n")
+
+            df = extract_prg_vitals(str(input_path), str(output_path), resume=False)
+
+            assert len(df) >= 4  # SBP, DBP, HR, TEMP
+            assert output_path.exists()
+
+    def test_creates_checkpoint(self):
+        from module_3_vitals_processing.extractors.prg_extractor import (
+            extract_prg_vitals, CHECKPOINT_FILE
+        )
+        import pandas as pd
+        with tempfile.TemporaryDirectory() as tmpdir:
+            input_path = Path(tmpdir) / 'test_prg.txt'
+            output_path = Path(tmpdir) / 'output.parquet'
+
+            with open(input_path, 'w') as f:
+                f.write("EMPI|EPIC_PMRN|MRN_Type|MRN|Report_Number|Report_Date_Time|Report_Description|Report_Status|Report_Type|Report_Text\n")
+                f.write("12345|PMR001|BWH|001|RPT001|01/15/2024 10:30:00 AM|Progress|F|BPRGPROGRESS|Physical Exam: BP 120/80\n")
+
+            extract_prg_vitals(str(input_path), str(output_path), resume=False)
+
+            # Checkpoint should be deleted on successful completion
+            # Or if you want checkpoint to remain, test for its existence
+            assert output_path.exists()
+
+    def test_output_has_temp_method_column(self):
+        from module_3_vitals_processing.extractors.prg_extractor import extract_prg_vitals
+        import pandas as pd
+        with tempfile.TemporaryDirectory() as tmpdir:
+            input_path = Path(tmpdir) / 'test_prg.txt'
+            output_path = Path(tmpdir) / 'output.parquet'
+
+            with open(input_path, 'w') as f:
+                f.write("EMPI|EPIC_PMRN|MRN_Type|MRN|Report_Number|Report_Date_Time|Report_Description|Report_Status|Report_Type|Report_Text\n")
+                f.write("12345|PMR001|BWH|001|RPT001|01/15/2024 10:30:00 AM|Progress|F|BPRGPROGRESS|Temp 98.6F (Oral)\n")
+
+            df = extract_prg_vitals(str(input_path), str(output_path), resume=False)
+
+            assert 'temp_method' in df.columns

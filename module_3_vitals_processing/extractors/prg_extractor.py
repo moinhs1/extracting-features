@@ -353,3 +353,129 @@ def process_prg_row(row: pd.Series) -> List[Dict]:
         })
 
     return results
+
+
+from multiprocessing import Pool, cpu_count
+from .prg_patterns import PRG_COLUMNS
+
+
+def _process_chunk(chunk: pd.DataFrame) -> List[Dict]:
+    """Process a chunk of rows (for multiprocessing)."""
+    results = []
+    for _, row in chunk.iterrows():
+        results.extend(process_prg_row(row))
+    return results
+
+
+def extract_prg_vitals(
+    input_path: str,
+    output_path: str,
+    n_workers: Optional[int] = None,
+    chunk_size: int = 10000,
+    resume: bool = True
+) -> pd.DataFrame:
+    """
+    Extract vital signs from Prg.txt file with parallel processing and checkpointing.
+
+    Args:
+        input_path: Path to Prg.txt file
+        output_path: Path for output parquet file
+        n_workers: Number of parallel workers (default: CPU count)
+        chunk_size: Rows per chunk for processing
+        resume: Whether to resume from checkpoint if available
+
+    Returns:
+        DataFrame with extracted vitals (also saved to parquet)
+    """
+    if n_workers is None:
+        n_workers = cpu_count()
+
+    output_dir = Path(output_path).parent
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # Check for existing checkpoint
+    checkpoint = load_checkpoint(output_dir) if resume else None
+    skip_rows = checkpoint.rows_processed if checkpoint else 0
+
+    if checkpoint:
+        print(f"Resuming from row {skip_rows}, chunk {checkpoint.chunks_completed}")
+        all_results_count = checkpoint.records_extracted
+        chunks_completed = checkpoint.chunks_completed
+        started_at = checkpoint.started_at
+    else:
+        all_results_count = 0
+        chunks_completed = 0
+        started_at = datetime.now()
+
+    all_results = []
+
+    # Read and process in chunks
+    for chunk in pd.read_csv(
+        input_path,
+        sep='|',
+        names=PRG_COLUMNS,
+        header=0,
+        chunksize=chunk_size,
+        dtype=str,
+        on_bad_lines='skip',
+        skiprows=range(1, skip_rows + 1) if skip_rows > 0 else None
+    ):
+        chunks_completed += 1
+
+        if n_workers > 1:
+            # Split chunk for parallel processing
+            chunk_splits = [
+                chunk.iloc[i:i + max(1, chunk_size // n_workers)]
+                for i in range(0, len(chunk), max(1, chunk_size // n_workers))
+            ]
+
+            with Pool(n_workers) as pool:
+                chunk_results = pool.map(_process_chunk, chunk_splits)
+
+            for result_list in chunk_results:
+                all_results.extend(result_list)
+        else:
+            all_results.extend(_process_chunk(chunk))
+
+        all_results_count = len(all_results)
+        rows_processed = skip_rows + (chunks_completed * chunk_size)
+
+        # Save checkpoint periodically
+        if chunks_completed % CHECKPOINT_INTERVAL == 0:
+            checkpoint = ExtractionCheckpoint(
+                input_path=input_path,
+                output_path=output_path,
+                rows_processed=rows_processed,
+                chunks_completed=chunks_completed,
+                records_extracted=all_results_count,
+                started_at=started_at,
+                updated_at=datetime.now(),
+            )
+            save_checkpoint(checkpoint, output_dir)
+            print(f"Checkpoint saved at chunk {chunks_completed}, {all_results_count} records")
+
+        print(f"Processed chunk {chunks_completed}, total records: {all_results_count}")
+
+    # Create DataFrame
+    if all_results:
+        df = pd.DataFrame(all_results)
+    else:
+        df = pd.DataFrame(columns=[
+            'EMPI', 'timestamp', 'timestamp_source', 'timestamp_offset_hours',
+            'vital_type', 'value', 'units', 'source', 'extraction_context',
+            'confidence', 'is_flagged_abnormal', 'report_number', 'report_date_time',
+            'temp_method'
+        ])
+
+    # Save to parquet
+    df.to_parquet(output_path, index=False)
+
+    # Remove checkpoint on successful completion
+    checkpoint_path = output_dir / CHECKPOINT_FILE
+    if checkpoint_path.exists():
+        checkpoint_path.unlink()
+
+    print(f"Extraction complete. Total records: {len(df)}")
+    print(f"Output saved to: {output_path}")
+
+    return df
