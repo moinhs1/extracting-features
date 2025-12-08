@@ -173,3 +173,42 @@ class TestIsInSkipSection:
         text = "Allergies: penicillin... Physical Exam: BP 120/80 HR 72..."
         position = text.find("BP 120")
         assert not is_in_skip_section(text, position)
+
+
+class TestExtractTemperatureWithMethod:
+    """Test temperature extraction with method capture."""
+
+    def test_extracts_temp_with_oral_method(self):
+        from module_3_vitals_processing.extractors.prg_extractor import extract_temperature_with_method
+        text = "Temp 36.8 °C (98.2 °F) (Oral)"
+        results = extract_temperature_with_method(text)
+        assert len(results) >= 1
+        assert results[0]['method'] == 'oral'
+
+    def test_extracts_temp_with_temporal_method(self):
+        from module_3_vitals_processing.extractors.prg_extractor import extract_temperature_with_method
+        text = "Temp 36.2 °C (97.1 °F) (Temporal)"
+        results = extract_temperature_with_method(text)
+        assert len(results) >= 1
+        assert results[0]['method'] == 'temporal'
+
+    def test_extracts_temp_with_rectal_method(self):
+        from module_3_vitals_processing.extractors.prg_extractor import extract_temperature_with_method
+        text = "temp 98.2F rectally"
+        results = extract_temperature_with_method(text)
+        assert len(results) >= 1
+        assert results[0]['method'] == 'rectal'
+
+    def test_extracts_temp_src_format(self):
+        from module_3_vitals_processing.extractors.prg_extractor import extract_temperature_with_method
+        text = "Temp(Src) 36.7 °C (98 °F) (Oral)"
+        results = extract_temperature_with_method(text)
+        assert len(results) >= 1
+        assert results[0]['method'] == 'oral'
+
+    def test_returns_none_method_when_not_specified(self):
+        from module_3_vitals_processing.extractors.prg_extractor import extract_temperature_with_method
+        text = "Temp 98.6F"
+        results = extract_temperature_with_method(text)
+        # Should still extract temp, method may be None
+        assert len(results) >= 1

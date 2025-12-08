@@ -57,7 +57,8 @@ def load_checkpoint(output_dir: Path) -> Optional[ExtractionCheckpoint]:
     return None
 
 
-from .prg_patterns import PRG_SECTION_PATTERNS, PRG_SKIP_PATTERNS
+from .prg_patterns import PRG_SECTION_PATTERNS, PRG_SKIP_PATTERNS, PRG_TEMP_PATTERNS, TEMP_METHOD_MAP
+from .hnp_patterns import TEMP_PATTERNS, VALID_RANGES
 
 
 def identify_prg_sections(text: str, window_size: int = 500) -> Dict[str, str]:
@@ -118,3 +119,97 @@ def is_in_skip_section(text: str, position: int, lookback: int = 500) -> bool:
 
     # Still in skip section
     return True
+
+
+def extract_temperature_with_method(text: str) -> List[Dict]:
+    """
+    Extract temperature values with measurement method from text.
+
+    Args:
+        text: Text to search for temperature values
+
+    Returns:
+        List of dicts with value, units, method, confidence, position
+    """
+    results = []
+    seen_positions = set()
+
+    # First try Prg-specific patterns (with method capture)
+    for pattern, confidence in PRG_TEMP_PATTERNS:
+        for match in re.finditer(pattern, text, re.IGNORECASE):
+            position = match.start()
+
+            if any(abs(position - p) < 10 for p in seen_positions):
+                continue
+
+            try:
+                value = float(match.group(1))
+                units = match.group(2).upper() if match.lastindex >= 2 else None
+                raw_method = match.group(3).lower() if match.lastindex >= 3 else None
+            except (ValueError, IndexError, AttributeError):
+                continue
+
+            # Map raw method to canonical
+            method = TEMP_METHOD_MAP.get(raw_method) if raw_method else None
+
+            # Auto-detect unit from value if not captured
+            if units is None:
+                units = 'F' if value > 50 else 'C'
+
+            # Validate range
+            range_key = 'TEMP_C' if units == 'C' else 'TEMP_F'
+            min_val, max_val = VALID_RANGES[range_key]
+            if not (min_val <= value <= max_val):
+                continue
+
+            results.append({
+                'value': value,
+                'units': units,
+                'method': method,
+                'confidence': confidence,
+                'position': position,
+            })
+            seen_positions.add(position)
+
+    # Fall back to base Hnp patterns if no Prg patterns matched
+    if not results:
+        for pattern, confidence in TEMP_PATTERNS:
+            for match in re.finditer(pattern, text, re.IGNORECASE):
+                position = match.start()
+
+                if any(abs(position - p) < 10 for p in seen_positions):
+                    continue
+
+                try:
+                    value = float(match.group(1))
+                    units = match.group(2).upper() if match.lastindex >= 2 and match.group(2) else None
+                except (ValueError, IndexError):
+                    continue
+
+                if units is None:
+                    units = 'F' if value > 50 else 'C'
+
+                range_key = 'TEMP_C' if units == 'C' else 'TEMP_F'
+                min_val, max_val = VALID_RANGES[range_key]
+                if not (min_val <= value <= max_val):
+                    continue
+
+                # Check for method in surrounding context
+                context_end = min(position + 50, len(text))
+                context = text[position:context_end].lower()
+                method = None
+                for method_str, canonical in TEMP_METHOD_MAP.items():
+                    if method_str in context:
+                        method = canonical
+                        break
+
+                results.append({
+                    'value': value,
+                    'units': units,
+                    'method': method,
+                    'confidence': confidence,
+                    'position': position,
+                })
+                seen_positions.add(position)
+
+    return results
