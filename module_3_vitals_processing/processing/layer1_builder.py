@@ -5,6 +5,8 @@ from datetime import datetime
 import pickle
 import pandas as pd
 from processing.temporal_aligner import calculate_hours_from_pe
+from processing.qc_filters import is_physiologically_valid, is_abnormal
+from processing.temporal_aligner import is_within_window
 
 # Core vital signs for Layer 1-5 processing
 CORE_VITALS = ["HR", "SBP", "DBP", "MAP", "RR", "SPO2", "TEMP"]
@@ -231,3 +233,88 @@ def add_pe_relative_timestamps(
     )
 
     return result.drop(columns=["pe_time"])
+
+
+def build_layer1(
+    phy_path: Path,
+    hnp_path: Path,
+    prg_path: Path,
+    timeline_path: Path,
+    output_path: Path,
+) -> pd.DataFrame:
+    """Build Layer 1 canonical vitals from all extraction sources.
+
+    Args:
+        phy_path: Path to phy_vitals_raw.parquet
+        hnp_path: Path to hnp_vitals_raw.parquet
+        prg_path: Path to prg_vitals_raw.parquet
+        timeline_path: Path to patient_timelines.pkl
+        output_path: Path to write canonical_vitals.parquet
+
+    Returns:
+        Combined DataFrame with Layer 1 schema
+    """
+    # Load PE times
+    pe_times = load_pe_times(timeline_path)
+
+    # Load and normalize each source
+    dfs = []
+
+    if phy_path.exists():
+        phy_df = pd.read_parquet(phy_path)
+        phy_norm = normalize_phy_source(phy_df)
+        dfs.append(phy_norm)
+
+    if hnp_path.exists():
+        hnp_df = pd.read_parquet(hnp_path)
+        hnp_norm = normalize_hnp_source(hnp_df)
+        dfs.append(hnp_norm)
+
+    if prg_path.exists():
+        prg_df = pd.read_parquet(prg_path)
+        prg_norm = normalize_prg_source(prg_df)
+        dfs.append(prg_norm)
+
+    if not dfs:
+        raise ValueError("No input files found")
+
+    # Combine all sources
+    combined = pd.concat(dfs, ignore_index=True)
+
+    # Add PE-relative timestamps
+    combined = add_pe_relative_timestamps(combined, pe_times)
+
+    # Filter to analysis window
+    combined = combined[
+        combined["hours_from_pe"].apply(is_within_window)
+    ]
+
+    # Filter to core vitals only
+    combined = combined[combined["vital_type"].isin(CORE_VITALS)]
+
+    # Apply physiological range validation
+    valid_mask = combined.apply(
+        lambda r: is_physiologically_valid(r["vital_type"], r["value"]),
+        axis=1
+    )
+    combined = combined[valid_mask]
+
+    # Update abnormal flags
+    combined["is_flagged_abnormal"] = combined.apply(
+        lambda r: is_abnormal(r["vital_type"], r["value"]),
+        axis=1
+    )
+
+    # Generate calculated MAPs
+    maps = generate_calculated_maps(combined)
+    if not maps.empty:
+        combined = pd.concat([combined, maps], ignore_index=True)
+
+    # Sort by patient and time
+    combined = combined.sort_values(["EMPI", "timestamp"]).reset_index(drop=True)
+
+    # Write output
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    combined.to_parquet(output_path, index=False)
+
+    return combined

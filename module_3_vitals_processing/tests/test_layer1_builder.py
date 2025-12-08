@@ -2,6 +2,22 @@
 import pytest
 import pandas as pd
 from processing.layer1_builder import LAYER1_SCHEMA, CORE_VITALS
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Dict
+
+
+@dataclass
+class MockTimeline:
+    """Mock PatientTimeline for testing."""
+    patient_id: str
+    time_zero: datetime
+    window_start: datetime
+    window_end: datetime
+    phase_boundaries: Dict
+    encounter_info: Dict
+    outcomes: Dict
+    metadata: Dict
 
 
 class TestLayer1Schema:
@@ -309,3 +325,104 @@ class TestAddPERelativeTimestamps:
 
         assert len(result) == 1
         assert "E999" not in result["EMPI"].values
+
+
+class TestBuildLayer1:
+    """Tests for main Layer 1 build function."""
+
+    def test_build_layer1_integration(self, tmp_path):
+        """Integration test for build_layer1 function."""
+        from processing.layer1_builder import build_layer1
+        import pickle
+
+        # Create mock input parquet files
+        phy_df = pd.DataFrame({
+            "EMPI": ["E001"],
+            "timestamp": pd.to_datetime(["2023-06-15 11:00"]),
+            "vital_type": ["HR"],
+            "value": [72.0],
+            "units": ["bpm"],
+            "source": ["phy"],
+            "encounter_type": ["IP"],
+            "encounter_number": ["ENC001"],
+        })
+        phy_path = tmp_path / "phy_vitals_raw.parquet"
+        phy_df.to_parquet(phy_path)
+
+        hnp_df = pd.DataFrame({
+            "EMPI": ["E001"],
+            "timestamp": pd.to_datetime(["2023-06-15 10:30"]),
+            "vital_type": ["SBP"],
+            "value": [120.0],
+            "units": ["mmHg"],
+            "source": ["hnp"],
+            "extraction_context": ["vital_signs"],
+            "confidence": [0.9],
+            "is_flagged_abnormal": [False],
+            "report_number": ["R001"],
+            "report_date_time": pd.to_datetime(["2023-06-15 09:00"]),
+            "timestamp_source": ["report"],
+            "timestamp_offset_hours": [0.0],
+        })
+        hnp_path = tmp_path / "hnp_vitals_raw.parquet"
+        hnp_df.to_parquet(hnp_path)
+
+        prg_df = pd.DataFrame({
+            "EMPI": ["E001"],
+            "timestamp": pd.to_datetime(["2023-06-15 12:00"]),
+            "vital_type": ["DBP"],
+            "value": [80.0],
+            "units": ["mmHg"],
+            "source": ["prg"],
+            "extraction_context": ["vital_signs"],
+            "confidence": [0.85],
+            "is_flagged_abnormal": [False],
+            "report_number": ["R002"],
+            "report_date_time": pd.to_datetime(["2023-06-15 11:00"]),
+            "timestamp_source": ["report"],
+            "timestamp_offset_hours": [0.0],
+            "temp_method": [None],
+        })
+        prg_path = tmp_path / "prg_vitals_raw.parquet"
+        prg_df.to_parquet(prg_path)
+
+        # Create mock patient timelines using module-level MockTimeline
+        mock_timeline = MockTimeline(
+            patient_id="E001",
+            time_zero=datetime(2023, 6, 15, 10, 0, 0),
+            window_start=datetime(2023, 6, 15, 9, 0, 0),
+            window_end=datetime(2023, 6, 15, 18, 0, 0),
+            phase_boundaries={},
+            encounter_info={},
+            outcomes={},
+            metadata={}
+        )
+        timelines = {"E001": mock_timeline}
+
+        timeline_path = tmp_path / "patient_timelines.pkl"
+        with open(timeline_path, "wb") as f:
+            pickle.dump(timelines, f)
+
+        # Output path
+        output_path = tmp_path / "canonical_vitals.parquet"
+
+        # Run build
+        result = build_layer1(
+            phy_path=phy_path,
+            hnp_path=hnp_path,
+            prg_path=prg_path,
+            timeline_path=timeline_path,
+            output_path=output_path
+        )
+
+        # Verify output file exists
+        assert output_path.exists()
+
+        # Verify schema
+        output_df = pd.read_parquet(output_path)
+        assert set(output_df.columns) >= {"EMPI", "timestamp", "hours_from_pe",
+                                          "vital_type", "value", "source"}
+
+        # Verify merged data
+        assert len(output_df) >= 3  # At least PHY + HNP + PRG records
+        assert set(output_df["source"].unique()) == {"phy", "hnp", "prg"}
