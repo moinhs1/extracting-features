@@ -48,3 +48,38 @@ class TestHoursFromPE:
         vital_time = pe_time + timedelta(days=30)
         result = calculate_hours_from_pe(vital_time, pe_time)
         assert result == 720.0
+
+
+class TestWindowFiltering:
+    """Tests for temporal window filtering."""
+
+    def test_within_window(self):
+        """Value at hour 0 is within default window."""
+        from processing.temporal_aligner import is_within_window
+        assert is_within_window(0.0) is True
+
+    def test_at_window_start(self):
+        """Value at -24h is within window (inclusive)."""
+        from processing.temporal_aligner import is_within_window
+        assert is_within_window(-24.0) is True
+
+    def test_at_window_end(self):
+        """Value at +720h is within window (inclusive)."""
+        from processing.temporal_aligner import is_within_window
+        assert is_within_window(720.0) is True
+
+    def test_before_window(self):
+        """Value at -25h is outside window."""
+        from processing.temporal_aligner import is_within_window
+        assert is_within_window(-25.0) is False
+
+    def test_after_window(self):
+        """Value at +721h is outside window."""
+        from processing.temporal_aligner import is_within_window
+        assert is_within_window(721.0) is False
+
+    def test_custom_window(self):
+        """Custom window boundaries work."""
+        from processing.temporal_aligner import is_within_window
+        assert is_within_window(5.0, min_hours=-10, max_hours=10) is True
+        assert is_within_window(15.0, min_hours=-10, max_hours=10) is False
