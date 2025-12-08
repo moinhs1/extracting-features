@@ -58,7 +58,11 @@ def load_checkpoint(output_dir: Path) -> Optional[ExtractionCheckpoint]:
 
 
 from .prg_patterns import PRG_SECTION_PATTERNS, PRG_SKIP_PATTERNS, PRG_TEMP_PATTERNS, TEMP_METHOD_MAP
-from .hnp_patterns import TEMP_PATTERNS, VALID_RANGES
+from .hnp_patterns import TEMP_PATTERNS, VALID_RANGES, NEGATION_PATTERNS
+from .hnp_extractor import (
+    extract_heart_rate, extract_blood_pressure,
+    extract_respiratory_rate, extract_spo2, check_negation
+)
 
 
 def identify_prg_sections(text: str, window_size: int = 500) -> Dict[str, str]:
@@ -211,5 +215,89 @@ def extract_temperature_with_method(text: str) -> List[Dict]:
                     'position': position,
                 })
                 seen_positions.add(position)
+
+    return results
+
+
+def extract_prg_vitals_from_text(text: str) -> List[Dict]:
+    """
+    Extract all vital signs from progress note text with skip section filtering.
+
+    Args:
+        text: Full text to extract vitals from
+
+    Returns:
+        List of vital sign records
+    """
+    if not text:
+        return []
+
+    results = []
+
+    # Extract Heart Rate
+    for hr in extract_heart_rate(text):
+        if is_in_skip_section(text, hr['position']):
+            continue
+        results.append({
+            'vital_type': 'HR',
+            'value': hr['value'],
+            'units': 'bpm',
+            'confidence': hr['confidence'],
+            'is_flagged_abnormal': hr.get('is_flagged_abnormal', False),
+            'temp_method': None,
+        })
+
+    # Extract Blood Pressure
+    for bp in extract_blood_pressure(text):
+        if is_in_skip_section(text, bp['position']):
+            continue
+        for vital_type, value in [('SBP', bp['sbp']), ('DBP', bp['dbp'])]:
+            results.append({
+                'vital_type': vital_type,
+                'value': value,
+                'units': 'mmHg',
+                'confidence': bp['confidence'],
+                'is_flagged_abnormal': bp.get('is_flagged_abnormal', False),
+                'temp_method': None,
+            })
+
+    # Extract Respiratory Rate
+    for rr in extract_respiratory_rate(text):
+        if is_in_skip_section(text, rr['position']):
+            continue
+        results.append({
+            'vital_type': 'RR',
+            'value': rr['value'],
+            'units': 'breaths/min',
+            'confidence': rr['confidence'],
+            'is_flagged_abnormal': rr.get('is_flagged_abnormal', False),
+            'temp_method': None,
+        })
+
+    # Extract SpO2
+    for spo2 in extract_spo2(text):
+        if is_in_skip_section(text, spo2['position']):
+            continue
+        results.append({
+            'vital_type': 'SPO2',
+            'value': spo2['value'],
+            'units': '%',
+            'confidence': spo2['confidence'],
+            'is_flagged_abnormal': spo2.get('is_flagged_abnormal', False),
+            'temp_method': None,
+        })
+
+    # Extract Temperature with method
+    for temp in extract_temperature_with_method(text):
+        if is_in_skip_section(text, temp['position']):
+            continue
+        results.append({
+            'vital_type': 'TEMP',
+            'value': temp['value'],
+            'units': temp['units'],
+            'confidence': temp['confidence'],
+            'is_flagged_abnormal': False,
+            'temp_method': temp.get('method'),
+        })
 
     return results

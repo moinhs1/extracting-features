@@ -212,3 +212,46 @@ class TestExtractTemperatureWithMethod:
         results = extract_temperature_with_method(text)
         # Should still extract temp, method may be None
         assert len(results) >= 1
+
+
+class TestExtractPrgVitalsFromText:
+    """Test combined vitals extraction from text."""
+
+    def test_extracts_all_vital_types(self):
+        from module_3_vitals_processing.extractors.prg_extractor import extract_prg_vitals_from_text
+        text = "Physical Exam: BP 120/80 HR 72 RR 16 SpO2 98% Temp 98.6F (Oral)"
+        results = extract_prg_vitals_from_text(text)
+        types = {r['vital_type'] for r in results}
+        assert 'SBP' in types
+        assert 'DBP' in types
+        assert 'HR' in types
+        assert 'RR' in types
+        assert 'SPO2' in types
+        assert 'TEMP' in types
+
+    def test_skips_vitals_in_allergies(self):
+        from module_3_vitals_processing.extractors.prg_extractor import extract_prg_vitals_from_text
+        text = "Allergies: atenolol - fatigue, HR 50. Physical Exam: HR 72"
+        results = extract_prg_vitals_from_text(text)
+        hr_values = [r['value'] for r in results if r['vital_type'] == 'HR']
+        assert 72 in hr_values
+        assert 50 not in hr_values  # Should be skipped
+
+    def test_includes_temp_method(self):
+        from module_3_vitals_processing.extractors.prg_extractor import extract_prg_vitals_from_text
+        text = "Vitals: Temp 36.8 °C (98.2 °F) (Oral)"
+        results = extract_prg_vitals_from_text(text)
+        temp_results = [r for r in results if r['vital_type'] == 'TEMP']
+        assert len(temp_results) >= 1
+        assert temp_results[0].get('temp_method') == 'oral'
+
+    def test_handles_empty_text(self):
+        from module_3_vitals_processing.extractors.prg_extractor import extract_prg_vitals_from_text
+        results = extract_prg_vitals_from_text("")
+        assert results == []
+
+    def test_handles_text_without_vitals(self):
+        from module_3_vitals_processing.extractors.prg_extractor import extract_prg_vitals_from_text
+        text = "Patient presents for follow-up. Doing well."
+        results = extract_prg_vitals_from_text(text)
+        assert results == []
