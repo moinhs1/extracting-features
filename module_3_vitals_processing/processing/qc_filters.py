@@ -57,3 +57,16 @@ def is_abnormal(vital_type: str, value: float) -> bool:
 
     min_normal, max_normal = ABNORMAL_THRESHOLDS[vital_type]
     return value < min_normal or value > max_normal
+
+
+def is_bp_consistent(sbp: float, dbp: float) -> bool:
+    """Check if systolic and diastolic BP values are consistent.
+
+    Args:
+        sbp: Systolic blood pressure
+        dbp: Diastolic blood pressure
+
+    Returns:
+        True if SBP > DBP (physiologically consistent), False otherwise
+    """
+    return sbp > dbp

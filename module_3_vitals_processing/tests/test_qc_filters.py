@@ -80,3 +80,27 @@ class TestAbnormalFlagging:
         """Temp > 38.5°C is abnormal."""
         from processing.qc_filters import is_abnormal
         assert is_abnormal("TEMP", 39.5) is True
+
+
+class TestBPConsistency:
+    """Tests for blood pressure consistency validation."""
+
+    def test_valid_bp_sbp_greater_than_dbp(self):
+        """SBP should be greater than DBP."""
+        from processing.qc_filters import is_bp_consistent
+        assert is_bp_consistent(120, 80) is True
+
+    def test_invalid_bp_dbp_greater_than_sbp(self):
+        """DBP > SBP is inconsistent."""
+        from processing.qc_filters import is_bp_consistent
+        assert is_bp_consistent(80, 120) is False
+
+    def test_invalid_bp_equal(self):
+        """SBP == DBP is inconsistent."""
+        from processing.qc_filters import is_bp_consistent
+        assert is_bp_consistent(100, 100) is False
+
+    def test_valid_bp_narrow_pulse_pressure(self):
+        """Narrow but valid pulse pressure."""
+        from processing.qc_filters import is_bp_consistent
+        assert is_bp_consistent(100, 90) is True
