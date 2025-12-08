@@ -258,3 +258,54 @@ class TestPatientTimelineLoading:
 
         assert len(result) == 2
         assert result["E002"] == datetime(2023, 6, 16, 14, 30, 0)
+
+
+class TestAddPERelativeTimestamps:
+    """Tests for adding PE-relative timestamps to vitals."""
+
+    def test_adds_hours_from_pe_column(self):
+        """Adds hours_from_pe column based on PE times."""
+        from processing.layer1_builder import add_pe_relative_timestamps
+        from datetime import datetime
+
+        df = pd.DataFrame({
+            "EMPI": ["E001", "E001", "E002"],
+            "timestamp": pd.to_datetime([
+                "2023-06-15 11:00",  # 1 hour after PE
+                "2023-06-15 09:00",  # 1 hour before PE
+                "2023-06-16 14:30",  # At PE time
+            ]),
+            "vital_type": ["HR", "HR", "HR"],
+            "value": [72.0, 70.0, 80.0],
+        })
+
+        pe_times = {
+            "E001": datetime(2023, 6, 15, 10, 0, 0),
+            "E002": datetime(2023, 6, 16, 14, 30, 0),
+        }
+
+        result = add_pe_relative_timestamps(df, pe_times)
+
+        assert "hours_from_pe" in result.columns
+        assert result.loc[result["EMPI"] == "E001"].iloc[0]["hours_from_pe"] == 1.0
+        assert result.loc[result["EMPI"] == "E001"].iloc[1]["hours_from_pe"] == -1.0
+        assert result.loc[result["EMPI"] == "E002"].iloc[0]["hours_from_pe"] == 0.0
+
+    def test_drops_patients_without_pe_time(self):
+        """Patients without PE time are dropped."""
+        from processing.layer1_builder import add_pe_relative_timestamps
+        from datetime import datetime
+
+        df = pd.DataFrame({
+            "EMPI": ["E001", "E999"],  # E999 has no PE time
+            "timestamp": pd.to_datetime(["2023-06-15 11:00", "2023-06-15 11:00"]),
+            "vital_type": ["HR", "HR"],
+            "value": [72.0, 80.0],
+        })
+
+        pe_times = {"E001": datetime(2023, 6, 15, 10, 0, 0)}
+
+        result = add_pe_relative_timestamps(df, pe_times)
+
+        assert len(result) == 1
+        assert "E999" not in result["EMPI"].values

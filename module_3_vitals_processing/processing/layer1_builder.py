@@ -4,6 +4,7 @@ from pathlib import Path
 from datetime import datetime
 import pickle
 import pandas as pd
+from processing.temporal_aligner import calculate_hours_from_pe
 
 # Core vital signs for Layer 1-5 processing
 CORE_VITALS = ["HR", "SBP", "DBP", "MAP", "RR", "SPO2", "TEMP"]
@@ -195,3 +196,38 @@ def load_pe_times(timeline_path: Path) -> Dict[str, datetime]:
         pe_times[timeline.patient_id] = timeline.time_zero
 
     return pe_times
+
+
+def add_pe_relative_timestamps(
+    df: pd.DataFrame,
+    pe_times: Dict[str, datetime]
+) -> pd.DataFrame:
+    """Add PE-relative timestamps to vitals dataframe.
+
+    Args:
+        df: Vitals dataframe with EMPI and timestamp columns
+        pe_times: Dict mapping EMPI to PE timestamp
+
+    Returns:
+        DataFrame with hours_from_pe column added.
+        Patients without PE time are dropped.
+    """
+    result = df.copy()
+
+    # Map EMPI to PE time
+    result["pe_time"] = result["EMPI"].map(pe_times)
+
+    # Drop patients without PE time
+    result = result.dropna(subset=["pe_time"])
+
+    if result.empty:
+        result["hours_from_pe"] = pd.Series(dtype=float)
+        return result.drop(columns=["pe_time"])
+
+    # Calculate hours from PE
+    result["hours_from_pe"] = result.apply(
+        lambda r: calculate_hours_from_pe(r["timestamp"], r["pe_time"]),
+        axis=1
+    )
+
+    return result.drop(columns=["pe_time"])
