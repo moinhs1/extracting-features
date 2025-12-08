@@ -229,3 +229,35 @@ def create_hdf5_tensors(grid: pd.DataFrame, output_path: Path) -> None:
         f.create_dataset("patient_index", data=np.array(patients, dtype=object), dtype=dt)
         f.create_dataset("vital_index", data=np.array(VITAL_ORDER, dtype=object), dtype=dt)
         f.create_dataset("hour_index", data=np.array(HOUR_RANGE, dtype=np.int32))
+
+
+def calculate_time_deltas(masks: np.ndarray) -> np.ndarray:
+    """Calculate time since last observation for each cell.
+
+    Args:
+        masks: (n_patients, n_hours, n_vitals) int8 array
+               1=observed, 0=missing
+
+    Returns:
+        (n_patients, n_hours, n_vitals) float32 array of hours since last observation
+    """
+    n_patients, n_hours, n_vitals = masks.shape
+    time_deltas = np.zeros_like(masks, dtype=np.float32)
+
+    for p in range(n_patients):
+        for v in range(n_vitals):
+            last_obs_hour = -1
+            for h in range(n_hours):
+                if masks[p, h, v] == 1:
+                    # Observed: delta is 0, update last observed
+                    time_deltas[p, h, v] = 0
+                    last_obs_hour = h
+                else:
+                    # Missing: calculate delta
+                    if last_obs_hour >= 0:
+                        time_deltas[p, h, v] = h - last_obs_hour
+                    else:
+                        # No prior observation
+                        time_deltas[p, h, v] = h + 24 + 1  # Hours from window start
+
+    return time_deltas

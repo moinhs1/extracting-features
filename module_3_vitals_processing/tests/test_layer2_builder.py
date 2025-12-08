@@ -311,3 +311,30 @@ class TestHDF5TensorGeneration:
         with h5py.File(output_path, "r") as f:
             vital_index = [v.decode() for v in f["vital_index"][:]]
             assert vital_index == VITAL_ORDER
+
+
+class TestTimeDelta:
+    """Tests for time delta calculation."""
+
+    def test_calculate_time_deltas(self):
+        """Time deltas calculated correctly."""
+        from processing.layer2_builder import calculate_time_deltas
+
+        # Observations at hours 0, 5, 10
+        # Shape: (1 patient, 11 hours, 1 vital)
+        masks = np.array([
+            [[1], [0], [0], [0], [0], [1], [0], [0], [0], [0], [1]]
+        ])
+
+        time_deltas = calculate_time_deltas(masks)
+
+        # Hour 0: observed, delta=0
+        assert time_deltas[0, 0, 0] == 0
+        # Hour 1: 1 hour since observation
+        assert time_deltas[0, 1, 0] == 1
+        # Hour 4: 4 hours since observation
+        assert time_deltas[0, 4, 0] == 4
+        # Hour 5: observed, delta=0
+        assert time_deltas[0, 5, 0] == 0
+        # Hour 6: 1 hour since observation
+        assert time_deltas[0, 6, 0] == 1
