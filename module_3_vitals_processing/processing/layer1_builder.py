@@ -318,3 +318,45 @@ def build_layer1(
     combined.to_parquet(output_path, index=False)
 
     return combined
+
+
+def main():
+    """CLI entry point for Layer 1 builder."""
+    from pathlib import Path
+
+    # Default paths
+    base_dir = Path(__file__).parent.parent
+    discovery_dir = base_dir / "outputs" / "discovery"
+    module1_dir = base_dir.parent / "module_1_core_infrastructure" / "outputs"
+    output_dir = base_dir / "outputs" / "layer1"
+
+    phy_path = discovery_dir / "phy_vitals_raw.parquet"
+    hnp_path = discovery_dir / "hnp_vitals_raw.parquet"
+    prg_path = discovery_dir / "prg_vitals_raw.parquet"
+    timeline_path = module1_dir / "patient_timelines.pkl"
+    output_path = output_dir / "canonical_vitals.parquet"
+
+    print(f"Building Layer 1 canonical vitals...")
+    print(f"  PHY input: {phy_path}")
+    print(f"  HNP input: {hnp_path}")
+    print(f"  PRG input: {prg_path}")
+    print(f"  Timeline: {timeline_path}")
+    print(f"  Output: {output_path}")
+
+    result = build_layer1(
+        phy_path=phy_path,
+        hnp_path=hnp_path,
+        prg_path=prg_path,
+        timeline_path=timeline_path,
+        output_path=output_path
+    )
+
+    print(f"\nLayer 1 complete:")
+    print(f"  Total records: {len(result):,}")
+    print(f"  Patients: {result['EMPI'].nunique():,}")
+    print(f"  Vital types: {result['vital_type'].value_counts().to_dict()}")
+    print(f"  Sources: {result['source'].value_counts().to_dict()}")
+
+
+if __name__ == "__main__":
+    main()
