@@ -183,3 +183,21 @@ class TestTempMethodPatterns:
                 matched = True
                 break
         assert matched, "Temp(Src) format should match"
+
+
+class TestPrgConfig:
+    """Test Prg configuration in vitals_config."""
+
+    def test_prg_columns_defined(self):
+        from module_3_vitals_processing.config.vitals_config import PRG_COLUMNS
+        assert isinstance(PRG_COLUMNS, list)
+        assert 'EMPI' in PRG_COLUMNS
+        assert 'Report_Text' in PRG_COLUMNS
+
+    def test_prg_input_path_defined(self):
+        from module_3_vitals_processing.config.vitals_config import PRG_INPUT_PATH
+        assert 'Prg.txt' in str(PRG_INPUT_PATH)
+
+    def test_prg_output_path_defined(self):
+        from module_3_vitals_processing.config.vitals_config import PRG_OUTPUT_PATH
+        assert 'prg_vitals_raw.parquet' in str(PRG_OUTPUT_PATH)

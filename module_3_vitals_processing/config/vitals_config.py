@@ -47,3 +47,15 @@ HNP_COLUMNS = [
 # Default output paths for Hnp extractor
 HNP_INPUT_PATH = DATA_DIR / 'Hnp.txt'
 HNP_OUTPUT_PATH = OUTPUT_DIR / 'discovery' / 'hnp_vitals_raw.parquet'
+
+# Prg.txt columns (same format as Hnp.txt)
+PRG_COLUMNS = [
+    'EMPI', 'EPIC_PMRN', 'MRN_Type', 'MRN', 'Report_Number',
+    'Report_Date_Time', 'Report_Description', 'Report_Status',
+    'Report_Type', 'Report_Text'
+]
+
+# Default paths for Prg extractor
+PRG_INPUT_PATH = DATA_DIR / 'Prg.txt'
+PRG_OUTPUT_PATH = OUTPUT_DIR / 'discovery' / 'prg_vitals_raw.parquet'
+PRG_CHUNKS_DIR = OUTPUT_DIR / 'discovery' / 'prg_chunks'
