@@ -1,0 +1,54 @@
+"""Tests for prg_extractor module."""
+import pytest
+from datetime import datetime
+import json
+import tempfile
+from pathlib import Path
+
+
+class TestExtractionCheckpoint:
+    """Test checkpoint dataclass and serialization."""
+
+    def test_checkpoint_dataclass_exists(self):
+        from module_3_vitals_processing.extractors.prg_extractor import ExtractionCheckpoint
+        checkpoint = ExtractionCheckpoint(
+            input_path='/path/to/input.txt',
+            output_path='/path/to/output.parquet',
+            rows_processed=1000,
+            chunks_completed=1,
+            records_extracted=500,
+            started_at=datetime.now(),
+            updated_at=datetime.now(),
+        )
+        assert checkpoint.rows_processed == 1000
+        assert checkpoint.chunks_completed == 1
+
+    def test_checkpoint_to_dict(self):
+        from module_3_vitals_processing.extractors.prg_extractor import ExtractionCheckpoint
+        checkpoint = ExtractionCheckpoint(
+            input_path='/path/to/input.txt',
+            output_path='/path/to/output.parquet',
+            rows_processed=1000,
+            chunks_completed=1,
+            records_extracted=500,
+            started_at=datetime(2024, 1, 1, 10, 0, 0),
+            updated_at=datetime(2024, 1, 1, 10, 5, 0),
+        )
+        d = checkpoint.to_dict()
+        assert d['rows_processed'] == 1000
+        assert d['input_path'] == '/path/to/input.txt'
+
+    def test_checkpoint_from_dict(self):
+        from module_3_vitals_processing.extractors.prg_extractor import ExtractionCheckpoint
+        data = {
+            'input_path': '/path/to/input.txt',
+            'output_path': '/path/to/output.parquet',
+            'rows_processed': 2000,
+            'chunks_completed': 2,
+            'records_extracted': 1000,
+            'started_at': '2024-01-01T10:00:00',
+            'updated_at': '2024-01-01T10:10:00',
+        }
+        checkpoint = ExtractionCheckpoint.from_dict(data)
+        assert checkpoint.rows_processed == 2000
+        assert checkpoint.chunks_completed == 2
