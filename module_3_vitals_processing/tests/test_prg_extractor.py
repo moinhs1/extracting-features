@@ -137,3 +137,39 @@ class TestIdentifyPrgSections:
         text = "This is a note without any section headers."
         sections = identify_prg_sections(text)
         assert sections == {}
+
+
+class TestIsInSkipSection:
+    """Test skip section detection for false positive filtering."""
+
+    def test_detects_allergies_section(self):
+        from module_3_vitals_processing.extractors.prg_extractor import is_in_skip_section
+        text = "Patient info... Allergies: atenolol - fatigue, HR 50 generic synthroid..."
+        # Position at HR 50
+        position = text.find("HR 50")
+        assert is_in_skip_section(text, position)
+
+    def test_detects_medications_section(self):
+        from module_3_vitals_processing.extractors.prg_extractor import is_in_skip_section
+        text = "Assessment... Medications: lisinopril 10mg causes BP drop..."
+        position = text.find("BP drop")
+        assert is_in_skip_section(text, position)
+
+    def test_detects_past_medical_history(self):
+        from module_3_vitals_processing.extractors.prg_extractor import is_in_skip_section
+        text = "ROS negative... Past Medical History: HTN with BP 180/100..."
+        position = text.find("BP 180")
+        assert is_in_skip_section(text, position)
+
+    def test_allows_physical_exam_section(self):
+        from module_3_vitals_processing.extractors.prg_extractor import is_in_skip_section
+        text = "History... Physical Exam: BP 120/80 HR 72..."
+        position = text.find("BP 120")
+        assert not is_in_skip_section(text, position)
+
+    def test_valid_section_overrides_skip(self):
+        from module_3_vitals_processing.extractors.prg_extractor import is_in_skip_section
+        # Skip section followed by valid section
+        text = "Allergies: penicillin... Physical Exam: BP 120/80 HR 72..."
+        position = text.find("BP 120")
+        assert not is_in_skip_section(text, position)

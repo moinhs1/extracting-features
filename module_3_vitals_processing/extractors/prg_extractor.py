@@ -81,3 +81,40 @@ def identify_prg_sections(text: str, window_size: int = 500) -> Dict[str, str]:
             sections[section_name] = text[start:end]
 
     return sections
+
+
+def is_in_skip_section(text: str, position: int, lookback: int = 500) -> bool:
+    """
+    Check if position is within a skip section (allergies, medications, etc.).
+
+    Args:
+        text: Full text being searched
+        position: Character position of the match
+        lookback: Characters to look back for section headers
+
+    Returns:
+        True if in a skip section (should not extract vitals here)
+    """
+    start = max(0, position - lookback)
+    context_before = text[start:position]
+
+    # Find most recent skip section
+    last_skip_pos = -1
+    for pattern in PRG_SKIP_PATTERNS:
+        for match in re.finditer(pattern, context_before, re.IGNORECASE):
+            if match.end() > last_skip_pos:
+                last_skip_pos = match.end()
+
+    if last_skip_pos == -1:
+        # No skip section found
+        return False
+
+    # Check if a valid section appears after the skip section
+    context_after_skip = context_before[last_skip_pos:]
+    for section_name, (pattern, _) in PRG_SECTION_PATTERNS.items():
+        if re.search(pattern, context_after_skip, re.IGNORECASE):
+            # Valid section found after skip section
+            return False
+
+    # Still in skip section
+    return True
