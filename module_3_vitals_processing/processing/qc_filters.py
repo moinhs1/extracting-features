@@ -40,3 +40,20 @@ def is_physiologically_valid(vital_type: str, value: float) -> bool:
 
     min_val, max_val = VALID_RANGES[vital_type]
     return min_val <= value <= max_val
+
+
+def is_abnormal(vital_type: str, value: float) -> bool:
+    """Check if vital sign value is outside normal clinical range.
+
+    Args:
+        vital_type: Type of vital (HR, SBP, DBP, MAP, RR, SPO2, TEMP)
+        value: Measurement value
+
+    Returns:
+        True if value is clinically abnormal, False if normal
+    """
+    if vital_type not in ABNORMAL_THRESHOLDS:
+        return False  # Unknown vital type, don't flag
+
+    min_normal, max_normal = ABNORMAL_THRESHOLDS[vital_type]
+    return value < min_normal or value > max_normal

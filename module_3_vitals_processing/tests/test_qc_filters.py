@@ -46,3 +46,37 @@ class TestPhysiologicalRanges:
         """All 7 core vitals have defined ranges."""
         expected_vitals = {"HR", "SBP", "DBP", "MAP", "RR", "SPO2", "TEMP"}
         assert expected_vitals <= set(VALID_RANGES.keys())
+
+
+class TestAbnormalFlagging:
+    """Tests for abnormal value flagging."""
+
+    def test_normal_hr_not_flagged(self):
+        """HR 72 is normal."""
+        from processing.qc_filters import is_abnormal
+        assert is_abnormal("HR", 72) is False
+
+    def test_tachycardia_flagged(self):
+        """HR > 100 is abnormal."""
+        from processing.qc_filters import is_abnormal
+        assert is_abnormal("HR", 110) is True
+
+    def test_bradycardia_flagged(self):
+        """HR < 60 is abnormal."""
+        from processing.qc_filters import is_abnormal
+        assert is_abnormal("HR", 50) is True
+
+    def test_hypotension_flagged(self):
+        """SBP < 90 is abnormal."""
+        from processing.qc_filters import is_abnormal
+        assert is_abnormal("SBP", 85) is True
+
+    def test_hypoxemia_flagged(self):
+        """SpO2 < 92 is abnormal."""
+        from processing.qc_filters import is_abnormal
+        assert is_abnormal("SPO2", 88) is True
+
+    def test_fever_flagged(self):
+        """Temp > 38.5°C is abnormal."""
+        from processing.qc_filters import is_abnormal
+        assert is_abnormal("TEMP", 39.5) is True
