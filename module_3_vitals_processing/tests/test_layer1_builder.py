@@ -207,3 +207,54 @@ class TestMAPCalculation:
         assert maps["vital_type"].iloc[0] == "MAP"
         assert maps["is_calculated"].iloc[0] == True
         assert abs(maps["value"].iloc[0] - 93.33) < 0.1
+
+
+class TestPatientTimelineLoading:
+    """Tests for patient timeline loading."""
+
+    def test_load_pe_times_returns_dict(self):
+        """load_pe_times returns dict mapping EMPI to PE timestamp."""
+        from processing.layer1_builder import load_pe_times
+        import pickle
+        from pathlib import Path
+        from unittest.mock import patch, MagicMock
+        from datetime import datetime
+
+        # Mock PatientTimeline
+        mock_timeline = MagicMock()
+        mock_timeline.patient_id = "E001"
+        mock_timeline.time_zero = datetime(2023, 6, 15, 10, 0, 0)
+
+        mock_timelines = {"E001": mock_timeline}
+
+        with patch("builtins.open", create=True):
+            with patch("pickle.load", return_value=mock_timelines):
+                result = load_pe_times(Path("/fake/path.pkl"))
+
+        assert isinstance(result, dict)
+        assert "E001" in result
+        assert result["E001"] == datetime(2023, 6, 15, 10, 0, 0)
+
+    def test_load_pe_times_handles_multiple_patients(self):
+        """load_pe_times handles multiple patients."""
+        from processing.layer1_builder import load_pe_times
+        from unittest.mock import patch, MagicMock
+        from datetime import datetime
+        from pathlib import Path
+
+        mock_t1 = MagicMock()
+        mock_t1.patient_id = "E001"
+        mock_t1.time_zero = datetime(2023, 6, 15, 10, 0, 0)
+
+        mock_t2 = MagicMock()
+        mock_t2.patient_id = "E002"
+        mock_t2.time_zero = datetime(2023, 6, 16, 14, 30, 0)
+
+        mock_timelines = {"E001": mock_t1, "E002": mock_t2}
+
+        with patch("builtins.open", create=True):
+            with patch("pickle.load", return_value=mock_timelines):
+                result = load_pe_times(Path("/fake/path.pkl"))
+
+        assert len(result) == 2
+        assert result["E002"] == datetime(2023, 6, 16, 14, 30, 0)
