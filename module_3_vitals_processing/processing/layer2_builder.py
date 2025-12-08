@@ -1,5 +1,6 @@
 """Layer 2 Builder: Hourly aggregated grid with missing data tensors."""
 from typing import Dict, List
+from itertools import product
 import pandas as pd
 from processing.temporal_aligner import assign_hour_bucket
 
@@ -73,5 +74,40 @@ def aggregate_to_hourly(df: pd.DataFrame) -> pd.DataFrame:
 
     # Add mask column (1 for all observed rows)
     result["mask"] = 1
+
+    return result
+
+
+def create_full_grid(
+    observed: pd.DataFrame,
+    patients: List[str]
+) -> pd.DataFrame:
+    """Create full hourly grid with all patient-hour-vital combinations.
+
+    Args:
+        observed: DataFrame with observed hourly aggregations
+        patients: List of patient EMPIs to include
+
+    Returns:
+        DataFrame with all combinations, missing marked with mask=0
+    """
+    # Create full index of all combinations
+    full_index = pd.DataFrame(
+        list(product(patients, HOUR_RANGE, VITAL_ORDER)),
+        columns=["EMPI", "hour_from_pe", "vital_type"]
+    )
+
+    # Merge with observed data
+    result = full_index.merge(
+        observed,
+        on=["EMPI", "hour_from_pe", "vital_type"],
+        how="left"
+    )
+
+    # Fill missing mask values with 0
+    result["mask"] = result["mask"].fillna(0).astype("int8")
+
+    # Fill missing count with 0
+    result["count"] = result["count"].fillna(0).astype("int32")
 
     return result

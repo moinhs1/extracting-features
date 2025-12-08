@@ -109,3 +109,61 @@ class TestHourlyAggregation:
 
         assert hr_row["mean"] == 72.0
         assert sbp_row["mean"] == 120.0
+
+
+class TestCreateFullGrid:
+    """Tests for creating full hourly grid."""
+
+    def test_create_full_grid_fills_missing_hours(self):
+        """Creates rows for all hours, not just observed."""
+        from processing.layer2_builder import create_full_grid
+
+        # Sparse data: only hour 0 observed
+        observed = pd.DataFrame({
+            "EMPI": ["E001"],
+            "hour_from_pe": [0],
+            "vital_type": ["HR"],
+            "mean": [72.0],
+            "median": [72.0],
+            "std": [np.nan],
+            "min": [72.0],
+            "max": [72.0],
+            "count": [1],
+            "mask": [1],
+        })
+
+        patients = ["E001"]
+        result = create_full_grid(observed, patients)
+
+        # Should have 745 hours × 7 vitals = 5215 rows per patient
+        expected_rows = 745 * 7
+        assert len(result[result["EMPI"] == "E001"]) == expected_rows
+
+    def test_create_full_grid_marks_missing_mask_zero(self):
+        """Missing hours have mask=0."""
+        from processing.layer2_builder import create_full_grid
+
+        observed = pd.DataFrame({
+            "EMPI": ["E001"],
+            "hour_from_pe": [0],
+            "vital_type": ["HR"],
+            "mean": [72.0],
+            "median": [72.0],
+            "std": [np.nan],
+            "min": [72.0],
+            "max": [72.0],
+            "count": [1],
+            "mask": [1],
+        })
+
+        result = create_full_grid(observed, ["E001"])
+
+        # Hour 0 HR should have mask=1
+        hr_0 = result[(result["hour_from_pe"] == 0) &
+                      (result["vital_type"] == "HR")].iloc[0]
+        assert hr_0["mask"] == 1
+
+        # Hour 1 HR should have mask=0
+        hr_1 = result[(result["hour_from_pe"] == 1) &
+                      (result["vital_type"] == "HR")].iloc[0]
+        assert hr_1["mask"] == 0
