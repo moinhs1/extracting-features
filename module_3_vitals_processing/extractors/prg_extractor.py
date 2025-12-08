@@ -55,3 +55,29 @@ def load_checkpoint(output_dir: Path) -> Optional[ExtractionCheckpoint]:
             data = json.load(f)
             return ExtractionCheckpoint.from_dict(data)
     return None
+
+
+from .prg_patterns import PRG_SECTION_PATTERNS, PRG_SKIP_PATTERNS
+
+
+def identify_prg_sections(text: str, window_size: int = 500) -> Dict[str, str]:
+    """
+    Identify clinical sections in progress note text.
+
+    Args:
+        text: Full Report_Text from progress note
+        window_size: Characters to extract after section header
+
+    Returns:
+        Dict mapping section name to text window
+    """
+    sections = {}
+
+    for section_name, (pattern, _offset) in PRG_SECTION_PATTERNS.items():
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            start = match.end()
+            end = min(start + window_size, len(text))
+            sections[section_name] = text[start:end]
+
+    return sections
