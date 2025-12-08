@@ -261,3 +261,92 @@ def calculate_time_deltas(masks: np.ndarray) -> np.ndarray:
                         time_deltas[p, h, v] = h + 24 + 1  # Hours from window start
 
     return time_deltas
+
+
+def build_layer2(
+    layer1_path: Path,
+    parquet_output_path: Path,
+    hdf5_output_path: Path
+) -> pd.DataFrame:
+    """Build Layer 2 hourly grid and tensors from Layer 1 canonical vitals.
+
+    Args:
+        layer1_path: Path to canonical_vitals.parquet (Layer 1 output)
+        parquet_output_path: Path to write hourly_grid.parquet
+        hdf5_output_path: Path to write hourly_tensors.h5
+
+    Returns:
+        Full imputed grid DataFrame
+    """
+    # Load Layer 1
+    layer1 = pd.read_parquet(layer1_path)
+
+    # Get unique patients
+    patients = sorted(layer1["EMPI"].unique())
+
+    # Aggregate to hourly bins
+    hourly = aggregate_to_hourly(layer1)
+
+    # Create full grid with all hours
+    full_grid = create_full_grid(hourly, patients)
+
+    # Apply three-tier imputation
+    imputed_grid = apply_imputation(full_grid)
+
+    # Calculate cohort means for tier 4
+    for vital in VITAL_ORDER:
+        vital_mask = imputed_grid["vital_type"] == vital
+        tier4_mask = imputed_grid["imputation_tier"] == 4
+
+        observed = imputed_grid.loc[vital_mask & (imputed_grid["mask"] == 1), "mean"]
+        cohort_mean = observed.mean() if len(observed) > 0 else 0
+
+        imputed_grid.loc[vital_mask & tier4_mask, "mean"] = cohort_mean
+
+    # Save parquet
+    parquet_output_path.parent.mkdir(parents=True, exist_ok=True)
+    imputed_grid.to_parquet(parquet_output_path, index=False)
+
+    # Create HDF5 tensors
+    create_hdf5_tensors(imputed_grid, hdf5_output_path)
+
+    # Add time deltas to HDF5
+    with h5py.File(hdf5_output_path, "r") as f:
+        masks = f["masks"][:]
+
+    time_deltas = calculate_time_deltas(masks)
+
+    with h5py.File(hdf5_output_path, "a") as f:
+        f.create_dataset("time_deltas", data=time_deltas, compression="gzip")
+
+    return imputed_grid
+
+
+def main():
+    """CLI entry point for Layer 2 builder."""
+    base_dir = Path(__file__).parent.parent
+
+    layer1_path = base_dir / "outputs" / "layer1" / "canonical_vitals.parquet"
+    parquet_path = base_dir / "outputs" / "layer2" / "hourly_grid.parquet"
+    hdf5_path = base_dir / "outputs" / "layer2" / "hourly_tensors.h5"
+
+    print(f"Building Layer 2 hourly grid...")
+    print(f"  Layer 1 input: {layer1_path}")
+    print(f"  Parquet output: {parquet_path}")
+    print(f"  HDF5 output: {hdf5_path}")
+
+    result = build_layer2(
+        layer1_path=layer1_path,
+        parquet_output_path=parquet_path,
+        hdf5_output_path=hdf5_path
+    )
+
+    print(f"\nLayer 2 complete:")
+    print(f"  Grid rows: {len(result):,}")
+    print(f"  Patients: {result['EMPI'].nunique():,}")
+    print(f"  Observed hours: {(result['mask'] == 1).sum():,}")
+    print(f"  Imputed hours: {(result['mask'] == 0).sum():,}")
+
+
+if __name__ == "__main__":
+    main()

@@ -338,3 +338,56 @@ class TestTimeDelta:
         assert time_deltas[0, 5, 0] == 0
         # Hour 6: 1 hour since observation
         assert time_deltas[0, 6, 0] == 1
+
+
+class TestBuildLayer2:
+    """Tests for main Layer 2 build function."""
+
+    def test_build_layer2_integration(self, tmp_path):
+        """Integration test for build_layer2."""
+        from processing.layer2_builder import build_layer2
+
+        # Create Layer 1 input
+        layer1 = pd.DataFrame({
+            "EMPI": ["E001"] * 10,
+            "timestamp": pd.date_range("2023-06-15", periods=10, freq="h"),
+            "hours_from_pe": list(range(10)),
+            "vital_type": ["HR"] * 5 + ["SBP"] * 5,
+            "value": [72.0, 74.0, 76.0, 75.0, 73.0, 120.0, 122.0, 118.0, 121.0, 119.0],
+            "units": ["bpm"] * 5 + ["mmHg"] * 5,
+            "source": ["phy"] * 10,
+            "source_detail": ["IP"] * 10,
+            "confidence": [1.0] * 10,
+            "is_calculated": [False] * 10,
+            "is_flagged_abnormal": [False] * 10,
+            "report_number": [""] * 10,
+        })
+
+        layer1_path = tmp_path / "canonical_vitals.parquet"
+        layer1.to_parquet(layer1_path)
+
+        parquet_path = tmp_path / "hourly_grid.parquet"
+        hdf5_path = tmp_path / "hourly_tensors.h5"
+
+        build_layer2(
+            layer1_path=layer1_path,
+            parquet_output_path=parquet_path,
+            hdf5_output_path=hdf5_path
+        )
+
+        # Verify outputs exist
+        assert parquet_path.exists()
+        assert hdf5_path.exists()
+
+        # Verify parquet content
+        grid = pd.read_parquet(parquet_path)
+        assert "EMPI" in grid.columns
+        assert "hour_from_pe" in grid.columns
+        assert "vital_type" in grid.columns
+
+        # Verify HDF5 content
+        import h5py
+        with h5py.File(hdf5_path, "r") as f:
+            assert "values" in f
+            assert "masks" in f
+            assert "time_deltas" in f
