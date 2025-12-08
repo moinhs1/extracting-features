@@ -479,3 +479,64 @@ def extract_prg_vitals(
     print(f"Output saved to: {output_path}")
 
     return df
+
+
+def main():
+    """CLI entry point for Prg vitals extraction."""
+    import argparse
+    import sys
+
+    sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+
+    from module_3_vitals_processing.config.vitals_config import PRG_INPUT_PATH, PRG_OUTPUT_PATH
+
+    parser = argparse.ArgumentParser(
+        description='Extract vital signs from Prg.txt (Progress Notes)'
+    )
+    parser.add_argument(
+        '-i', '--input',
+        default=str(PRG_INPUT_PATH),
+        help='Input Prg.txt file path'
+    )
+    parser.add_argument(
+        '-o', '--output',
+        default=str(PRG_OUTPUT_PATH),
+        help='Output parquet file path'
+    )
+    parser.add_argument(
+        '-w', '--workers',
+        type=int,
+        default=None,
+        help='Number of parallel workers (default: CPU count)'
+    )
+    parser.add_argument(
+        '-c', '--chunk-size',
+        type=int,
+        default=10000,
+        help='Rows per processing chunk'
+    )
+    parser.add_argument(
+        '--no-resume',
+        action='store_true',
+        help='Start fresh, ignore existing checkpoint'
+    )
+
+    args = parser.parse_args()
+
+    print(f"Extracting vitals from: {args.input}")
+    print(f"Output to: {args.output}")
+    print(f"Workers: {args.workers or 'auto'}")
+    print(f"Chunk size: {args.chunk_size}")
+    print(f"Resume: {not args.no_resume}")
+
+    extract_prg_vitals(
+        args.input,
+        args.output,
+        n_workers=args.workers,
+        chunk_size=args.chunk_size,
+        resume=not args.no_resume
+    )
+
+
+if __name__ == '__main__':
+    main()

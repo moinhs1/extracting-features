@@ -368,3 +368,17 @@ class TestExtractPrgVitals:
             df = extract_prg_vitals(str(input_path), str(output_path), resume=False)
 
             assert 'temp_method' in df.columns
+
+
+class TestCLI:
+    """Test CLI entry point."""
+
+    def test_cli_module_runs(self):
+        import subprocess
+        result = subprocess.run(
+            ['python', '-c', 'from module_3_vitals_processing.extractors.prg_extractor import main'],
+            capture_output=True,
+            text=True,
+            cwd='/home/moin/TDA_11_25'
+        )
+        assert result.returncode == 0, f"Import failed: {result.stderr}"
