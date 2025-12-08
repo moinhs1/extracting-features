@@ -2,6 +2,7 @@
 from datetime import datetime
 from typing import Union
 import pandas as pd
+import math
 
 
 # Default temporal window (hours relative to PE)
@@ -42,3 +43,19 @@ def is_within_window(
         True if within window, False otherwise
     """
     return min_hours <= hours_from_pe <= max_hours
+
+
+def assign_hour_bucket(hours_from_pe: float) -> int:
+    """Assign timestamp to hourly bucket.
+
+    Uses floor for positive hours, floor for negative hours.
+    Bucket N contains hours [N, N+1) for N >= 0
+    Bucket N contains hours (N-1, N] for N < 0
+
+    Args:
+        hours_from_pe: Hours relative to PE index
+
+    Returns:
+        Integer hour bucket
+    """
+    return math.floor(hours_from_pe)

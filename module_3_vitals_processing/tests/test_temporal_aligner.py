@@ -83,3 +83,34 @@ class TestWindowFiltering:
         from processing.temporal_aligner import is_within_window
         assert is_within_window(5.0, min_hours=-10, max_hours=10) is True
         assert is_within_window(15.0, min_hours=-10, max_hours=10) is False
+
+
+class TestHourBucket:
+    """Tests for hour bucket assignment."""
+
+    def test_hour_zero_bucket(self):
+        """Hours 0.0 to 0.99 go in bucket 0."""
+        from processing.temporal_aligner import assign_hour_bucket
+        assert assign_hour_bucket(0.0) == 0
+        assert assign_hour_bucket(0.5) == 0
+        assert assign_hour_bucket(0.99) == 0
+
+    def test_hour_one_bucket(self):
+        """Hours 1.0 to 1.99 go in bucket 1."""
+        from processing.temporal_aligner import assign_hour_bucket
+        assert assign_hour_bucket(1.0) == 1
+        assert assign_hour_bucket(1.5) == 1
+
+    def test_negative_hour_bucket(self):
+        """Negative hours floor correctly."""
+        from processing.temporal_aligner import assign_hour_bucket
+        assert assign_hour_bucket(-0.5) == -1
+        assert assign_hour_bucket(-1.0) == -1
+        assert assign_hour_bucket(-1.5) == -2
+        assert assign_hour_bucket(-24.0) == -24
+
+    def test_max_hour_bucket(self):
+        """Hour 720 is in bucket 720."""
+        from processing.temporal_aligner import assign_hour_bucket
+        assert assign_hour_bucket(720.0) == 720
+        assert assign_hour_bucket(720.5) == 720
