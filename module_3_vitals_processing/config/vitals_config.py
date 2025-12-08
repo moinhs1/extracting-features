@@ -59,3 +59,22 @@ PRG_COLUMNS = [
 PRG_INPUT_PATH = DATA_DIR / 'Prg.txt'
 PRG_OUTPUT_PATH = OUTPUT_DIR / 'discovery' / 'prg_vitals_raw.parquet'
 PRG_CHUNKS_DIR = OUTPUT_DIR / 'discovery' / 'prg_chunks'
+
+# Layer output paths
+LAYER1_OUTPUT_DIR = OUTPUT_DIR / 'layer1'
+LAYER2_OUTPUT_DIR = OUTPUT_DIR / 'layer2'
+LAYER3_OUTPUT_DIR = OUTPUT_DIR / 'layer3'
+LAYER4_OUTPUT_DIR = OUTPUT_DIR / 'layer4'
+LAYER5_OUTPUT_DIR = OUTPUT_DIR / 'layer5'
+
+# Layer 1 outputs
+CANONICAL_VITALS_PATH = LAYER1_OUTPUT_DIR / 'canonical_vitals.parquet'
+
+# Layer 2 outputs
+HOURLY_GRID_PATH = LAYER2_OUTPUT_DIR / 'hourly_grid.parquet'
+HOURLY_TENSORS_PATH = LAYER2_OUTPUT_DIR / 'hourly_tensors.h5'
+
+# Temporal window constants
+WINDOW_MIN_HOURS = -24   # 24 hours before PE
+WINDOW_MAX_HOURS = 720   # 30 days after PE
+TOTAL_HOURS = 745        # Total hours in window
