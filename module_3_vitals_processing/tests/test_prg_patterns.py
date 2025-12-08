@@ -138,3 +138,48 @@ class TestPrgVitalsPatterns:
                 break
         else:
             pytest.fail("No RR pattern matched 'Resp: 18'")
+
+
+class TestTempMethodPatterns:
+    """Test temperature method extraction patterns."""
+
+    def test_temp_method_patterns_exist(self):
+        from module_3_vitals_processing.extractors.prg_patterns import PRG_TEMP_PATTERNS
+        assert isinstance(PRG_TEMP_PATTERNS, list)
+        assert len(PRG_TEMP_PATTERNS) >= 2
+
+    def test_temp_method_map_exists(self):
+        from module_3_vitals_processing.extractors.prg_patterns import TEMP_METHOD_MAP
+        assert isinstance(TEMP_METHOD_MAP, dict)
+        assert 'oral' in TEMP_METHOD_MAP
+        assert 'temporal' in TEMP_METHOD_MAP
+        assert 'rectal' in TEMP_METHOD_MAP
+
+    def test_temp_with_oral_method(self):
+        from module_3_vitals_processing.extractors.prg_patterns import PRG_TEMP_PATTERNS
+        text = "Temp 36.8 °C (98.2 °F) (Oral)"
+        for pattern, _ in PRG_TEMP_PATTERNS:
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match and match.lastindex >= 3:
+                assert 'oral' in match.group(3).lower()
+                break
+
+    def test_temp_with_temporal_method(self):
+        from module_3_vitals_processing.extractors.prg_patterns import PRG_TEMP_PATTERNS
+        text = "Temp 36.2 °C (97.1 °F) (Temporal)"
+        for pattern, _ in PRG_TEMP_PATTERNS:
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match and match.lastindex >= 3:
+                assert 'temporal' in match.group(3).lower()
+                break
+
+    def test_temp_src_format(self):
+        from module_3_vitals_processing.extractors.prg_patterns import PRG_TEMP_PATTERNS
+        text = "Temp(Src) 36.7 °C (98 °F) (Oral)"
+        matched = False
+        for pattern, _ in PRG_TEMP_PATTERNS:
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match:
+                matched = True
+                break
+        assert matched, "Temp(Src) format should match"

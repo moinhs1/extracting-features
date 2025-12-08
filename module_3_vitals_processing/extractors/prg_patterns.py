@@ -85,3 +85,30 @@ PRG_RR_PATTERNS = [
     # Resp format
     (r'Resp[:\s]+(\d{1,2})\b', 0.9),
 ]
+
+# Temperature patterns with method capture
+# Group 1: value, Group 2: unit (C/F), Group 3: method (optional)
+PRG_TEMP_PATTERNS = [
+    # Temp(Src) format: Temp(Src) 36.7 °C (98 °F) (Oral)
+    (r'Temp\(?Src\)?\s*(\d{2,3}\.?\d?)\s*[?°]?\s*([CF])\s*\([^)]+\)\s*\((\w+)\)', 1.0),
+    # Temp with method in parentheses: Temp 36.8 °C (98.2 °F) (Temporal)
+    (r'Temp\s+(\d{2,3}\.?\d?)\s*[?°]?\s*([CF])\s*\([^)]+\)\s*\((\w+)\)', 0.95),
+    # Temp with just value and method: Temp 98.6F (Oral)
+    (r'Temp\s+(\d{2,3}\.?\d?)\s*[?°]?\s*([CF])\s*\((\w+)\)', 0.9),
+]
+
+# Map raw method strings to canonical names
+TEMP_METHOD_MAP = {
+    'oral': 'oral',
+    'orally': 'oral',
+    'po': 'oral',
+    'temporal': 'temporal',
+    'forehead': 'temporal',
+    'rectal': 'rectal',
+    'rectally': 'rectal',
+    'pr': 'rectal',
+    'axillary': 'axillary',
+    'axilla': 'axillary',
+    'tympanic': 'tympanic',
+    'ear': 'tympanic',
+}
