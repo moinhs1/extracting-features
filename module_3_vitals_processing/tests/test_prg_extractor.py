@@ -52,3 +52,53 @@ class TestExtractionCheckpoint:
         checkpoint = ExtractionCheckpoint.from_dict(data)
         assert checkpoint.rows_processed == 2000
         assert checkpoint.chunks_completed == 2
+
+
+class TestCheckpointIO:
+    """Test checkpoint save and load functions."""
+
+    def test_save_checkpoint(self):
+        from module_3_vitals_processing.extractors.prg_extractor import (
+            ExtractionCheckpoint, save_checkpoint, CHECKPOINT_FILE
+        )
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_dir = Path(tmpdir)
+            checkpoint = ExtractionCheckpoint(
+                input_path='/input.txt',
+                output_path='/output.parquet',
+                rows_processed=5000,
+                chunks_completed=5,
+                records_extracted=2500,
+                started_at=datetime.now(),
+                updated_at=datetime.now(),
+            )
+            save_checkpoint(checkpoint, output_dir)
+            assert (output_dir / CHECKPOINT_FILE).exists()
+
+    def test_load_checkpoint_exists(self):
+        from module_3_vitals_processing.extractors.prg_extractor import (
+            ExtractionCheckpoint, save_checkpoint, load_checkpoint
+        )
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_dir = Path(tmpdir)
+            original = ExtractionCheckpoint(
+                input_path='/input.txt',
+                output_path='/output.parquet',
+                rows_processed=5000,
+                chunks_completed=5,
+                records_extracted=2500,
+                started_at=datetime(2024, 1, 1, 10, 0, 0),
+                updated_at=datetime(2024, 1, 1, 10, 5, 0),
+            )
+            save_checkpoint(original, output_dir)
+            loaded = load_checkpoint(output_dir)
+            assert loaded is not None
+            assert loaded.rows_processed == 5000
+            assert loaded.chunks_completed == 5
+
+    def test_load_checkpoint_not_exists(self):
+        from module_3_vitals_processing.extractors.prg_extractor import load_checkpoint
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_dir = Path(tmpdir)
+            loaded = load_checkpoint(output_dir)
+            assert loaded is None

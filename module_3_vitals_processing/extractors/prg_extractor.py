@@ -38,3 +38,20 @@ class ExtractionCheckpoint:
 
 CHECKPOINT_FILE = "prg_extraction_checkpoint.json"
 CHECKPOINT_INTERVAL = 5  # Save every 5 chunks
+
+
+def save_checkpoint(checkpoint: ExtractionCheckpoint, output_dir: Path) -> None:
+    """Save extraction progress to JSON file."""
+    path = output_dir / CHECKPOINT_FILE
+    with open(path, 'w') as f:
+        json.dump(checkpoint.to_dict(), f, indent=2)
+
+
+def load_checkpoint(output_dir: Path) -> Optional[ExtractionCheckpoint]:
+    """Load existing checkpoint if available."""
+    path = output_dir / CHECKPOINT_FILE
+    if path.exists():
+        with open(path) as f:
+            data = json.load(f)
+            return ExtractionCheckpoint.from_dict(data)
+    return None
