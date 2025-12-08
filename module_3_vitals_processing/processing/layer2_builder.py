@@ -1,5 +1,7 @@
 """Layer 2 Builder: Hourly aggregated grid with missing data tensors."""
 from typing import Dict, List
+import pandas as pd
+from processing.temporal_aligner import assign_hour_bucket
 
 # Hour range: -24 to +720 (745 hours total)
 HOUR_RANGE: List[int] = list(range(-24, 721))
@@ -31,3 +33,45 @@ LAYER2_PARQUET_SCHEMA: Dict[str, str] = {
     "count": "int32",
     "mask": "int8",  # 1=observed, 0=missing
 }
+
+
+def aggregate_to_hourly(df: pd.DataFrame) -> pd.DataFrame:
+    """Aggregate vitals to hourly buckets with statistics.
+
+    Args:
+        df: DataFrame with columns:
+            - EMPI: patient identifier
+            - hours_from_pe: float hours relative to PE
+            - vital_type: vital sign type
+            - value: measured value
+
+    Returns:
+        DataFrame with columns:
+            - EMPI: patient identifier
+            - hour_from_pe: integer hour bucket
+            - vital_type: vital sign type
+            - mean, median, std, min, max: statistics
+            - count: number of observations
+            - mask: 1 for all observed rows
+    """
+    # Assign hour buckets
+    df = df.copy()
+    df["hour_from_pe"] = df["hours_from_pe"].apply(assign_hour_bucket)
+
+    # Group by patient, hour bucket, and vital type
+    grouped = df.groupby(["EMPI", "hour_from_pe", "vital_type"])["value"]
+
+    # Calculate statistics
+    result = pd.DataFrame({
+        "mean": grouped.mean(),
+        "median": grouped.median(),
+        "std": grouped.std(),
+        "min": grouped.min(),
+        "max": grouped.max(),
+        "count": grouped.count(),
+    }).reset_index()
+
+    # Add mask column (1 for all observed rows)
+    result["mask"] = 1
+
+    return result

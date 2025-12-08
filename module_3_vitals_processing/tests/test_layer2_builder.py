@@ -36,3 +36,76 @@ class TestLayer2Schema:
         assert FORWARD_FILL_LIMITS["HR"] == 6
         assert FORWARD_FILL_LIMITS["SPO2"] == 4
         assert FORWARD_FILL_LIMITS["TEMP"] == 12
+
+
+class TestHourlyAggregation:
+    """Tests for hourly aggregation."""
+
+    def test_aggregate_to_hourly_single_value(self):
+        """Single value in hour produces correct stats."""
+        from processing.layer2_builder import aggregate_to_hourly
+
+        df = pd.DataFrame({
+            "EMPI": ["E001"],
+            "hours_from_pe": [0.5],  # Hour bucket 0
+            "vital_type": ["HR"],
+            "value": [72.0],
+        })
+
+        result = aggregate_to_hourly(df)
+
+        row = result[(result["EMPI"] == "E001") &
+                     (result["hour_from_pe"] == 0) &
+                     (result["vital_type"] == "HR")].iloc[0]
+
+        assert row["mean"] == 72.0
+        assert row["median"] == 72.0
+        assert pd.isna(row["std"])  # std undefined for n=1
+        assert row["min"] == 72.0
+        assert row["max"] == 72.0
+        assert row["count"] == 1
+        assert row["mask"] == 1
+
+    def test_aggregate_to_hourly_multiple_values(self):
+        """Multiple values in hour produce correct stats."""
+        from processing.layer2_builder import aggregate_to_hourly
+
+        df = pd.DataFrame({
+            "EMPI": ["E001", "E001", "E001"],
+            "hours_from_pe": [0.0, 0.3, 0.9],  # All in hour 0
+            "vital_type": ["HR", "HR", "HR"],
+            "value": [70.0, 72.0, 74.0],
+        })
+
+        result = aggregate_to_hourly(df)
+
+        row = result[(result["EMPI"] == "E001") &
+                     (result["hour_from_pe"] == 0) &
+                     (result["vital_type"] == "HR")].iloc[0]
+
+        assert row["mean"] == 72.0
+        assert row["median"] == 72.0
+        assert abs(row["std"] - 2.0) < 0.01
+        assert row["min"] == 70.0
+        assert row["max"] == 74.0
+        assert row["count"] == 3
+        assert row["mask"] == 1
+
+    def test_aggregate_to_hourly_separate_vitals(self):
+        """Different vitals aggregated separately."""
+        from processing.layer2_builder import aggregate_to_hourly
+
+        df = pd.DataFrame({
+            "EMPI": ["E001", "E001"],
+            "hours_from_pe": [0.5, 0.5],
+            "vital_type": ["HR", "SBP"],
+            "value": [72.0, 120.0],
+        })
+
+        result = aggregate_to_hourly(df)
+
+        hr_row = result[(result["vital_type"] == "HR")].iloc[0]
+        sbp_row = result[(result["vital_type"] == "SBP")].iloc[0]
+
+        assert hr_row["mean"] == 72.0
+        assert sbp_row["mean"] == 120.0
