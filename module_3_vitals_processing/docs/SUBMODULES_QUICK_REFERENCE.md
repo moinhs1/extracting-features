@@ -61,107 +61,117 @@
 
 ## Submodule Summary Table
 
-| ID | Name | Complexity | Est. Time | Can Run Parallel? |
-|----|------|-----------|-----------|-------------------|
-| 3.1 | Structured Extractor (Phy) | ⭐ | 2 days | ✅ Yes (with 3.2, 3.3) |
-| 3.2 | H&P NLP Extractor (Hnp) | ⭐⭐⭐⭐ | 5-7 days | ✅ Yes (with 3.1, 3.3) |
-| 3.3 | Progress NLP Extractor (Prg) | ⭐⭐⭐⭐⭐ | 7-10 days | ✅ Yes (with 3.1, 3.2) |
-| 3.4 | Vitals Harmonizer | ⭐⭐ | 2-3 days | ❌ No (needs 3.1-3.3) |
-| 3.5 | Unit Converter & QC | ⭐⭐ | 2-3 days | ❌ No (needs 3.4) |
-| 3.6 | Temporal Aligner | ⭐⭐⭐⭐ | 5-7 days | ❌ No (needs 3.5) |
-| 3.7 | Provenance Calculator | ⭐⭐⭐ | 4-5 days | ❌ No (needs 3.6) |
-| 3.8 | Feature Engineer | ⭐⭐⭐⭐ | 6-8 days | ❌ No (needs 3.7) |
-| 3.9 | Validation Framework | ⭐⭐⭐⭐ | 8-10 days | ❌ No (needs all) |
-| 3.10 | Orchestrator | ⭐⭐ | 3-4 days | ❌ No (coordinates all) |
+| ID | Name | Status | Tests | Complexity |
+|----|------|--------|-------|------------|
+| 3.1 | Structured Extractor (Phy) | ✅ COMPLETE | 39 | ⭐ |
+| 3.2 | H&P NLP Extractor (Hnp) | ✅ COMPLETE | 74 | ⭐⭐⭐⭐ |
+| 3.3 | Progress NLP Extractor (Prg) | ✅ COMPLETE | 61 | ⭐⭐⭐⭐⭐ |
+| 3.4 | Vitals Harmonizer | ⏳ Pending | - | ⭐⭐ |
+| 3.5 | Unit Converter & QC | ⏳ Pending | - | ⭐⭐ |
+| 3.6 | Temporal Aligner | ⏳ Pending | - | ⭐⭐⭐⭐ |
+| 3.7 | Provenance Calculator | ⏳ Pending | - | ⭐⭐⭐ |
+| 3.8 | Feature Engineer | ⏳ Pending | - | ⭐⭐⭐⭐ |
+| 3.9 | Validation Framework | ⏳ Pending | - | ⭐⭐⭐⭐ |
+| 3.10 | Orchestrator | ⏳ Pending | - | ⭐⭐ |
 
-**Total Duration:** 10 weeks (includes parallelization + 2-week buffer)
+**Total Tests:** 174 passing | **Last Updated:** 2025-12-08
 
 ---
 
 ## Submodule Details
 
-### 3.1 Structured Vitals Extractor (Phy.txt)
+### 3.1 Structured Vitals Extractor (Phy.txt) ✅ COMPLETE
 
-**File:** `extractors/phy_extractor.py`
+**File:** `extractors/phy_extractor.py` (265 lines)
 
 **Purpose:** Extract vitals from structured Phy.txt file
 
 **Inputs:**
-- `/home/moin/TDA_11_1/Data/FNR_20240409_091633_Phy.txt` (33M rows)
+- `Data/Phy.txt` (33M rows, 2.7GB)
 
 **Outputs:**
-- `outputs/discovery/phy_vitals_raw.parquet`
+- `outputs/discovery/phy_vitals_raw.parquet` (~8-9M records)
+
+**CLI:**
+```bash
+python3 -m module_3_vitals_processing.extractors.phy_extractor
+```
 
 **Key Functions:**
 - `load_phy_vitals()` - Load and filter for vital concepts
 - `parse_combined_bp()` - Parse "124/68" → (SBP=124, DBP=68)
 - `map_phy_concepts_to_canonical()` - "Pulse" → "HR"
 
-**Complexity:** ⭐ (1/5) - Straightforward
-
-**Dependencies:** None
-
-**Test File:** `tests/test_phy_extractor.py`
+**Test File:** `tests/test_phy_extractor.py` (39 tests)
 
 ---
 
-### 3.2 H&P NLP Extractor (Hnp.csv)
+### 3.2 H&P NLP Extractor (Hnp.txt) ✅ COMPLETE
 
-**File:** `extractors/hnp_nlp_extractor.py`
+**File:** `extractors/hnp_extractor.py` (662 lines)
 
 **Purpose:** Extract vitals from admission H&P notes using NLP
 
 **Inputs:**
-- `/home/moin/TDA_11_1/Data/Hnp.csv` (257K notes, 3.4 GB)
+- `Data/Hnp.txt` (136,950 notes, 2.3GB)
 
 **Outputs:**
-- `outputs/discovery/hnp_vitals_raw.parquet`
+- `outputs/discovery/hnp_vitals_raw.parquet` (~1.6M records)
+
+**CLI:**
+```bash
+python3 -m module_3_vitals_processing.extractors.hnp_extractor
+```
 
 **Key Functions:**
-- `identify_vitals_section()` - Find vital signs section in note
-- `extract_vitals_patterns()` - Multi-pattern regex matching
-- `validate_extraction_context()` - Negation & context checking
+- `identify_hnp_sections()` - Find vital signs sections in note
+- `extract_heart_rate()`, `extract_blood_pressure()`, etc. - Pattern matching
+- `check_negation()` - Context validation
 
-**Patterns Library:** `extractors/patterns.py`
-- HR_PATTERNS, BP_PATTERNS, TEMP_PATTERNS, RR_PATTERNS, SPO2_PATTERNS
+**Patterns Library:** `extractors/hnp_patterns.py` (29 patterns)
+- BP_PATTERNS, HR_PATTERNS, TEMP_PATTERNS, RR_PATTERNS, SPO2_PATTERNS
+- NEGATION_PATTERNS, SECTION_PATTERNS
 
-**Negation Handler:** `extractors/negation_handler.py`
-- Detect: "not obtained", "unable to", "refused"
-
-**Complexity:** ⭐⭐⭐⭐ (4/5) - Advanced NLP
-
-**Dependencies:** None (parallel to 3.1, 3.3)
-
-**Test File:** `tests/test_hnp_extractor.py`
+**Test Files:** `tests/test_hnp_extractor.py` (70 tests), `tests/test_hnp_patterns.py` (4 tests)
 
 ---
 
-### 3.3 Progress Notes NLP Extractor (Prg.csv)
+### 3.3 Progress Notes NLP Extractor (Prg.txt) ✅ COMPLETE
 
-**File:** `extractors/prg_nlp_extractor.py`
+**File:** `extractors/prg_extractor.py` (542 lines)
 
-**Purpose:** Extract vitals from progress notes with range/narrative handling
+**Purpose:** Extract vitals from progress notes with skip section filtering and checkpointing
 
 **Inputs:**
-- `/home/moin/TDA_11_1/Data/Prg.csv` (8.7M notes, 42 GB)
+- `Data/Prg.txt` (4.6M notes, 29.7GB)
 
 **Outputs:**
-- `outputs/discovery/prg_vitals_raw.parquet`
+- `outputs/discovery/prg_vitals_raw.parquet` (~2-5M records)
+
+**CLI:**
+```bash
+python3 -m module_3_vitals_processing.extractors.prg_extractor \
+  -w 8 -c 10000 --no-resume
+```
 
 **Key Functions:**
-- All functions from 3.2, PLUS:
-- `parse_vital_range()` - Handle "HR 70-85" → (min, mean, max)
-- `extract_from_narrative()` - "tachycardic" → HR~110
-- `extract_serial_vitals()` - Parse multiple measurements per note
+- `identify_prg_sections()` - Find Physical Exam/Vitals/Objective sections
+- `is_in_skip_section()` - Detect allergies/medications/history (false positive filtering)
+- `extract_temperature_with_method()` - Temp extraction with method capture (oral, temporal, etc.)
+- `extract_prg_vitals_from_text()` - Combined extraction with skip filtering
+- `save_checkpoint()`, `load_checkpoint()` - Resume capability for 30GB file
 
-**Additional Patterns:**
-- RANGE_PATTERNS, NARRATIVE_MAP
+**Patterns Library:** `extractors/prg_patterns.py` (43 patterns)
+- PRG_SECTION_PATTERNS (11), PRG_SKIP_PATTERNS (12)
+- PRG_BP_PATTERNS, PRG_HR_PATTERNS, PRG_SPO2_PATTERNS, PRG_RR_PATTERNS
+- PRG_TEMP_PATTERNS with TEMP_METHOD_MAP
 
-**Complexity:** ⭐⭐⭐⭐⭐ (5/5) - Most challenging
+**Special Features:**
+- Skip section filtering (allergies, medications, history)
+- Temperature method capture (oral, temporal, rectal, axillary, tympanic)
+- Checkpointing every 5 chunks (~50K rows) for resume capability
 
-**Dependencies:** None (parallel to 3.1, 3.2)
-
-**Test File:** `tests/test_prg_extractor.py`
+**Test Files:** `tests/test_prg_extractor.py` (34 tests), `tests/test_prg_patterns.py` (27 tests)
 
 ---
 

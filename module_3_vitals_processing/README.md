@@ -1,9 +1,28 @@
 # Module 3: Comprehensive Vitals Extraction & Processing
 
-**Version:** 1.0
-**Status:** Design Complete - Ready for Implementation
-**Timeline:** 10 weeks
+**Version:** 1.1
+**Status:** Submodules 3.1-3.3 COMPLETE | 3.4-3.10 Pending
+**Last Updated:** 2025-12-08
 **Dependencies:** Module 1 (patient_timelines.pkl)
+
+---
+
+## Current Implementation Status
+
+| Submodule | Status | Tests | Description |
+|-----------|--------|-------|-------------|
+| **3.1** | ✅ COMPLETE | 39 passing | Phy.txt structured extractor |
+| **3.2** | ✅ COMPLETE | 74 passing | Hnp NLP extractor (H&P notes) |
+| **3.3** | ✅ COMPLETE | 61 passing | Prg NLP extractor (Progress notes) |
+| **3.4** | ⏳ Pending | - | Vitals Harmonizer |
+| **3.5** | ⏳ Pending | - | Unit Converter & QC Filter |
+| **3.6** | ⏳ Pending | - | Temporal Aligner |
+| **3.7** | ⏳ Pending | - | Provenance Calculator |
+| **3.8** | ⏳ Pending | - | Feature Engineering |
+| **3.9** | ⏳ Pending | - | Validation Framework |
+| **3.10** | ⏳ Pending | - | Main Orchestrator |
+
+**Total Tests:** 174 passing
 
 ---
 
@@ -25,20 +44,60 @@ Module 3 extracts vital signs from **three complementary data sources** (structu
 
 ## Quick Start
 
+### Run Extraction (Current Implementation)
+
 ```bash
-# 1. Install dependencies
-pip install -r requirements.txt
+cd /home/moin/TDA_11_25
 
-# 2. Configure paths (edit config/vitals_config.yaml)
-vim config/vitals_config.yaml
+# 1. Run Phy extraction (structured vitals) - ~30 min
+python3 -m module_3_vitals_processing.extractors.phy_extractor
 
-# 3. Run full pipeline
+# 2. Run Hnp extraction (H&P notes) - ~1 hour
+python3 -m module_3_vitals_processing.extractors.hnp_extractor
+
+# 3. Run Prg extraction (progress notes) - 2-4 hours
+python3 -m module_3_vitals_processing.extractors.prg_extractor
+
+# 4. Run tests
+PYTHONPATH=/home/moin/TDA_11_25:$PYTHONPATH pytest module_3_vitals_processing/tests/ -v
+```
+
+### CLI Options
+
+```bash
+# Phy extractor options
+python3 -m module_3_vitals_processing.extractors.phy_extractor --help
+
+# Hnp extractor options
+python3 -m module_3_vitals_processing.extractors.hnp_extractor \
+  -i /path/to/Hnp.txt \
+  -o /path/to/output.parquet \
+  -w 8  # workers
+
+# Prg extractor options (with checkpointing)
+python3 -m module_3_vitals_processing.extractors.prg_extractor \
+  -i /path/to/Prg.txt \
+  -o /path/to/output.parquet \
+  -w 8 \
+  -c 10000 \  # chunk size
+  --no-resume  # start fresh, ignore checkpoint
+```
+
+### Expected Outputs
+
+| Extractor | Output File | Est. Records |
+|-----------|-------------|--------------|
+| Phy | `outputs/discovery/phy_vitals_raw.parquet` | ~8-9M |
+| Hnp | `outputs/discovery/hnp_vitals_raw.parquet` | ~1.6M |
+| Prg | `outputs/discovery/prg_vitals_raw.parquet` | ~2-5M |
+
+### Future: Full Pipeline (After 3.4-3.10)
+
+```bash
+# Run full pipeline (not yet implemented)
 python module_03_vitals_processing.py
 
-# 4. Check validation report
-open outputs/validation/validation_report.html
-
-# 5. Load final features
+# Load final features
 import h5py
 with h5py.File('outputs/features/vitals_features_final.h5', 'r') as f:
     patient_features = f['EMPI_12345']['ACUTE'][:]
@@ -50,9 +109,9 @@ with h5py.File('outputs/features/vitals_features_final.h5', 'r') as f:
 
 | Source | Type | Volume | Coverage | Clinical Context |
 |--------|------|--------|----------|------------------|
-| **Phy.txt** | Structured | 33M rows | Outpatient + inpatient | Baseline vitals, clinic visits |
-| **Hnp.csv** | Unstructured notes | 257K notes (3.4 GB) | ~80% contain vitals | **Admission vitals** (PE presentation) |
-| **Prg.csv** | Unstructured notes | 8.7M notes (42 GB) | ~35% contain vitals | Serial inpatient vitals (trajectory) |
+| **Phy.txt** | Structured | 33M rows (2.7GB) | Outpatient + inpatient | Baseline vitals, clinic visits |
+| **Hnp.txt** | Unstructured notes | 136,950 notes (2.3GB) | ~80% contain vitals | **Admission vitals** (PE presentation) |
+| **Prg.txt** | Unstructured notes | 4.6M notes (29.7GB) | ~35% contain vitals | Serial inpatient vitals (trajectory) |
 
 **Why all three?**
 - **Complementary coverage**: Each source fills gaps in the others
@@ -183,46 +242,50 @@ delta_index = HR - RR  # Negative suggests severe PE
 ```
 module_3_vitals_processing/
 ├── config/
-│   ├── vitals_config.yaml              # Main configuration
-│   ├── harmonization_map.json          # Concept mappings
-│   └── qc_thresholds.json              # QC thresholds per vital
+│   └── vitals_config.py                # Paths and constants
 ├── extractors/
-│   ├── phy_extractor.py                # Submodule 3.1
-│   ├── hnp_nlp_extractor.py            # Submodule 3.2
-│   ├── prg_nlp_extractor.py            # Submodule 3.3
-│   ├── patterns.py                     # Regex pattern library
-│   └── negation_handler.py             # Negation detection
-├── processing/
-│   ├── harmonizer.py                   # Submodule 3.4
-│   ├── unit_converter.py               # Submodule 3.5
-│   ├── qc_filter.py                    # Submodule 3.5
-│   ├── temporal_aligner.py             # Submodule 3.6
-│   ├── provenance_calculator.py        # Submodule 3.7
-│   └── feature_engineer.py             # Submodule 3.8
-├── validation/
-│   ├── cross_validator.py              # Tier 1
-│   ├── manual_review_sampler.py        # Tier 2
-│   ├── statistical_validator.py        # Tier 3
-│   ├── pattern_validator.py            # Tier 4
-│   └── report_generator.py             # HTML report
-├── utils/
-│   ├── io_utils.py                     # HDF5 I/O helpers
-│   ├── temporal_utils.py               # Datetime handling
-│   ├── logging_utils.py                # Logging configuration
-│   └── visualization_utils.py          # Plotting for reports
-├── tests/                              # Comprehensive test suite
+│   ├── phy_extractor.py                # Submodule 3.1 ✅ COMPLETE (265 lines)
+│   ├── hnp_extractor.py                # Submodule 3.2 ✅ COMPLETE (662 lines)
+│   ├── hnp_patterns.py                 # Hnp regex patterns (29 patterns)
+│   ├── prg_extractor.py                # Submodule 3.3 ✅ COMPLETE (542 lines)
+│   ├── prg_patterns.py                 # Prg regex patterns (43 patterns)
+│   └── __init__.py
+├── processing/                         # Submodules 3.4-3.8 (TBD)
+│   ├── harmonizer.py                   # Submodule 3.4 (planned)
+│   ├── unit_converter.py               # Submodule 3.5 (planned)
+│   ├── qc_filter.py                    # Submodule 3.5 (planned)
+│   ├── temporal_aligner.py             # Submodule 3.6 (planned)
+│   ├── provenance_calculator.py        # Submodule 3.7 (planned)
+│   └── feature_engineer.py             # Submodule 3.8 (planned)
+├── validation/                         # Submodule 3.9 (TBD)
+│   ├── cross_validator.py              # Tier 1 (planned)
+│   ├── manual_review_sampler.py        # Tier 2 (planned)
+│   ├── statistical_validator.py        # Tier 3 (planned)
+│   ├── pattern_validator.py            # Tier 4 (planned)
+│   └── report_generator.py             # HTML report (planned)
+├── tests/
+│   ├── test_phy_extractor.py           # ✅ 39 tests
+│   ├── test_hnp_extractor.py           # ✅ 70 tests
+│   ├── test_hnp_patterns.py            # ✅ 4 tests
+│   ├── test_prg_extractor.py           # ✅ 34 tests
+│   └── test_prg_patterns.py            # ✅ 27 tests
 ├── outputs/
-│   ├── discovery/                      # Intermediate outputs
-│   ├── features/                       # **Final features here**
-│   └── validation/                     # Validation report here
+│   └── discovery/                      # Extraction outputs
+│       ├── phy_vitals_raw.parquet      # From 3.1
+│       ├── hnp_vitals_raw.parquet      # From 3.2
+│       └── prg_vitals_raw.parquet      # From 3.3
 ├── docs/
-│   ├── ARCHITECTURE.md                 # Full technical design (~35 pages)
+│   ├── ARCHITECTURE.md                 # Full technical design
 │   ├── SUBMODULES_QUICK_REFERENCE.md   # Fast lookup guide
 │   ├── IMPLEMENTATION_ROADMAP.md       # Week-by-week plan
-│   ├── API.md                          # Function documentation (TBD)
-│   └── USER_GUIDE.md                   # Usage examples (TBD)
-├── module_03_vitals_processing.py      # Main entry point (Submodule 3.10)
-├── requirements.txt
+│   ├── BRAINSTORMING_SESSION_SUMMARY.md
+│   └── plans/                          # Implementation plans
+│       ├── 2025-11-25-submodule-3-1-phy-extractor.md
+│       ├── 2025-12-02-submodule-3-2-hnp-extractor-design.md
+│       ├── 2025-12-02-submodule-3-2-hnp-extractor.md
+│       ├── 2024-12-08-prg-nlp-extractor-design.md
+│       └── 2024-12-08-prg-nlp-extractor-implementation.md
+├── module_03_vitals_processing.py      # Main entry point (Submodule 3.10 - TBD)
 └── README.md                           # This file
 ```
 
@@ -541,12 +604,29 @@ If you use this module in published research, please cite:
 
 ## Changelog
 
+### Version 1.1 (2025-12-08)
+- **Submodule 3.3 COMPLETE:** Prg NLP extractor with checkpointing
+  - 61 tests, 542 lines of code
+  - Skip section filtering (allergies, medications, history)
+  - Temperature method capture (oral, temporal, rectal, etc.)
+  - Checkpoint/resume for 30GB file processing
+
+### Version 1.0.2 (2025-12-02)
+- **Submodule 3.2 COMPLETE:** Hnp NLP extractor
+  - 74 tests, 662 lines of code
+  - Section-aware extraction with negation handling
+  - Context validation and confidence scoring
+
+### Version 1.0.1 (2025-11-25)
+- **Submodule 3.1 COMPLETE:** Phy structured extractor
+  - 39 tests, 265 lines of code
+  - BP parsing, concept mapping, parallel processing
+
 ### Version 1.0 (2025-11-09)
 - Initial architecture design
 - 10 submodules defined
 - 4-tier validation framework
 - Comprehensive documentation
-- Ready for implementation
 
 ---
 
@@ -556,5 +636,5 @@ If you use this module in published research, please cite:
 
 ---
 
-**Status:** ✅ Design Complete - Ready for Implementation
-**Next Step:** Begin Week 1 (Submodule 3.1 - Phy.txt extraction)
+**Status:** ✅ Submodules 3.1-3.3 COMPLETE | ⏳ 3.4-3.10 Pending
+**Next Step:** Run extractions, then implement Submodule 3.4 (Vitals Harmonizer)
