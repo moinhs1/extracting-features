@@ -26,3 +26,67 @@ class TestLayer1Schema:
         valid_types = {"str", "datetime64[ns]", "float64", "bool"}
         for col, dtype in LAYER1_SCHEMA.items():
             assert dtype in valid_types, f"{col} has invalid type {dtype}"
+
+
+class TestNormalizePhy:
+    """Tests for PHY source normalization."""
+
+    def test_normalize_phy_adds_required_columns(self):
+        """PHY normalization adds all Layer 1 columns."""
+        from processing.layer1_builder import normalize_phy_source
+
+        # Minimal PHY-like dataframe
+        phy_df = pd.DataFrame({
+            "EMPI": ["E001", "E001"],
+            "timestamp": pd.to_datetime(["2023-06-15 10:00", "2023-06-15 11:00"]),
+            "vital_type": ["HR", "SBP"],
+            "value": [72.0, 120.0],
+            "units": ["bpm", "mmHg"],
+            "source": ["phy", "phy"],
+            "encounter_type": ["IP", "IP"],
+            "encounter_number": ["ENC001", "ENC001"],
+        })
+
+        result = normalize_phy_source(phy_df)
+
+        assert "source_detail" in result.columns
+        assert "confidence" in result.columns
+        assert "is_calculated" in result.columns
+        assert "is_flagged_abnormal" in result.columns
+        assert "report_number" in result.columns
+
+    def test_normalize_phy_sets_confidence_1(self):
+        """PHY source has confidence = 1.0 (structured data)."""
+        from processing.layer1_builder import normalize_phy_source
+
+        phy_df = pd.DataFrame({
+            "EMPI": ["E001"],
+            "timestamp": pd.to_datetime(["2023-06-15 10:00"]),
+            "vital_type": ["HR"],
+            "value": [72.0],
+            "units": ["bpm"],
+            "source": ["phy"],
+            "encounter_type": ["IP"],
+            "encounter_number": ["ENC001"],
+        })
+
+        result = normalize_phy_source(phy_df)
+        assert result["confidence"].iloc[0] == 1.0
+
+    def test_normalize_phy_maps_encounter_type_to_source_detail(self):
+        """encounter_type becomes source_detail."""
+        from processing.layer1_builder import normalize_phy_source
+
+        phy_df = pd.DataFrame({
+            "EMPI": ["E001"],
+            "timestamp": pd.to_datetime(["2023-06-15 10:00"]),
+            "vital_type": ["HR"],
+            "value": [72.0],
+            "units": ["bpm"],
+            "source": ["phy"],
+            "encounter_type": ["Inpatient"],
+            "encounter_number": ["ENC001"],
+        })
+
+        result = normalize_phy_source(phy_df)
+        assert result["source_detail"].iloc[0] == "Inpatient"
