@@ -59,3 +59,54 @@ def normalize_phy_source(df: pd.DataFrame) -> pd.DataFrame:
             result[col] = None
 
     return result[output_cols]
+
+
+def normalize_hnp_source(df: pd.DataFrame) -> pd.DataFrame:
+    """Normalize HNP extraction output to Layer 1 schema.
+
+    HNP data is extracted from H&P notes (admission vitals).
+
+    Args:
+        df: HNP vitals dataframe
+
+    Returns:
+        DataFrame with Layer 1 schema columns
+    """
+    result = df.copy()
+
+    # Map extraction_context to source_detail
+    result["source_detail"] = result.get("extraction_context", "")
+
+    # Confidence already exists from extraction
+    if "confidence" not in result.columns:
+        result["confidence"] = 0.8  # Default for NLP extraction
+
+    # NLP extractions are not calculated
+    result["is_calculated"] = False
+
+    # is_flagged_abnormal may already exist
+    if "is_flagged_abnormal" not in result.columns:
+        result["is_flagged_abnormal"] = False
+
+    # Select only Layer 1 columns
+    output_cols = list(LAYER1_SCHEMA.keys())
+    for col in output_cols:
+        if col not in result.columns:
+            result[col] = None
+
+    return result[output_cols]
+
+
+def normalize_prg_source(df: pd.DataFrame) -> pd.DataFrame:
+    """Normalize PRG extraction output to Layer 1 schema.
+
+    PRG data is extracted from Progress notes (serial inpatient vitals).
+
+    Args:
+        df: PRG vitals dataframe
+
+    Returns:
+        DataFrame with Layer 1 schema columns
+    """
+    # PRG has same structure as HNP (plus temp_method which we drop)
+    return normalize_hnp_source(df)

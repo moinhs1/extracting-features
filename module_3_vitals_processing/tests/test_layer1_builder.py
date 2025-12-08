@@ -90,3 +90,71 @@ class TestNormalizePhy:
 
         result = normalize_phy_source(phy_df)
         assert result["source_detail"].iloc[0] == "Inpatient"
+
+
+class TestNormalizeHnpPrg:
+    """Tests for HNP/PRG source normalization."""
+
+    def test_normalize_hnp_preserves_confidence(self):
+        """HNP normalization preserves extraction confidence."""
+        from processing.layer1_builder import normalize_hnp_source
+
+        hnp_df = pd.DataFrame({
+            "EMPI": ["E001"],
+            "timestamp": pd.to_datetime(["2023-06-15 10:00"]),
+            "vital_type": ["HR"],
+            "value": [72.0],
+            "units": ["bpm"],
+            "source": ["hnp"],
+            "extraction_context": ["vital_signs_section"],
+            "confidence": [0.85],
+            "is_flagged_abnormal": [False],
+            "report_number": ["RPT001"],
+            "report_date_time": pd.to_datetime(["2023-06-15 09:00"]),
+        })
+
+        result = normalize_hnp_source(hnp_df)
+        assert result["confidence"].iloc[0] == 0.85
+
+    def test_normalize_hnp_maps_extraction_context_to_source_detail(self):
+        """extraction_context becomes source_detail."""
+        from processing.layer1_builder import normalize_hnp_source
+
+        hnp_df = pd.DataFrame({
+            "EMPI": ["E001"],
+            "timestamp": pd.to_datetime(["2023-06-15 10:00"]),
+            "vital_type": ["HR"],
+            "value": [72.0],
+            "units": ["bpm"],
+            "source": ["hnp"],
+            "extraction_context": ["vital_signs_section"],
+            "confidence": [0.85],
+            "is_flagged_abnormal": [False],
+            "report_number": ["RPT001"],
+            "report_date_time": pd.to_datetime(["2023-06-15 09:00"]),
+        })
+
+        result = normalize_hnp_source(hnp_df)
+        assert result["source_detail"].iloc[0] == "vital_signs_section"
+
+    def test_normalize_prg_preserves_confidence(self):
+        """PRG normalization preserves extraction confidence."""
+        from processing.layer1_builder import normalize_prg_source
+
+        prg_df = pd.DataFrame({
+            "EMPI": ["E001"],
+            "timestamp": pd.to_datetime(["2023-06-15 10:00"]),
+            "vital_type": ["HR"],
+            "value": [72.0],
+            "units": ["bpm"],
+            "source": ["prg"],
+            "extraction_context": ["vital_signs_table"],
+            "confidence": [0.9],
+            "is_flagged_abnormal": [False],
+            "report_number": ["RPT002"],
+            "report_date_time": pd.to_datetime(["2023-06-15 09:00"]),
+            "temp_method": [None],
+        })
+
+        result = normalize_prg_source(prg_df)
+        assert result["confidence"].iloc[0] == 0.9
