@@ -1,0 +1,456 @@
+# Dose Parsing Patterns for RPDR Medication Strings
+# Used by dose_parser.py for regex-based extraction
+
+# =============================================================================
+# DOSE VALUE PATTERNS
+# =============================================================================
+dose_patterns:
+  # Standard numeric dose with unit
+  standard:
+    pattern: '(\d+(?:\.\d+)?)\s*(mg|mcg|g|ml|l|unit|units|meq|mmol|iu)'
+    flags: "IGNORECASE"
+    groups:
+      value: 1
+      unit: 2
+
+  # Dose range (e.g., "5-10 mg")
+  range:
+    pattern: '(\d+(?:\.\d+)?)\s*[-–]\s*(\d+(?:\.\d+)?)\s*(mg|mcg|g|ml|unit|units|meq|mmol)'
+    flags: "IGNORECASE"
+    groups:
+      value_low: 1
+      value_high: 2
+      unit: 3
+    aggregation: "use_high"
+
+  # Concentration format (e.g., "5mg/ml", "1000 units/ml")
+  concentration:
+    pattern: '(\d+(?:\.\d+)?)\s*(mg|mcg|g|unit|units)\s*/\s*(ml|l)'
+    flags: "IGNORECASE"
+    groups:
+      value: 1
+      unit: 2
+      volume_unit: 3
+
+  # Volume with concentration (e.g., "100 mg/10 ml")
+  volume_concentration:
+    pattern: '(\d+(?:\.\d+)?)\s*(mg|mcg|g|unit|units)\s*/\s*(\d+(?:\.\d+)?)\s*(ml|l)'
+    flags: "IGNORECASE"
+    groups:
+      total_value: 1
+      unit: 2
+      volume: 3
+      volume_unit: 4
+    compute: "total_value / volume"
+
+  # Percentage (e.g., "0.9%", "5%")
+  percentage:
+    pattern: '(\d+(?:\.\d+)?)\s*%'
+    groups:
+      value: 1
+    unit: "percent"
+
+  # Ratio format (e.g., "1:200000" for epinephrine)
+  ratio:
+    pattern: '1\s*:\s*(\d+)'
+    groups:
+      denominator: 1
+    note: "Typically for dilutions like epinephrine 1:1000"
+
+# =============================================================================
+# UNIT NORMALIZATION
+# =============================================================================
+unit_normalization:
+  mg:
+    canonical: "mg"
+    aliases: ["mg", "milligram", "milligrams", "mgs"]
+
+  mcg:
+    canonical: "mcg"
+    aliases: ["mcg", "ug", "microgram", "micrograms", "μg"]
+
+  g:
+    canonical: "g"
+    aliases: ["g", "gm", "gram", "grams", "gms"]
+
+  ml:
+    canonical: "ml"
+    aliases: ["ml", "milliliter", "milliliters", "mls", "cc"]
+
+  l:
+    canonical: "l"
+    aliases: ["l", "liter", "liters", "L"]
+
+  units:
+    canonical: "units"
+    aliases: ["unit", "units", "u", "iu", "international unit", "international units"]
+
+  meq:
+    canonical: "meq"
+    aliases: ["meq", "milliequivalent", "milliequivalents"]
+
+  mmol:
+    canonical: "mmol"
+    aliases: ["mmol", "millimole", "millimoles"]
+
+# =============================================================================
+# ROUTE PATTERNS
+# =============================================================================
+route_patterns:
+  IV:
+    canonical: "IV"
+    patterns:
+      - 'intravenous'
+      - '\biv\b'
+      - '\bi\.v\.'
+      - 'ivpb'
+      - 'iv push'
+      - 'iv infusion'
+      - 'infusion'
+
+  PO:
+    canonical: "PO"
+    patterns:
+      - 'oral'
+      - '\bpo\b'
+      - '\bp\.o\.'
+      - 'by mouth'
+      - 'tablet'
+      - 'capsule'
+      - 'solution oral'
+
+  SC:
+    canonical: "SC"
+    patterns:
+      - 'subcutaneous'
+      - '\bsc\b'
+      - '\bs\.c\.'
+      - '\bsq\b'
+      - '\bsubq\b'
+      - 'subcut'
+
+  IM:
+    canonical: "IM"
+    patterns:
+      - 'intramuscular'
+      - '\bim\b'
+      - '\bi\.m\.'
+
+  topical:
+    canonical: "topical"
+    patterns:
+      - 'topical'
+      - 'cream'
+      - 'ointment'
+      - 'gel'
+      - 'lotion'
+      - 'patch'
+
+  inhaled:
+    canonical: "inhaled"
+    patterns:
+      - 'inhaled'
+      - 'inhalation'
+      - 'nebulized'
+      - 'nebulizer'
+      - 'inhaler'
+      - 'mdi'
+      - 'hfa'
+
+  ophthalmic:
+    canonical: "ophthalmic"
+    patterns:
+      - 'ophthalmic'
+      - 'eye drop'
+      - 'eye drops'
+
+  nasal:
+    canonical: "nasal"
+    patterns:
+      - 'nasal'
+      - 'intranasal'
+      - 'nose spray'
+
+  rectal:
+    canonical: "rectal"
+    patterns:
+      - 'rectal'
+      - 'suppository'
+      - '\bpr\b'
+
+# =============================================================================
+# FREQUENCY PATTERNS
+# =============================================================================
+frequency_patterns:
+  QD:
+    canonical: "QD"
+    patterns:
+      - '\bqd\b'
+      - '\bq\.d\.'
+      - 'once daily'
+      - 'daily'
+      - 'every day'
+      - 'q24h'
+      - 'q 24 h'
+    times_per_day: 1
+    typical_hours: [9]
+
+  BID:
+    canonical: "BID"
+    patterns:
+      - '\bbid\b'
+      - '\bb\.i\.d\.'
+      - 'twice daily'
+      - 'two times daily'
+      - 'q12h'
+      - 'q 12 h'
+      - 'every 12 hours'
+    times_per_day: 2
+    typical_hours: [9, 21]
+
+  TID:
+    canonical: "TID"
+    patterns:
+      - '\btid\b'
+      - '\bt\.i\.d\.'
+      - 'three times daily'
+      - 'q8h'
+      - 'q 8 h'
+      - 'every 8 hours'
+    times_per_day: 3
+    typical_hours: [8, 14, 20]
+
+  QID:
+    canonical: "QID"
+    patterns:
+      - '\bqid\b'
+      - '\bq\.i\.d\.'
+      - 'four times daily'
+      - 'q6h'
+      - 'q 6 h'
+      - 'every 6 hours'
+    times_per_day: 4
+    typical_hours: [0, 6, 12, 18]
+
+  Q4H:
+    canonical: "Q4H"
+    patterns:
+      - 'q4h'
+      - 'q 4 h'
+      - 'every 4 hours'
+    times_per_day: 6
+    typical_hours: [0, 4, 8, 12, 16, 20]
+
+  Q8H:
+    canonical: "Q8H"
+    patterns:
+      - 'q8h'
+      - 'q 8 h'
+      - 'every 8 hours'
+    times_per_day: 3
+    typical_hours: [6, 14, 22]
+
+  PRN:
+    canonical: "PRN"
+    patterns:
+      - '\bprn\b'
+      - '\bp\.r\.n\.'
+      - 'as needed'
+      - 'as required'
+    times_per_day: null  # Variable
+    typical_hours: null
+
+  continuous:
+    canonical: "continuous"
+    patterns:
+      - 'continuous'
+      - 'infusion'
+      - 'drip'
+      - 'gtt'
+    times_per_day: null  # Continuous
+    typical_hours: null
+
+# =============================================================================
+# MEDICATION NAME EXTRACTION
+# =============================================================================
+name_extraction:
+  # Stop words to remove from medication names
+  stop_words:
+    - "injection"
+    - "solution"
+    - "tablet"
+    - "capsule"
+    - "vial"
+    - "syringe"
+    - "ampul"
+    - "bottle"
+    - "bag"
+    - "pack"
+    - "blist"
+    - "blister"
+    - "disp"
+    - "disposable"
+    - "prefilled"
+    - "pf"
+    - "preservative free"
+    - "ea"
+    - "each"
+
+  # Formulation suffixes to strip
+  formulation_suffixes:
+    - "hcl"
+    - "hydrochloride"
+    - "sodium"
+    - "potassium"
+    - "sulfate"
+    - "acetate"
+    - "phosphate"
+    - "citrate"
+    - "tartrate"
+    - "maleate"
+    - "besylate"
+    - "mesylate"
+    - "succinate"
+    - "fumarate"
+    - "bitartrate"
+    - "porcine"
+    - "bovine"
+    - "recombinant"
+
+  # Brand to generic mappings (common ones)
+  brand_generic:
+    coumadin: "warfarin"
+    lovenox: "enoxaparin"
+    xarelto: "rivaroxaban"
+    eliquis: "apixaban"
+    pradaxa: "dabigatran"
+    lasix: "furosemide"
+    levophed: "norepinephrine"
+    precedex: "dexmedetomidine"
+    diprivan: "propofol"
+    zofran: "ondansetron"
+    protonix: "pantoprazole"
+    prilosec: "omeprazole"
+    tylenol: "acetaminophen"
+    advil: "ibuprofen"
+    motrin: "ibuprofen"
+    ativan: "lorazepam"
+    versed: "midazolam"
+    dilaudid: "hydromorphone"
+    morphine: "morphine"
+    lanoxin: "digoxin"
+    lopressor: "metoprolol"
+    coreg: "carvedilol"
+    norvasc: "amlodipine"
+    cardizem: "diltiazem"
+    ancef: "cefazolin"
+    rocephin: "ceftriaxone"
+    zosyn: "piperacillin-tazobactam"
+    flagyl: "metronidazole"
+
+# =============================================================================
+# WHO DDD (Defined Daily Dose) VALUES
+# =============================================================================
+# Reference: WHO ATC/DDD Index
+# https://www.whocc.no/atc_ddd_index/
+ddd_values:
+  # Anticoagulants
+  heparin:
+    ddd: 10000
+    unit: "units"
+    route: "parenteral"
+  enoxaparin:
+    ddd: 2000
+    unit: "anti-Xa units"
+    note: "~20mg therapeutic"
+  warfarin:
+    ddd: 7.5
+    unit: "mg"
+    route: "oral"
+  rivaroxaban:
+    ddd: 20
+    unit: "mg"
+    route: "oral"
+  apixaban:
+    ddd: 10
+    unit: "mg"
+    route: "oral"
+  dabigatran:
+    ddd: 300
+    unit: "mg"
+    route: "oral"
+
+  # Vasopressors (variable, use mcg/kg/min for intensity)
+  norepinephrine:
+    ddd: null
+    intensity_unit: "mcg/kg/min"
+    typical_range: [0.01, 3.0]
+  vasopressin:
+    ddd: null
+    intensity_unit: "units/min"
+    typical_range: [0.01, 0.04]
+  epinephrine:
+    ddd: null
+    intensity_unit: "mcg/kg/min"
+    typical_range: [0.01, 0.5]
+
+  # Common medications
+  furosemide:
+    ddd: 40
+    unit: "mg"
+    route: "oral/parenteral"
+  metoprolol:
+    ddd: 150
+    unit: "mg"
+    route: "oral"
+  amlodipine:
+    ddd: 5
+    unit: "mg"
+  lisinopril:
+    ddd: 10
+    unit: "mg"
+  omeprazole:
+    ddd: 20
+    unit: "mg"
+  morphine:
+    ddd: 100
+    unit: "mg"
+    route: "oral"
+    note: "30mg parenteral equivalent"
+  fentanyl:
+    ddd: 0.6
+    unit: "mg"
+    route: "parenteral"
+  vancomycin:
+    ddd: 2000
+    unit: "mg"
+    route: "parenteral"
+  insulin:
+    ddd: 40
+    unit: "units"
+    note: "highly variable"
+
+# =============================================================================
+# PARSING CONFIDENCE THRESHOLDS
+# =============================================================================
+confidence_thresholds:
+  high: 0.9    # Clear match, standard format
+  medium: 0.7  # Partial match, some ambiguity
+  low: 0.5     # Fallback parse, needs review
+  failed: 0.0  # Could not parse
+
+# =============================================================================
+# LLM FALLBACK PROMPT TEMPLATE
+# =============================================================================
+llm_prompt_template: |
+  Extract medication information from the following pharmacy string.
+  Return a JSON object with these fields:
+  - drug_name: The generic drug name (lowercase)
+  - dose_value: Numeric dose value (float)
+  - dose_unit: Unit of dose (mg, mcg, units, ml, etc.)
+  - route: Route of administration (PO, IV, SC, IM, topical, inhaled, or null)
+  - frequency: Dosing frequency (QD, BID, TID, QID, PRN, or null)
+
+  Pharmacy string: "{medication_string}"
+
+  JSON response:

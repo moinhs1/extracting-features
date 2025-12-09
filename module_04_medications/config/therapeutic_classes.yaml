@@ -1,0 +1,560 @@
+# Therapeutic Class Definitions for PE Trajectory Analysis
+# Total: 53 classes organized by clinical category
+
+# =============================================================================
+# PE-CRITICAL ANTICOAGULANTS (9 classes, fine granularity)
+# =============================================================================
+anticoagulants:
+  ac_ufh_ther:
+    name: "UFH Therapeutic"
+    ingredients:
+      - heparin
+      - heparin sodium
+    dose_threshold:
+      type: "greater_than"
+      value: 10000
+      unit: "units/day"
+      alt_condition: "infusion"
+    routes: ["IV", "infusion"]
+
+  ac_ufh_proph:
+    name: "UFH Prophylactic"
+    ingredients:
+      - heparin
+      - heparin sodium
+    dose_threshold:
+      type: "less_equal"
+      value: 10000
+      unit: "units/day"
+    routes: ["SC", "subcutaneous"]
+
+  ac_lmwh_ther:
+    name: "LMWH Therapeutic"
+    ingredients:
+      - enoxaparin
+      - dalteparin
+      - tinzaparin
+      - nadroparin
+    dose_threshold:
+      type: "weight_based"
+      value: 1.0
+      unit: "mg/kg"
+      alt_condition: "BID dosing"
+
+  ac_lmwh_proph:
+    name: "LMWH Prophylactic"
+    ingredients:
+      - enoxaparin
+      - dalteparin
+      - tinzaparin
+      - nadroparin
+    dose_threshold:
+      type: "fixed_low"
+      enoxaparin_max: 40
+      dalteparin_max: 5000
+      unit: "mg or units"
+
+  ac_fondaparinux:
+    name: "Fondaparinux"
+    ingredients:
+      - fondaparinux
+    dose_threshold: null  # Any dose
+
+  ac_xa_inhibitor:
+    name: "Direct Factor Xa Inhibitors"
+    ingredients:
+      - rivaroxaban
+      - apixaban
+      - edoxaban
+      - betrixaban
+    dose_threshold: null
+
+  ac_dti:
+    name: "Direct Thrombin Inhibitors"
+    ingredients:
+      - dabigatran
+      - argatroban
+      - bivalirudin
+    dose_threshold: null
+
+  ac_vka:
+    name: "Vitamin K Antagonists"
+    ingredients:
+      - warfarin
+      - coumadin
+    dose_threshold: null
+
+  ac_thrombolytic:
+    name: "Thrombolytics"
+    ingredients:
+      - alteplase
+      - tenecteplase
+      - reteplase
+      - streptokinase
+      - urokinase
+      - tissue plasminogen activator
+      - tPA
+    dose_threshold: null
+
+# =============================================================================
+# CARDIOVASCULAR - VASOPRESSORS (6 classes, expanded)
+# =============================================================================
+vasopressors:
+  cv_norepinephrine:
+    name: "Norepinephrine"
+    ingredients:
+      - norepinephrine
+      - levophed
+    routes: ["IV", "infusion"]
+
+  cv_epinephrine:
+    name: "Epinephrine (IV/Infusion)"
+    ingredients:
+      - epinephrine
+      - adrenaline
+    routes: ["IV", "infusion"]
+    exclude_routes: ["SC", "IM", "topical", "inhaled"]
+
+  cv_vasopressin:
+    name: "Vasopressin"
+    ingredients:
+      - vasopressin
+      - pitressin
+    routes: ["IV", "infusion"]
+
+  cv_phenylephrine:
+    name: "Phenylephrine (IV)"
+    ingredients:
+      - phenylephrine
+      - neo-synephrine
+    routes: ["IV", "infusion"]
+    exclude_routes: ["topical", "nasal", "ophthalmic"]
+
+  cv_dopamine:
+    name: "Dopamine"
+    ingredients:
+      - dopamine
+    routes: ["IV", "infusion"]
+
+  cv_vasopressor_any:
+    name: "Any Vasopressor"
+    union_of:
+      - cv_norepinephrine
+      - cv_epinephrine
+      - cv_vasopressin
+      - cv_phenylephrine
+      - cv_dopamine
+
+# =============================================================================
+# CARDIOVASCULAR - INOTROPES (4 classes)
+# =============================================================================
+inotropes:
+  cv_dobutamine:
+    name: "Dobutamine"
+    ingredients:
+      - dobutamine
+
+  cv_milrinone:
+    name: "Milrinone"
+    ingredients:
+      - milrinone
+      - primacor
+
+  cv_digoxin:
+    name: "Digoxin"
+    ingredients:
+      - digoxin
+      - digitalis
+      - lanoxin
+
+  cv_inotrope_any:
+    name: "Any Inotrope"
+    union_of:
+      - cv_dobutamine
+      - cv_milrinone
+      - cv_digoxin
+
+# =============================================================================
+# CARDIOVASCULAR - OTHER (8 classes)
+# =============================================================================
+cardiovascular_other:
+  cv_beta_blocker:
+    name: "Beta Blockers"
+    ingredients:
+      - metoprolol
+      - carvedilol
+      - atenolol
+      - propranolol
+      - bisoprolol
+      - labetalol
+      - esmolol
+      - nadolol
+      - nebivolol
+
+  cv_ace_arb:
+    name: "ACE-I / ARBs"
+    ingredients:
+      - lisinopril
+      - enalapril
+      - ramipril
+      - captopril
+      - benazepril
+      - losartan
+      - valsartan
+      - irbesartan
+      - olmesartan
+      - candesartan
+      - telmisartan
+
+  cv_ccb:
+    name: "Calcium Channel Blockers"
+    ingredients:
+      - amlodipine
+      - diltiazem
+      - verapamil
+      - nifedipine
+      - nicardipine
+      - clevidipine
+
+  cv_diuretic_loop:
+    name: "Loop Diuretics"
+    ingredients:
+      - furosemide
+      - lasix
+      - bumetanide
+      - torsemide
+      - ethacrynic acid
+
+  cv_diuretic_thiazide:
+    name: "Thiazide Diuretics"
+    ingredients:
+      - hydrochlorothiazide
+      - chlorthalidone
+      - metolazone
+      - indapamide
+
+  cv_diuretic_potassium:
+    name: "K-Sparing Diuretics"
+    ingredients:
+      - spironolactone
+      - eplerenone
+      - amiloride
+      - triamterene
+
+  cv_antiarrhythmic:
+    name: "Antiarrhythmics"
+    ingredients:
+      - amiodarone
+      - lidocaine
+      - flecainide
+      - propafenone
+      - sotalol
+      - dofetilide
+      - dronedarone
+      - procainamide
+      - quinidine
+
+  cv_nitrate:
+    name: "Nitrates"
+    ingredients:
+      - nitroglycerin
+      - isosorbide
+      - nitroprusside
+
+# =============================================================================
+# ANTI-INFLAMMATORY (4 classes)
+# =============================================================================
+anti_inflammatory:
+  ai_steroid_systemic:
+    name: "Systemic Corticosteroids"
+    ingredients:
+      - prednisone
+      - prednisolone
+      - methylprednisolone
+      - dexamethasone
+      - hydrocortisone
+      - cortisone
+      - triamcinolone
+      - betamethasone
+    routes: ["PO", "IV", "IM", "oral", "intravenous"]
+
+  ai_steroid_iv:
+    name: "IV Corticosteroids"
+    ingredients:
+      - methylprednisolone
+      - dexamethasone
+      - hydrocortisone
+    routes: ["IV", "intravenous"]
+
+  ai_steroid_inhaled:
+    name: "Inhaled Corticosteroids"
+    ingredients:
+      - fluticasone
+      - budesonide
+      - beclomethasone
+      - mometasone
+      - ciclesonide
+    routes: ["inhaled", "inhalation", "nebulized"]
+
+  ai_nsaid:
+    name: "NSAIDs"
+    ingredients:
+      - ibuprofen
+      - ketorolac
+      - naproxen
+      - diclofenac
+      - indomethacin
+      - meloxicam
+      - celecoxib
+      - piroxicam
+
+# =============================================================================
+# PAIN & SEDATION (4 classes)
+# =============================================================================
+pain_sedation:
+  ps_opioid:
+    name: "Opioids"
+    ingredients:
+      - morphine
+      - fentanyl
+      - hydromorphone
+      - oxycodone
+      - hydrocodone
+      - methadone
+      - meperidine
+      - codeine
+      - tramadol
+      - buprenorphine
+      - sufentanil
+      - remifentanil
+
+  ps_acetaminophen:
+    name: "Acetaminophen"
+    ingredients:
+      - acetaminophen
+      - paracetamol
+      - tylenol
+
+  ps_benzodiazepine:
+    name: "Benzodiazepines"
+    ingredients:
+      - midazolam
+      - lorazepam
+      - diazepam
+      - alprazolam
+      - clonazepam
+      - temazepam
+      - triazolam
+
+  ps_sedative_other:
+    name: "Other Sedatives"
+    ingredients:
+      - propofol
+      - dexmedetomidine
+      - ketamine
+      - etomidate
+      - precedex
+
+# =============================================================================
+# ANTI-INFECTIVES (4 classes)
+# =============================================================================
+anti_infectives:
+  ai_antibiotic:
+    name: "Antibiotics"
+    ingredients:
+      - cefazolin
+      - ceftriaxone
+      - cefepime
+      - vancomycin
+      - piperacillin
+      - ampicillin
+      - amoxicillin
+      - azithromycin
+      - levofloxacin
+      - ciprofloxacin
+      - metronidazole
+      - doxycycline
+      - clindamycin
+      - gentamicin
+      - tobramycin
+
+  ai_antiviral:
+    name: "Antivirals"
+    ingredients:
+      - acyclovir
+      - valacyclovir
+      - oseltamivir
+      - remdesivir
+      - ganciclovir
+
+  ai_antifungal:
+    name: "Antifungals"
+    ingredients:
+      - fluconazole
+      - micafungin
+      - caspofungin
+      - voriconazole
+      - amphotericin
+      - anidulafungin
+
+  ai_antibiotic_broad:
+    name: "Broad-Spectrum Antibiotics"
+    ingredients:
+      - meropenem
+      - imipenem
+      - ertapenem
+      - piperacillin-tazobactam
+      - cefepime
+      - vancomycin
+      - linezolid
+      - daptomycin
+
+# =============================================================================
+# HEMATOLOGIC (4 classes)
+# =============================================================================
+hematologic:
+  hm_antiplatelet:
+    name: "Antiplatelets"
+    ingredients:
+      - aspirin
+      - clopidogrel
+      - ticagrelor
+      - prasugrel
+      - dipyridamole
+      - ticlopidine
+      - cangrelor
+
+  hm_reversal_heparin:
+    name: "Heparin Reversal"
+    ingredients:
+      - protamine
+
+  hm_reversal_xa:
+    name: "Xa Inhibitor Reversal"
+    ingredients:
+      - andexanet alfa
+      - andexxa
+
+  hm_reversal_dti:
+    name: "DTI Reversal"
+    ingredients:
+      - idarucizumab
+      - praxbind
+
+# =============================================================================
+# GI & METABOLIC (5 classes)
+# =============================================================================
+gi_metabolic:
+  gi_ppi:
+    name: "PPIs"
+    ingredients:
+      - omeprazole
+      - pantoprazole
+      - esomeprazole
+      - lansoprazole
+      - rabeprazole
+
+  gi_antiemetic:
+    name: "Antiemetics"
+    ingredients:
+      - ondansetron
+      - metoclopramide
+      - prochlorperazine
+      - promethazine
+      - granisetron
+      - aprepitant
+
+  gi_laxative:
+    name: "Laxatives"
+    ingredients:
+      - docusate
+      - senna
+      - sennosides
+      - bisacodyl
+      - polyethylene glycol
+      - lactulose
+      - magnesium citrate
+
+  met_insulin:
+    name: "Insulin"
+    ingredients:
+      - insulin regular
+      - insulin lispro
+      - insulin aspart
+      - insulin glargine
+      - insulin detemir
+      - insulin degludec
+      - insulin NPH
+
+  met_oral_hypoglycemic:
+    name: "Oral Hypoglycemics"
+    ingredients:
+      - metformin
+      - glipizide
+      - glyburide
+      - glimepiride
+      - sitagliptin
+      - empagliflozin
+      - dapagliflozin
+      - pioglitazone
+
+# =============================================================================
+# RESPIRATORY (2 classes)
+# =============================================================================
+respiratory:
+  resp_bronchodilator:
+    name: "Bronchodilators"
+    ingredients:
+      - albuterol
+      - ipratropium
+      - tiotropium
+      - formoterol
+      - salmeterol
+      - levalbuterol
+      - theophylline
+
+  resp_neuromuscular:
+    name: "Neuromuscular Blockers"
+    ingredients:
+      - rocuronium
+      - cisatracurium
+      - vecuronium
+      - atracurium
+      - succinylcholine
+      - pancuronium
+
+# =============================================================================
+# ICU-SPECIFIC (3 classes)
+# =============================================================================
+icu_specific:
+  icu_stress_ulcer:
+    name: "Stress Ulcer Prophylaxis"
+    ingredients:
+      - famotidine
+      - ranitidine
+      - pantoprazole
+    routes: ["IV", "intravenous"]
+    context: "ICU setting"
+
+  icu_dvt_proph:
+    name: "DVT Prophylaxis"
+    ingredients:
+      - heparin
+      - enoxaparin
+    dose_threshold:
+      heparin_max: 5000
+      heparin_unit: "units"
+      enoxaparin_max: 40
+      enoxaparin_unit: "mg"
+    routes: ["SC", "subcutaneous"]
+
+  icu_electrolyte:
+    name: "IV Electrolytes"
+    ingredients:
+      - potassium chloride
+      - magnesium sulfate
+      - calcium gluconate
+      - calcium chloride
+      - sodium bicarbonate
+      - phosphate
+    routes: ["IV", "intravenous"]
