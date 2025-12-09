@@ -78,3 +78,49 @@ HOURLY_TENSORS_PATH = LAYER2_OUTPUT_DIR / 'hourly_tensors.h5'
 WINDOW_MIN_HOURS = -24   # 24 hours before PE
 WINDOW_MAX_HOURS = 720   # 30 days after PE
 TOTAL_HOURS = 745        # Total hours in window
+
+# Layer 3 outputs
+TIMESERIES_FEATURES_PATH = LAYER3_OUTPUT_DIR / 'timeseries_features.parquet'
+SUMMARY_FEATURES_PATH = LAYER3_OUTPUT_DIR / 'summary_features.parquet'
+
+# Layer 3 constants
+ROLLING_WINDOWS = [6, 12, 24]  # hours
+
+# Vitals including composites
+LAYER3_VITALS = ['HR', 'SBP', 'DBP', 'MAP', 'RR', 'SPO2', 'TEMP', 'shock_index', 'pulse_pressure']
+
+# Summary windows (hours from PE)
+SUMMARY_WINDOWS = {
+    'pre': (-24, 0),       # Pre-PE baseline
+    'acute': (0, 24),      # Acute phase
+    'early': (24, 72),     # Early treatment response
+    'stab': (72, 168),     # Stabilization (days 3-7)
+    'recov': (168, 720),   # Recovery (days 7-30)
+}
+
+# Clinical thresholds for abnormal detection
+CLINICAL_THRESHOLDS = {
+    'tachycardia': ('HR', '>', 100),
+    'bradycardia': ('HR', '<', 60),
+    'hypotension': ('SBP', '<', 90),
+    'hypertension': ('SBP', '>', 180),
+    'hypoxemia': ('SPO2', '<', 92),
+    'tachypnea': ('RR', '>', 24),
+    'shock': ('MAP', '<', 65),
+    'fever': ('TEMP', '>', 38.5),
+    'hypothermia': ('TEMP', '<', 36),
+    'high_shock_index': ('shock_index', '>', 0.9),
+}
+
+# Direction definitions (what "improving" means for each vital)
+IMPROVING_DIRECTION = {
+    'HR': 'toward_normal',      # Decreasing if >100, increasing if <60
+    'SBP': 'increasing',        # Higher is better (away from hypotension)
+    'DBP': 'stable',            # Stability preferred
+    'MAP': 'increasing',        # Higher is better (>65 target)
+    'RR': 'toward_normal',      # Decreasing if >20, increasing if <12
+    'SPO2': 'increasing',       # Higher is always better
+    'TEMP': 'toward_normal',    # Moving toward 37°C
+    'shock_index': 'decreasing', # Lower is better (<0.7 target)
+    'pulse_pressure': 'increasing',  # Wider is better (better cardiac output)
+}
