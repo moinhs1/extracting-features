@@ -1,17 +1,18 @@
-# TDA 11.1 - Temporal Data Analysis Pipeline
+# PE Trajectory Pipeline - Temporal Data Analysis
 
-A comprehensive clinical data processing pipeline for temporal analysis of patient outcomes, featuring enhanced laboratory test harmonization with LOINC integration and hierarchical clustering.
+A comprehensive clinical data processing pipeline for temporal trajectory analysis of Pulmonary Embolism (PE) patient outcomes. Multi-modal feature extraction from labs, vitals, medications, and clinical notes for GRU-D, GBTM, XGBoost, and World Model analyses.
 
 ## Overview
 
-This pipeline processes Electronic Health Record (EHR) data from the Research Patient Data Registry (RPDR) to create rich temporal feature sets for machine learning models. It extracts and harmonizes laboratory tests, medications, diagnoses, and procedures across multiple time phases.
+This pipeline processes Electronic Health Record (EHR) data from the Research Patient Data Registry (RPDR) to create rich temporal feature sets for machine learning trajectory models. It extracts and harmonizes laboratory tests, vital signs, medications, diagnoses, and procedures aligned to PE diagnosis time (Time Zero).
 
 **Key Features:**
-- 🧬 **Enhanced Lab Harmonization**: Three-tier system achieving 100% test coverage
-- 🔍 **LOINC Integration**: 66,497 LOINC codes with 64x speedup caching
-- 📊 **Interactive Visualizations**: Plotly dashboards for harmonization review
-- ⏰ **Temporal Phases**: BASELINE, ACUTE, SUBACUTE, RECOVERY
-- 🎯 **Triple Encoding**: Values, masks, timestamps for time-aware ML
+- 🫀 **PE-Focused Cohort**: 8,713 Gemma PE-positive patients with outcomes
+- 🧬 **Lab Harmonization**: Three-tier LOINC system achieving 100% test coverage
+- 💓 **Vitals Extraction**: NLP-based extraction from PHY, HNP, PRG notes
+- 💊 **Medication Encoding**: 5-layer unified system with RxNorm + embeddings
+- ⏰ **Temporal Alignment**: Hourly grid aligned to PE Time Zero
+- 🎯 **Multi-Format Export**: GRU-D tensors, GBTM CSVs, XGBoost features
 
 ---
 
@@ -54,26 +55,41 @@ open outputs/discovery/test_n10_cluster_dendrogram_interactive.html
 
 ---
 
+## Pipeline Overview
+
+| Module | Purpose | Status | Tests |
+|--------|---------|--------|-------|
+| **1. Core Infrastructure** | Time Zero, temporal windows, outcomes | ✅ Complete | - |
+| **2. Lab Processing** | LOINC harmonization, temporal features | ✅ Complete | 22 |
+| **3. Vitals Processing** | NLP extraction, hourly grid, tensors | 🔄 Phase 1 Complete | 252 |
+| **4. Medication Processing** | RxNorm mapping, 5-layer encoding | 📋 Design Complete | - |
+| **5. Clinical NLP** | Note features, entities | ⬜ Not Started | - |
+| **6. Temporal Alignment** | Multi-modal hourly alignment | ⬜ Not Started | - |
+| **7. Trajectory Features** | Rolling windows, CSD indicators | ⬜ Not Started | - |
+| **8. Format Conversion** | GRU-D, GBTM, XGBoost exports | ⬜ Not Started | - |
+
+---
+
 ## Module Architecture
 
-### Module 1: Core Infrastructure
+### Module 1: Core Infrastructure ✅
 
-**Purpose:** Load and organize patient data into temporal phases
+**Purpose:** Establish Time Zero (PE diagnosis), create temporal windows, extract outcomes
 
 **Key Components:**
-- Patient timeline extraction
+- Patient timeline extraction with PE diagnosis time
 - Admission/discharge detection
 - Temporal phase assignment (BASELINE, ACUTE, SUBACUTE, RECOVERY)
-- Outcome extraction
+- Outcome extraction (mortality, ICU, interventions)
 
 **Input:** Raw RPDR data files
-**Output:** `patient_timelines.pkl` (3,565 patients)
+**Output:** `patient_timelines.pkl` (8,713 patients)
 
 **Documentation:** See [module_01_core_infrastructure.md](module_01_core_infrastructure.md)
 
 ---
 
-### Module 2: Laboratory Processing ⭐ NEW
+### Module 2: Laboratory Processing ✅
 
 **Purpose:** Harmonize and extract laboratory test data with temporal features
 
@@ -128,6 +144,80 @@ outputs/discovery/
 **Output:** `lab_features.h5` (HDF5 format) + `lab_sequences.h5`
 
 **Documentation:** See [docs/plans/2025-11-08-module2-enhanced-harmonization-plan.md](docs/plans/2025-11-08-module2-enhanced-harmonization-plan.md)
+
+---
+
+### Module 3: Vitals Processing 🔄
+
+**Purpose:** Extract vital signs from structured and unstructured sources, create hourly aligned tensors
+
+**Status:** Phase 1 Complete (Layers 1-2), 252 tests passing
+
+#### Architecture: 5-Layer System
+
+| Layer | Purpose | Output |
+|-------|---------|--------|
+| **Layer 1** | Canonical Records | `canonical_vitals.parquet` |
+| **Layer 2** | Hourly Grid + Tensors | `hourly_tensors.h5` |
+| **Layer 3** | Feature Engineering | `engineered_features.parquet` |
+| **Layer 4** | Embeddings | FPCA, autoencoder latents |
+| **Layer 5** | World Model States | Dynamics learning |
+
+#### Data Sources
+
+| Source | File | Records | Extraction |
+|--------|------|---------|------------|
+| PHY (Structured) | `Phy.txt` | 2.7 GB | Direct parsing |
+| HNP (H&P Notes) | `Hnp.txt` | 2.3 GB | NLP extraction |
+| PRG (Progress Notes) | `Prg.txt` | 29.7 GB | NLP extraction |
+
+#### Vital Signs Extracted
+
+- **HR**: Heart Rate (bpm)
+- **SBP/DBP/MAP**: Blood Pressure (mmHg)
+- **RR**: Respiratory Rate (breaths/min)
+- **SpO2**: Oxygen Saturation (%)
+- **Temp**: Temperature (°C, converted from °F)
+
+**Key Files:**
+- `module_3_vitals_processing/extractors/` - PHY, HNP, PRG extractors
+- `module_3_vitals_processing/processing/` - Layer builders
+- `module_3_vitals_processing/config/vitals_config.py` - Central config
+
+**Documentation:** See [docs/plans/2025-12-08-vitals-5-layer-architecture-design.md](docs/plans/2025-12-08-vitals-5-layer-architecture-design.md)
+
+---
+
+### Module 4: Medication Processing 📋
+
+**Purpose:** Unified medication encoding for all trajectory analysis methods
+
+**Status:** Design Complete, Implementation Pending
+
+#### Architecture: 5-Layer System
+
+| Layer | Purpose | Output |
+|-------|---------|--------|
+| **Layer 1** | Canonical Records | `canonical_records.parquet` (Bronze → Silver) |
+| **Layer 2** | Therapeutic Classes | 53 clinical class indicators |
+| **Layer 3** | Individual Medications | 200-400 sparse indicators |
+| **Layer 4** | Embeddings | Semantic, Ontological, Co-occurrence, PK, Hierarchical |
+| **Layer 5** | Dose Intensity | DDD-normalized, weight-adjusted features |
+
+#### Key Features
+
+- **RxNorm Integration**: Download from UMLS, ≥85% mapping target
+- **53 Therapeutic Classes**: PE-critical anticoagulants (9), expanded vasopressors (6), anti-inflammatories (4), etc.
+- **5 Embedding Types**: Semantic (BioBERT), Ontological (Node2Vec), Co-occurrence (Word2Vec), PK, Hierarchical
+- **LLM-Assisted Parsing**: Benchmark Llama/Mistral/Phi/Gemma/Qwen for ambiguous doses
+- **Multi-Format Export**: GBTM CSVs, GRU-D tensors, XGBoost features, World Model actions
+
+**Key Files:**
+- `module_04_medications/config/therapeutic_classes.yaml` - 53 class definitions
+- `module_04_medications/config/dose_patterns.yaml` - Parsing patterns + DDD values
+- `module_04_medications/config/medication_config.py` - Central configuration
+
+**Documentation:** See [docs/plans/2025-12-08-module-04-medications-design.md](docs/plans/2025-12-08-module-04-medications-design.md)
 
 ---
 
@@ -221,51 +311,66 @@ Combined distance: 0.15 (low distance = high similarity)
 ## File Structure
 
 ```
-TDA_11_1/
+TDA_11_25/
 ├── README.md                          ← You are here
 ├── Data/                              ← Raw RPDR data (gitignored)
-│   ├── FNR_20240409_091633_Lab.txt
-│   ├── FNR_20240409_091633_Dia.txt
+│   ├── Med.txt                        ← Medications (3.7 GB)
+│   ├── Lab.txt                        ← Labs (10.7 GB)
+│   ├── Phy.txt                        ← Structured vitals (2.7 GB)
+│   ├── Hnp.txt                        ← H&P notes (2.3 GB)
+│   ├── Prg.txt                        ← Progress notes (29.7 GB)
 │   └── ...
 │
 ├── module_1_core_infrastructure/
 │   ├── module_01_core_infrastructure.py
-│   ├── outputs/
-│   │   ├── patient_timelines.pkl
-│   │   └── outcomes.csv
-│   └── tests/
+│   └── outputs/
+│       ├── patient_timelines.pkl      ← 8,713 patients
+│       └── outcomes.csv
 │
 ├── module_2_laboratory_processing/
 │   ├── module_02_laboratory_processing.py
-│   ├── loinc_matcher.py               ← LOINC database loader
-│   ├── unit_converter.py              ← Unit conversion
-│   ├── hierarchical_clustering.py     ← Tier 3 clustering
-│   ├── visualization_generator.py     ← Interactive visualizations
-│   ├── Loinc/                         ← LOINC database (local)
-│   │   └── LoincTable/Loinc.csv
-│   ├── cache/                         ← LOINC pickle cache
-│   │   └── loinc_database.pkl
-│   ├── outputs/
-│   │   ├── discovery/                 ← Phase 1 outputs
-│   │   │   ├── harmonization_map_draft.csv
-│   │   │   ├── tier1_loinc_exact.csv
-│   │   │   ├── tier3_cluster_suggestions.csv
-│   │   │   └── *.html                 ← Visualizations
-│   │   ├── lab_features.csv
-│   │   ├── lab_features.h5
-│   │   └── lab_sequences.h5
-│   └── tests/
-│       ├── test_loinc_matcher.py
-│       ├── test_unit_converter.py
-│       └── test_hierarchical_clustering.py
+│   ├── loinc_matcher.py
+│   ├── hierarchical_clustering.py
+│   └── outputs/
+│       ├── discovery/
+│       └── lab_features.h5
+│
+├── module_3_vitals_processing/         ← NEW
+│   ├── config/
+│   │   └── vitals_config.py
+│   ├── extractors/
+│   │   ├── phy_extractor.py           ← Structured vitals
+│   │   ├── hnp_extractor.py           ← H&P NLP (662 lines)
+│   │   └── prg_extractor.py           ← Progress NLP (542 lines)
+│   ├── processing/
+│   │   ├── layer1_builder.py          ← Canonical records (375 lines)
+│   │   └── layer2_builder.py          ← Hourly grid (355 lines)
+│   ├── tests/                         ← 252 tests
+│   └── outputs/
+│
+├── module_04_medications/              ← NEW (Design Complete)
+│   ├── config/
+│   │   ├── therapeutic_classes.yaml   ← 53 drug classes
+│   │   ├── dose_patterns.yaml         ← Regex + DDD values
+│   │   └── medication_config.py
+│   ├── data/
+│   │   ├── rxnorm/                    ← RxNorm SQLite
+│   │   ├── bronze/                    ← Layer 1
+│   │   ├── silver/                    ← RxNorm mapped
+│   │   ├── gold/                      ← Layers 2,3,5
+│   │   └── embeddings/                ← Layer 4
+│   ├── extractors/
+│   ├── transformers/
+│   ├── exporters/
+│   └── validation/
 │
 ├── docs/
 │   ├── brief.md                       ← Session briefs
 │   └── plans/
-│       ├── 2025-11-08-module2-enhanced-harmonization-design.md
-│       └── 2025-11-08-module2-enhanced-harmonization-plan.md
+│       ├── 2025-12-08-vitals-5-layer-architecture-design.md
+│       └── 2025-12-08-module-04-medications-design.md
 │
-└── OUTPUT_REVIEW_REPORT.md            ← Comprehensive validation report
+└── pipeline_quick_reference.md        ← Module checklist
 ```
 
 ---
@@ -459,28 +564,38 @@ def test_my_feature():
 
 ## Changelog
 
-### 2025-11-08 - Enhanced Harmonization System
-- ✨ Added three-tier harmonization (Tier 1: LOINC, Tier 2: Family, Tier 3: Clustering)
-- ✨ Integrated 66,497 LOINC codes with pickle caching
-- ✨ Added hierarchical clustering with Ward's method
-- ✨ Created interactive visualizations (Plotly dashboards)
-- ✨ Achieved 100% test coverage
-- 🔧 Removed legacy fuzzy matching workflow
-- 📝 Added comprehensive documentation
+### 2025-12-09 - Module 4 Medication Design
+- 📋 Complete 5-layer medication encoding architecture
+- 📋 53 therapeutic class definitions (PE-critical anticoagulants, expanded vasopressors)
+- 📋 Dose parsing patterns with WHO DDD values
+- 📋 5 embedding types planned (Semantic, Ontological, Co-occurrence, PK, Hierarchical)
+- 📋 LLM benchmark plan (Llama/Mistral/Phi/Gemma/Qwen)
+
+### 2025-12-08 - Module 3 Vitals Phase 1
+- ✨ Implemented 5-layer vitals architecture (Layers 1-2 complete)
+- ✨ PHY/HNP/PRG extractors with NLP patterns
+- ✨ Layer 1: Canonical records with PE-relative timestamps
+- ✨ Layer 2: Hourly grid + HDF5 tensors with 3-tier imputation
+- ✨ 252 tests passing
+
+### 2025-11-08 - Module 2 Enhanced Harmonization
+- ✨ Three-tier harmonization (LOINC, Family, Clustering)
+- ✨ 66,497 LOINC codes with pickle caching
+- ✨ Interactive Plotly visualizations
+- ✨ 100% test coverage
 
 ### 2025-11-07 - Module 2 Implementation
-- ✨ Implemented Phase 1 (Discovery & Harmonization)
-- ✨ Implemented Phase 2 (Feature Engineering)
-- ✨ Added triple encoding (values, masks, timestamps)
-- ✨ Added temporal features (AUC, slopes, deltas)
+- ✨ Phase 1 (Discovery & Harmonization)
+- ✨ Phase 2 (Feature Engineering)
+- ✨ Triple encoding (values, masks, timestamps)
 
 ### Prior - Module 1 Implementation
-- ✨ Patient timeline extraction
+- ✨ Patient timeline extraction (8,713 patients)
 - ✨ Temporal phase assignment
 - ✨ Outcome extraction
 
 ---
 
-**Status:** ✅ Production Ready
-**Last Updated:** 2025-11-08
-**Version:** 1.0.0
+**Status:** 🔄 Active Development
+**Last Updated:** 2025-12-09
+**Version:** 2.0.0

@@ -1,288 +1,296 @@
-# Session Brief: TDA Project - Module 3 Vitals Processing
-*Last Updated: 2025-12-08*
+# Session Brief: TDA Project - PE Trajectory Pipeline
+*Last Updated: 2025-12-09*
 
 ---
 
 ## Active TODO List
 
-**Module 3 Vitals Processing - Submodules 3.1, 3.2 & 3.3 COMPLETE:**
-- [x] Submodule 3.1: Phy Extractor (structured vitals) - 39 tests passing
-- [x] Submodule 3.2: Hnp NLP Extractor (H&P notes) - 74 tests passing
-- [x] Submodule 3.3: Prg NLP Extractor (Progress notes) - 61 tests passing
-- [ ] Task: Run full Phy extraction (USER TO RUN MANUALLY)
-- [ ] Task: Run full Hnp extraction (USER TO RUN MANUALLY)
-- [ ] Task: Run full Prg extraction (USER TO RUN MANUALLY)
+**Module 3 Vitals Processing:**
+- [x] Submodules 3.1-3.3: Extractors COMPLETE (Phy, Hnp, Prg)
+- [x] Submodule 3.4: Layer 1 Builder - Canonical Records COMPLETE
+- [x] Submodule 3.5: Layer 2 Builder - Hourly Grid & Tensors COMPLETE
+- [ ] Run Layer 1 + Layer 2 builders on real data
+- [ ] Phase 2: Submodule 3.6 - Layer 3 Feature Engineering
+- [ ] Phase 3: Submodules 3.7-3.8 - Layers 4-5 (Embeddings, World Models)
 
-**Remaining Module 3 Submodules:**
-- [ ] Submodule 3.4: Vitals Harmonizer (merge 3 sources)
-- [ ] Submodule 3.5: Unit Converter & QC Filter
-- [ ] Submodule 3.6-3.10: Temporal alignment & feature engineering
+**Module 4 Medications Processing:**
+- [x] Design complete - 5-layer architecture
+- [x] Config files created (therapeutic_classes.yaml, dose_patterns.yaml, medication_config.py)
+- [ ] Phase 1: UMLS/RxNorm setup
+- [ ] Phase 2: Layer 1 - Canonical extraction
+- [ ] Phase 3: RxNorm mapping + LLM benchmark
+- [ ] Phases 4-7: Layers 2-5 (parallel)
+- [ ] Phase 8: Exporters & validation
 
 **Future Modules:**
-- [ ] Module 4: Medications Processing
 - [ ] Module 5: Diagnoses/Procedures Processing
 - [ ] Module 6: Temporal Alignment
 - [ ] Module 7: Trajectory Feature Engineering
+- [ ] Module 8: Format Conversion (GRU-D, GBTM, XGBoost)
 
 ---
 
-## Current Session Progress (Dec 8, 2025)
+## Current Session Progress (Dec 9, 2025)
 
-### Module 3 Submodule 3.3: Prg NLP Extractor - COMPLETE
+### Module 4: Medication Processing Design - COMPLETE
 
-**Goal:** Extract vital signs from Prg.txt (29.7GB, 4.6M progress notes) using NLP/regex with checkpointing for large file processing.
-
-**Implementation Summary:**
-- Complete TDD implementation with 15 tasks
-- Data-driven pattern design from analysis of 300K actual rows
-- Skip section filtering for false positive prevention (allergies, medications, history)
-- Temperature method capture (oral, temporal, rectal, axillary, tympanic)
-- Checkpointing system for resume capability on 30GB file
-- 61 unit tests (27 pattern + 34 extractor), all passing
-- 14 git commits this session
-- Final code review: APPROVED FOR MERGE
+**Brainstorming Session Output:**
+- Complete 5-layer unified medication encoding architecture
+- File-based storage (Parquet + HDF5 + SQLite) - no PostgreSQL required
+- 53 therapeutic classes with expanded cardiovascular granularity
+- 5 embedding types: Semantic (BioBERT), Ontological (Node2Vec), Co-occurrence (Word2Vec), Pharmacokinetic, Hierarchical Composite
+- Hybrid + LLM dose parsing with model benchmarking (Llama/Mistral/Phi/Gemma/Qwen)
+- All three dose standardizations (raw, DDD-normalized, weight-adjusted)
+- Multiple temporal resolutions (daily, hourly imputed, window-based)
 
 **Files Created:**
-
 | File | Purpose |
 |------|---------|
-| `extractors/prg_patterns.py` | 11 section patterns, 12 skip patterns, 8 vitals patterns, temp method map |
-| `extractors/prg_extractor.py` | Main extractor (542 lines, 12 functions + CLI) |
-| `tests/test_prg_patterns.py` | 27 pattern tests (5 test classes) |
-| `tests/test_prg_extractor.py` | 34 extractor tests (8 test classes) |
-| `docs/plans/2024-12-08-prg-nlp-extractor-design.md` | Design document |
-| `docs/plans/2024-12-08-prg-nlp-extractor-implementation.md` | Implementation plan |
+| `docs/plans/2025-12-08-module-04-medications-design.md` | Complete design (2099 lines) |
+| `module_04_medications/config/therapeutic_classes.yaml` | 53 drug class definitions |
+| `module_04_medications/config/dose_patterns.yaml` | Regex patterns + DDD values |
+| `module_04_medications/config/medication_config.py` | Central configuration |
 
-**Functions Implemented:**
+**Next Steps for Module 4:**
+1. Register for UMLS account (https://uts.nlm.nih.gov/uts/signup-login)
+2. Download RxNorm Full Release
+3. Implement `setup_rxnorm.py` to load into SQLite
+4. Implement Layer 1 canonical extractor
 
-1. `identify_prg_sections(text)` - Find Physical Exam/Vitals/Objective/ON EXAM sections
-2. `is_in_skip_section(text, position)` - Detect allergies/medications/history sections
-3. `extract_temperature_with_method(text)` - Temp extraction with measurement method capture
-4. `extract_prg_vitals_from_text(text)` - Combined extraction with skip filtering
-5. `process_prg_row(row)` - Process single note → list of vital records
-6. `extract_prg_vitals(input, output, workers, chunk, resume)` - Parallel processing with checkpointing
-7. `save_checkpoint(checkpoint, output_dir)` - Save extraction progress
-8. `load_checkpoint(output_dir)` - Resume from checkpoint
-9. `main()` - CLI entry point
+---
 
-**Test Results:**
+### Module 3: Phase 1 Layers 1-2 Implementation - NEARLY COMPLETE
+
+**Goal:** Implement the 5-layer vitals architecture (Layers 1-2 for Phase 1) following the approved design in `docs/plans/2025-12-08-vitals-5-layer-architecture-design.md`.
+
+**Implementation Summary:**
+- **29 tasks** executed via Subagent-Driven Development with TDD
+- **252 tests** total (78 new tests for processing modules + 174 existing)
+- **26 commits** this session for Phase 1
+- All helper modules + both layer builders complete
+
+### Files Created This Session
+
+| File | Lines | Purpose |
+|------|-------|---------|
+| `processing/__init__.py` | 1 | Module init |
+| `processing/unit_converter.py` | 45 | Temperature F→C conversion with unit inference |
+| `processing/qc_filters.py` | 75 | Physiological ranges, abnormal flagging, BP consistency |
+| `processing/temporal_aligner.py` | 65 | PE-relative time, window filtering, hour buckets |
+| `processing/layer1_builder.py` | 375 | Canonical vitals builder with CLI |
+| `processing/layer2_builder.py` | 355 | Hourly grid + HDF5 tensor builder with CLI |
+| `tests/test_unit_converter.py` | 45 | 8 tests |
+| `tests/test_qc_filters.py` | 110 | 20 tests |
+| `tests/test_temporal_aligner.py` | 95 | 16 tests |
+| `tests/test_layer1_builder.py` | 280 | 17 tests |
+| `tests/test_layer2_builder.py` | 395 | 17 tests |
+
+### Phase 1 Architecture Implemented
+
 ```
-174 tests passing total (61 prg + 74 hnp + 39 phy):
-- TestPrgSectionPatterns: 5 tests
-- TestPrgSkipPatterns: 6 tests
-- TestPrgVitalsPatterns: 8 tests
-- TestTempMethodPatterns: 5 tests
-- TestPrgConfig: 3 tests
-- TestExtractionCheckpoint: 3 tests
-- TestCheckpointIO: 3 tests
-- TestIdentifyPrgSections: 5 tests
-- TestIsInSkipSection: 5 tests
-- TestExtractTemperatureWithMethod: 5 tests
-- TestExtractPrgVitalsFromText: 5 tests
-- TestProcessPrgRow: 4 tests
-- TestExtractPrgVitals: 3 tests
-- TestCLI: 1 test
+Layer 1 (Submodule 3.4): Canonical Records
+├── Merge PHY/HNP/PRG sources → unified schema
+├── PE-relative timestamps (hours_from_pe)
+├── Physiological range validation
+├── Abnormal flagging
+├── Calculate MAP from SBP/DBP pairs
+└── Output: canonical_vitals.parquet
+
+Layer 2 (Submodule 3.5): Hourly Aggregated Grid
+├── Aggregate to hourly bins (-24h to +720h = 745 hours)
+├── Full grid creation (patient × hour × vital)
+├── Three-tier imputation:
+│   ├── Tier 1: Observed
+│   ├── Tier 2: Forward-fill (vital-specific limits)
+│   ├── Tier 3: Patient mean
+│   └── Tier 4: Cohort mean
+├── HDF5 tensor generation with time deltas
+├── Output: hourly_grid.parquet
+└── Output: hourly_tensors.h5
 ```
 
 ---
 
 ## Key Decisions & Architecture
 
-### Decision 7: Skip Section Filtering (Submodule 3.3 - NEW)
+### Decision 11: 5-Layer Vitals Architecture (Phase 1 - NEW)
 
-**Problem:** Progress notes contain vital values in non-clinical contexts:
-- `"Allergies: atenolol - fatigue, HR 50"` - side effect, not measurement
-- `"Past Medical History: HTN with BP 180/100"` - historical, not current
+**Design:** Transform raw vital extractions into method-appropriate formats through 5 layers:
+1. **Layer 1:** Canonical Records - PE-aligned, merged, validated
+2. **Layer 2:** Hourly Grid - aggregated bins + missing data tensors
+3. **Layer 3:** Feature Engineering - rolling stats, trends
+4. **Layer 4:** Embeddings - FPCA, autoencoder latents
+5. **Layer 5:** World Model States - dynamics learning
 
-**Solution:** 12 skip section patterns with lookback detection:
+**Storage:** Parquet (tabular) + HDF5 (tensors) - simple, portable, no database
+
+### Decision 12: Three-Tier Imputation Strategy (NEW)
+
+| Tier | Condition | Fill Value | Limits |
+|------|-----------|------------|--------|
+| 1 | Observed | Actual value | - |
+| 2 | Forward-fill | Last observed | HR/BP/RR: 6h, SpO2: 4h, Temp: 12h |
+| 3 | Patient mean | Patient's own mean | When forward-fill exceeded |
+| 4 | Cohort mean | Population mean | When patient has zero measurements |
+
+### Decision 13: MAP Calculation from SBP/DBP Pairs (NEW)
+
+**Formula:** `MAP = DBP + (SBP - DBP) / 3`
+
+Generate calculated MAP values when SBP and DBP exist at the same timestamp (±5 min tolerance). Mark `is_calculated=True` to distinguish from directly measured MAP.
+
+### Decision 14: Pickle Loading for PatientTimeline (NEW)
+
+**Problem:** `patient_timelines.pkl` was saved when `module_01_core_infrastructure.py` was running as `__main__`, causing AttributeError when loading from different module context.
+
+**Solution:** Inject PatientTimeline class into `__main__` namespace before unpickling:
 ```python
-PRG_SKIP_PATTERNS = [
-    r'Allerg(?:ies|ic|en)[:\s]',
-    r'Medications?[:\s]',
-    r'Past\s+(?:Medical\s+)?History[:\s]',
-    r'Family\s+History[:\s]',
-    r'Review\s+of\s+Systems[:\s]',
-    ...
-]
+import __main__
+from module_01_core_infrastructure import PatientTimeline
+__main__.PatientTimeline = PatientTimeline
 ```
-
-**Logic:** Look back 500 chars from match position; if skip section found, check if valid section (Physical Exam, Vitals) appeared after it. If not, skip extraction.
-
-### Decision 8: Temperature Method Capture (Submodule 3.3 - NEW)
-
-Progress notes include measurement method: `"Temp 36.8 °C (98.2 °F) (Oral)"`
-
-**New output field:** `temp_method` (nullable string)
-- Values: oral, temporal, rectal, axillary, tympanic, or None
-- Clinically meaningful for downstream analysis (oral vs rectal readings differ)
-
-### Decision 9: Checkpointing for Large Files (Submodule 3.3 - NEW)
-
-30GB file requires resume capability:
-```python
-@dataclass
-class ExtractionCheckpoint:
-    input_path: str
-    output_path: str
-    rows_processed: int
-    chunks_completed: int
-    records_extracted: int
-    started_at: datetime
-    updated_at: datetime
-
-CHECKPOINT_INTERVAL = 5  # Save every 5 chunks (~50K rows)
-```
-
-Checkpoint saved to `prg_extraction_checkpoint.json`, removed on successful completion.
-
-### Decision 10: Data-Driven Section Patterns (Submodule 3.3 - NEW)
-
-Based on analysis of 300K actual Prg.txt rows:
-
-**High-frequency section headers (>5000 occurrences):**
-- `Physical Exam:` / `Physical Examination:` - 7,322 occurrences
-- `Objective:` - 7,138
-- `Exam:` - 7,064
-- `Vitals:` - 6,627
-- `ON EXAM: Vital Signs` - common pattern
-
-**11 section patterns total** vs 4 for Hnp (progress notes have more varied structure).
 
 ---
 
 ## Technical Details
 
-### Prg.txt File Format
+### Layer 1 Output Schema (`canonical_vitals.parquet`)
 
-Same as Hnp.txt:
+| Column | Type | Description |
+|--------|------|-------------|
+| EMPI | str | Patient identifier |
+| timestamp | datetime | Measurement time |
+| hours_from_pe | float | Hours relative to PE index |
+| vital_type | str | HR, SBP, DBP, MAP, RR, SPO2, TEMP |
+| value | float | Measurement value |
+| units | str | bpm, mmHg, %, °C, breaths/min |
+| source | str | 'phy', 'hnp', 'prg' |
+| source_detail | str | encounter_type or extraction_context |
+| confidence | float | 1.0 for phy, 0.6-1.0 for nlp |
+| is_calculated | bool | True if MAP calculated from SBP/DBP |
+| is_flagged_abnormal | bool | Outside normal clinical range |
+| report_number | str | Source report identifier |
+
+### Layer 2 HDF5 Structure (`hourly_tensors.h5`)
+
 ```
-EMPI|EPIC_PMRN|MRN_Type|MRN|Report_Number|Report_Date_Time|Report_Description|Report_Status|Report_Type|Report_Text
+/values           (n_patients, 745, 7)  float32  # Vital values
+/masks            (n_patients, 745, 7)  int8     # 1=observed, 0=imputed
+/time_deltas      (n_patients, 745, 7)  float32  # Hours since last observation
+/imputation_tier  (n_patients, 745, 7)  int8     # 1-4 tier indicators
+/patient_index    (n_patients,)         str      # EMPI mapping
+/vital_index      (7,)                  str      # ['HR','SBP','DBP','MAP','RR','SPO2','TEMP']
+/hour_index       (745,)                int      # [-24 to 720]
 ```
 
-10 pipe-delimited columns. 4.6M rows, 29.7GB.
+### Physiological Ranges (Remove if Outside)
 
-### PRG Output Schema
+| Vital | Valid Range | Abnormal Thresholds |
+|-------|-------------|---------------------|
+| HR | 20-300 bpm | <60 or >100 |
+| SBP | 40-300 mmHg | <90 or >180 |
+| DBP | 20-200 mmHg | <60 or >110 |
+| MAP | 30-200 mmHg | <65 or >110 |
+| RR | 4-60 /min | <12 or >24 |
+| SpO2 | 50-100% | <92% |
+| Temp | 30-45°C | <36 or >38.5°C |
 
-Parquet file with **14 columns** (one more than Hnp):
-- EMPI (str)
-- timestamp (datetime)
-- timestamp_source (str) - 'explicit' or 'estimated'
-- timestamp_offset_hours (float)
-- vital_type (str): HR, SBP, DBP, RR, SPO2, TEMP
-- value (float)
-- units (str)
-- source (str): 'prg'
-- extraction_context (str): full_text
-- confidence (float): 0.6-1.0
-- is_flagged_abnormal (bool)
-- report_number (str)
-- report_date_time (datetime)
-- **temp_method (str)** - NEW: oral, temporal, rectal, axillary, tympanic, or None
+### Forward-Fill Limits (Vital-Specific)
 
-### PRG Pattern Highlights
-
-**Skip section detection:** Prevents false positives from allergies, medications, history
-**Temperature method:** Captures measurement method (Oral, Temporal, Rectal)
-**Prg-specific formats:**
-- `P 72` (pulse abbreviation common in Prg)
-- `Blood pressure 130/85` (spelled out)
-- `O2 sat 97` (alternate SpO2 notation)
-- `Resp: 18` (respiratory rate format)
-
-### CLI Usage
-
-```bash
-# Prg extractor (progress notes)
-python3 -m module_3_vitals_processing.extractors.prg_extractor
-
-# With custom options and no resume
-python3 -m module_3_vitals_processing.extractors.prg_extractor \
-  -i /path/to/Prg.txt \
-  -o /path/to/output.parquet \
-  -w 8 \
-  -c 10000 \
-  --no-resume
-```
+| Vital | Max Forward-Fill |
+|-------|------------------|
+| HR, SBP, DBP, MAP, RR | 6 hours |
+| SpO2 | 4 hours |
+| Temp | 12 hours |
 
 ---
 
 ## Important Context
 
-### Commits Made This Session (14 for Submodule 3.3)
+### Commits Made This Session (26 for Phase 1)
 
 ```
-2db31ec feat(prg): add section patterns for progress note extraction
-c3f5983 feat(prg): add skip patterns for false positive filtering
-1d65c48 feat(prg): add Prg-specific vitals patterns
-0dc72f6 feat(prg): add temperature method extraction patterns
-f4fda5d feat(config): add Prg paths to vitals_config
-dcccb1f feat(prg): add ExtractionCheckpoint dataclass
-1e97158 feat(prg): add checkpoint save/load functions
-ce52615 feat(prg): add section identification function
-8ad2b2a feat(prg): add skip section detection for false positive filtering
-7212e4b feat(prg): add temperature extraction with method capture
-6abe369 feat(prg): add combined vitals extraction with skip section filtering
-3375cfb feat(prg): add row processing function
-2b6e969 feat(prg): add main extraction function with checkpointing
-161567e feat(prg): add CLI entry point
+fda3354 feat(vitals): add layer output paths and temporal constants to config
+254ca58 feat(3.5): add main build_layer2 function with CLI
+d52b890 feat(3.5): add calculate_time_deltas function
+0f2a364 feat(3.5): add HDF5 tensor generation
+ef2adf4 feat(3.5): add three-tier imputation logic
+a975d82 feat(3.5): add full grid creation with missing hour marking
+5650a84 feat(layer2): add hourly aggregation function
+87f2122 feat(3.4): add layer2_builder schema and constants
+f56b06d feat(3.4): add CLI entry point for layer1_builder
+b9b9e76 feat(3.4): add main build_layer1 function
+ce9339d feat(3.4): add PE-relative timestamp calculation
+0e7525e feat(layer1): add load_pe_times function
+8302a7c fix: change identity comparison to equality in layer1_builder test
+b3dcf31 feat(3.4): add HNP/PRG source normalizers
+940247a feat(3.4): add PHY source normalizer
+f7a290f feat(3.4): define Layer 1 schema and core vitals
+fd8ed51 feat(3.5): add hour bucket assignment
+5b77b2c feat(temporal-aligner): add window filtering function
+517ba11 feat(vitals): add temporal aligner with PE-relative time calculation
+fea2738 feat(3.4): add blood pressure consistency check
+6a93a0d feat(3.4): add abnormal value flagging
+ff5f86a feat(3.4): add physiological range validation
+4e89104 feat(3.4): add normalize_temperature with unit inference
+19ca9ca feat(3.4): add fahrenheit_to_celsius conversion
+00c830e chore: create processing module structure
+6672f84 docs: add 5-layer vitals architecture design
 ```
 
-### Branch Status
+### Test Results
 
-- **Branch:** main (38 commits ahead of origin/main)
-- **Tests:** 174 passing
-- **Ready to push:** Yes
+```
+252 tests passing total:
+- test_phy_extractor.py: 39 tests
+- test_hnp_extractor.py: 74 tests (incl 4 pattern tests)
+- test_prg_extractor.py: 34 tests
+- test_prg_patterns.py: 27 tests
+- test_unit_converter.py: 8 tests
+- test_qc_filters.py: 20 tests
+- test_temporal_aligner.py: 16 tests
+- test_layer1_builder.py: 17 tests
+- test_layer2_builder.py: 17 tests
+```
 
 ---
 
 ## Unfinished Tasks & Next Steps
 
-### Immediate: Run Full Extractions (User Tasks)
+### Immediate: Complete Phase 1 Integration Testing
+
+The pickle loading fix has been applied. Run:
 
 ```bash
 cd /home/moin/TDA_11_25
 
-# Run Phy extraction (structured vitals)
-python3 -m module_3_vitals_processing.extractors.phy_extractor
+# Run Layer 1 builder
+PYTHONPATH=module_3_vitals_processing:$PYTHONPATH python module_3_vitals_processing/processing/layer1_builder.py
 
-# Run Hnp extraction (H&P notes)
-python3 -m module_3_vitals_processing.extractors.hnp_extractor
-
-# Run Prg extraction (progress notes - will take several hours)
-python3 -m module_3_vitals_processing.extractors.prg_extractor
+# After Layer 1 completes, run Layer 2
+PYTHONPATH=module_3_vitals_processing:$PYTHONPATH python module_3_vitals_processing/processing/layer2_builder.py
 ```
 
 **Expected outputs:**
-- `outputs/discovery/phy_vitals_raw.parquet` (~8-9M records)
-- `outputs/discovery/hnp_vitals_raw.parquet` (~1.6M records estimated)
-- `outputs/discovery/prg_vitals_raw.parquet` (~2-5M records estimated)
+- `outputs/layer1/canonical_vitals.parquet`
+- `outputs/layer2/hourly_grid.parquet`
+- `outputs/layer2/hourly_tensors.h5`
 
-### Next Submodules
+### Next Phase: Phase 2 - Layer 3 Feature Engineering
 
-1. **Submodule 3.4: Vitals Harmonizer**
-   - Merge all three sources (Phy, Hnp, Prg)
-   - Apply hierarchical priority (Prg > Hnp > Phy)
-   - Detect conflicts between sources
-   - Create Layer 2 (merged values with provenance)
+**Submodule 3.6: Layer 3 Builder**
+- Rolling window statistics (6h, 12h, 24h windows)
+- Trend features (slope, R², direction)
+- Variability features (RMSSD, successive variance)
+- Threshold-based features (hours_tachycardia, time_to_first_hypotension, etc.)
 
-2. **Submodule 3.5: Unit Converter & QC Filter**
-   - Standardize units (Fahrenheit → Celsius)
-   - Apply physiological QC
-   - Add clinical flags (tachycardia, hypoxemia, etc.)
+Output: `outputs/layer3/engineered_features.parquet`
 
-3. **Submodules 3.6-3.10: Temporal Alignment & Feature Engineering**
-   - Align vitals to 24-hour pre-index windows
-   - Calculate summary statistics
-   - Create trajectory features
+### Future Phases
 
-### Pattern for Next Submodules
-
-Follow same TDD approach:
-1. Brainstorm design with `superpowers:brainstorming`
-2. Create plan with `/superpowers:write-plan`
-3. Execute with `superpowers:subagent-driven-development`
-4. Review with `superpowers:code-reviewer`
-5. Complete with `superpowers:finishing-a-development-branch`
+**Phase 3: Layers 4-5**
+- Submodule 3.7: FPCA, autoencoder latents, trajectory clusters
+- Submodule 3.8: World model state vectors
 
 ---
 
@@ -290,29 +298,40 @@ Follow same TDD approach:
 
 ### Key Files
 
-**Module 3:**
-- `extractors/phy_extractor.py` - Structured vitals extractor (265 lines)
-- `extractors/hnp_extractor.py` - H&P notes extractor (662 lines)
-- `extractors/hnp_patterns.py` - 29 regex patterns (88 lines)
-- `extractors/prg_extractor.py` - Progress notes extractor (542 lines)
-- `extractors/prg_patterns.py` - 43 regex patterns (114 lines)
-- `config/vitals_config.py` - Paths and constants
-- `tests/test_phy_extractor.py` - 39 tests
-- `tests/test_hnp_extractor.py` - 70 tests
-- `tests/test_prg_extractor.py` - 34 tests
-- `tests/test_prg_patterns.py` - 27 tests
+**Processing Modules (NEW):**
+- `processing/unit_converter.py` - Temperature conversion
+- `processing/qc_filters.py` - Physiological validation
+- `processing/temporal_aligner.py` - PE-relative time
+- `processing/layer1_builder.py` - Canonical vitals (375 lines)
+- `processing/layer2_builder.py` - Hourly grid + tensors (355 lines)
 
-**Dependencies (Module 1 outputs):**
-- `module_1_core_infrastructure/outputs/patient_timelines.pkl`
-- `module_1_core_infrastructure/outputs/outcomes.csv`
+**Extractors (from previous sessions):**
+- `extractors/phy_extractor.py` - Structured vitals (265 lines)
+- `extractors/hnp_extractor.py` - H&P notes (662 lines)
+- `extractors/prg_extractor.py` - Progress notes (542 lines)
 
-### Data Files
+**Plans:**
+- `docs/plans/2025-12-08-vitals-5-layer-architecture-design.md` - APPROVED architecture
+- `docs/plans/2025-12-08-phase1-layer1-layer2-implementation.md` - 29-task implementation plan
 
-| File | Size | Rows | Content |
-|------|------|------|---------|
-| `Data/Phy.txt` | 2.7GB | ~33M | Structured flowsheet vitals |
-| `Data/Hnp.txt` | 2.3GB | 136,950 | H&P admission notes |
-| `Data/Prg.txt` | 29.7GB | ~4.6M | Progress notes |
+**Dependencies:**
+- `module_1_core_infrastructure/outputs/patient_timelines.pkl` (8,713 patients)
+- `outputs/discovery/phy_vitals_raw.parquet` (67 MB)
+- `outputs/discovery/hnp_vitals_raw.parquet` (9.4 MB)
+- `outputs/discovery/prg_vitals_raw.parquet` (215 MB)
+
+### Data Flow
+
+```
+Raw Extractions (3.1-3.3)          Processing (3.4-3.5)
+├── phy_vitals_raw.parquet    ──┐
+├── hnp_vitals_raw.parquet    ──┼──► Layer 1 ──► Layer 2
+└── prg_vitals_raw.parquet    ──┘    │            │
+                                     ▼            ▼
+                              canonical     hourly_grid
+                              _vitals       + tensors.h5
+                              .parquet      .parquet
+```
 
 ---
 
@@ -332,10 +351,17 @@ Follow same TDD approach:
 - **Harmonized groups:** 48 lab tests
 - **Note:** Needs rerun on expanded 8,713 cohort
 
+### Module 3: Vitals Processing - Phase 1 NEARLY COMPLETE
+
+- **Extractors (3.1-3.3):** COMPLETE - 174 tests passing
+- **Layer 1-2 Builders (3.4-3.5):** COMPLETE - 78 tests passing
+- **Total tests:** 252 passing
+- **Status:** Integration testing in progress
+
 ---
 
 **END OF BRIEF**
 
-*This brief preserves context for Module 3 Submodules 3.1, 3.2, and 3.3 implementation. When starting a new session, reference with `@docs/brief.md` to restore context.*
+*This brief preserves context for Module 3 Phase 1 (Layers 1-2) implementation. When starting a new session, reference with `@docs/brief.md` to restore context.*
 
-*Current Status: Submodule 3.3 COMPLETE - 174 tests passing, all three CLIs ready, user to run full extractions.*
+*Current Status: Phase 1 code COMPLETE, integration testing in progress. 252 tests passing.*
