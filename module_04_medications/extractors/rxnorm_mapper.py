@@ -220,6 +220,9 @@ def ingredient_match(medication_string: str) -> Optional[Dict[str, Any]]:
     # Extract potential drug name (before numbers)
     text = medication_string.lower().strip()
 
+    # Remove common non-drug prefixes (e.g., "Injection, ceftriaxone..." -> "ceftriaxone...")
+    text = re.sub(r'^(injection|infusion|supply of|administration of),?\s*', '', text)
+
     # Strategy 1: First word before number
     match = re.match(r'^([a-z]+(?:\s+[a-z]+)?)', text)
     if match:
