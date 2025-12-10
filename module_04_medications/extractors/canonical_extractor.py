@@ -301,7 +301,7 @@ def transform_to_canonical(df: pd.DataFrame) -> pd.DataFrame:
     canonical = pd.DataFrame({
         'empi': df['EMPI'],
         'encounter_id': df['Encounter_number'],
-        'medication_date': df['Medication_Date'],
+        'medication_date': pd.to_datetime(df['Medication_Date'], errors='coerce'),
         'hours_from_t0': df['hours_from_t0'],
         'original_string': df['Medication'],
         'code_type': df['Code_Type'],
