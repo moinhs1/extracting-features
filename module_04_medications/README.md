@@ -2,7 +2,7 @@
 
 Unified medication encoding system for PE trajectory analysis. Five-layer architecture serving GBTM, GRU-D, XGBoost, and World Model analyses.
 
-## Status: Phase 2 (Layer 1) In Progress
+## Status: Phase 2 (Layer 1) COMPLETE
 
 ---
 
@@ -13,7 +13,7 @@ Unified medication encoding system for PE trajectory analysis. Five-layer archit
 - [x] Configuration files (`medication_config.py`, `therapeutic_classes.yaml`, `dose_patterns.yaml`)
 - [x] RxNorm setup script
 
-### Phase 2: Layer 1 Canonical Extraction - In Progress
+### Phase 2: Layer 1 Canonical Extraction - COMPLETE
 - [x] **Dose Parser** (`extractors/dose_parser.py`)
   - Regex-based extraction for dose value/unit (mg, mcg, units, etc.)
   - Route extraction (IV, PO, SC, IM, topical, inhaled, etc.)
@@ -27,12 +27,16 @@ Unified medication encoding system for PE trajectory analysis. Five-layer archit
   - Apply regex dose parsing
   - Output bronze parquet with canonical schema
   - 5 tests passing
-- [x] **Test Mode Extraction** (50,000 rows)
-  - 91.1% dose parsing success rate
-  - 2,184 records after filtering
-  - Output: `data/bronze/canonical_records_test.parquet`
-- [ ] Full extraction (18.6M records)
-- [ ] Vocabulary extraction
+- [x] **Vocabulary Extraction** - 2 tests passing
+- [x] **Full Extraction Results:**
+  - Total raw records: 18.6M
+  - After cohort filter: 9.6M
+  - After window filter: 1.71M
+  - Dose parsing success: **89.9%** (target >=80% ✅)
+  - Patients with medications: **8,394** (96.3% of cohort)
+  - Unique medication strings: **10,879**
+  - Output: `data/bronze/canonical_records.parquet` (23 MB)
+  - Vocabulary: `data/bronze/medication_vocabulary.parquet` (389 KB)
 
 ### Phases 3-8: Pending
 - Phase 3: RxNorm Mapping

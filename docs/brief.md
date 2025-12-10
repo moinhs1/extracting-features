@@ -13,16 +13,15 @@
 - [ ] Phase 2: Submodule 3.6 - Layer 3 Feature Engineering
 - [ ] Phase 3: Submodules 3.7-3.8 - Layers 4-5 (Embeddings, World Models)
 
-**Module 4 Medications Processing - Phase 2 IN PROGRESS:**
+**Module 4 Medications Processing - Phase 2 COMPLETE ✅:**
 - [x] Design complete - 5-layer architecture
 - [x] Config files created (therapeutic_classes.yaml, dose_patterns.yaml, medication_config.py)
 - [x] Phase 1: Directory structure, RxNorm setup script
-- [x] **Phase 2 (In Progress):**
-  - [x] Dose parser COMPLETE (18 tests)
-  - [x] Canonical extractor COMPLETE (5 tests)
-  - [x] Test mode extraction COMPLETE (91.1% parsing success)
-  - [ ] Full extraction (18.6M records)
-  - [ ] Vocabulary extraction
+- [x] **Phase 2 COMPLETE:**
+  - [x] Dose parser (18 tests)
+  - [x] Canonical extractor (5 tests)
+  - [x] Vocabulary extraction (2 tests)
+  - [x] Full extraction: 1.71M records, 89.9% parsing, 8,394 patients
 - [ ] Phase 3: RxNorm mapping + LLM benchmark
 - [ ] Phases 4-7: Layers 2-5 (parallel)
 - [ ] Phase 8: Exporters & validation
@@ -37,15 +36,15 @@
 
 ## Current Session Progress (Dec 10, 2025)
 
-### Module 4: Phase 2 Layer 1 Implementation - IN PROGRESS
+### Module 4: Phase 2 Layer 1 Implementation - COMPLETE ✅
 
 **Goal:** Implement Layer 1 canonical extraction per plan `docs/plans/2025-12-10-phase2-layer1-canonical-extraction.md`
 
 **Implementation Summary:**
-- **6 tasks completed** (of 10 total) via executing-plans skill with TDD
-- **23 tests passing** (18 dose parser + 5 canonical extractor)
-- **5 commits** for Phase 2 implementation
-- Test mode extraction: 91.1% dose parsing success
+- **10 tasks completed** via executing-plans skill with TDD
+- **25 tests passing** (18 dose parser + 5 canonical extractor + 2 vocabulary)
+- **10 commits** for Phase 2 implementation
+- Full extraction: 89.9% dose parsing success
 
 **Components Implemented:**
 
@@ -55,22 +54,31 @@
 | `extractors/canonical_extractor.py` | Med.txt → Bronze parquet pipeline | 5 |
 | `tests/test_dose_parser.py` | Dose parser test suite | 18 |
 | `tests/test_canonical_extractor.py` | Extractor test suite | 5 |
+| `tests/test_vocabulary.py` | Vocabulary extraction tests | 2 |
 
-**Test Mode Extraction Results:**
+**Full Extraction Results:**
 ```
-Total raw records: 50,000
-After cohort filter: 15,037
-After window filter: 2,184
-Final records: 2,184
-Dose parsing success: 91.1%
-Patients with medications: 26
+Total raw records: 18,589,389
+After cohort filter: 9,585,898
+After window filter: 1,710,571
+Final records: 1,710,571
+Dose parsing success: 89.9% (target >=80% ✅)
+Patients with medications: 8,394 (96.3% of cohort)
+Unique medications: 10,879
 ```
 
-**Remaining Tasks:**
-- Task 7: Full extraction (18.6M records)
-- Task 8: Add vocabulary extraction function
-- Task 9: Generate vocabulary file
-- Task 10: Final validation & documentation
+**Output Files:**
+- `data/bronze/canonical_records.parquet` (23 MB)
+- `data/bronze/medication_vocabulary.parquet` (389 KB)
+
+**Key PE Medications Extracted:**
+- Heparin: 50,220 records
+- Enoxaparin: 25,007 records
+- Apixaban: 20,579 records
+- Warfarin: 6,043 records
+- Rivaroxaban: 3,291 records
+
+**Next:** Phase 3 - RxNorm Mapping
 
 ---
 
