@@ -324,6 +324,34 @@ def transform_to_canonical(df: pd.DataFrame) -> pd.DataFrame:
     return canonical
 
 
+def extract_vocabulary(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Extract unique medication vocabulary from canonical records.
+
+    Args:
+        df: Canonical records DataFrame
+
+    Returns:
+        DataFrame with unique medication strings and counts
+    """
+    # Group by original string and aggregate
+    vocab = df.groupby('original_string').agg({
+        'parsed_name': 'first',
+        'parsed_dose_value': 'first',
+        'parsed_dose_unit': 'first',
+        'parsed_route': 'first',
+        'parse_method': 'first',
+        'empi': 'count',  # Count occurrences
+    }).reset_index()
+
+    vocab = vocab.rename(columns={'empi': 'count'})
+
+    # Sort by count descending
+    vocab = vocab.sort_values('count', ascending=False)
+
+    return vocab
+
+
 # =============================================================================
 # MAIN EXTRACTION PIPELINE
 # =============================================================================
