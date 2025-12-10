@@ -17,7 +17,12 @@
 - [x] Design complete - 5-layer architecture
 - [x] Config files created (therapeutic_classes.yaml, dose_patterns.yaml, medication_config.py)
 - [x] Phase 1: Directory structure, RxNorm setup script
-- [x] **Phase 2 (In Progress):** Dose parser COMPLETE (18 tests), canonical extractor in progress
+- [x] **Phase 2 (In Progress):**
+  - [x] Dose parser COMPLETE (18 tests)
+  - [x] Canonical extractor COMPLETE (5 tests)
+  - [x] Test mode extraction COMPLETE (91.1% parsing success)
+  - [ ] Full extraction (18.6M records)
+  - [ ] Vocabulary extraction
 - [ ] Phase 3: RxNorm mapping + LLM benchmark
 - [ ] Phases 4-7: Layers 2-5 (parallel)
 - [ ] Phase 8: Exporters & validation
@@ -30,7 +35,46 @@
 
 ---
 
-## Current Session Progress (Dec 9, 2025)
+## Current Session Progress (Dec 10, 2025)
+
+### Module 4: Phase 2 Layer 1 Implementation - IN PROGRESS
+
+**Goal:** Implement Layer 1 canonical extraction per plan `docs/plans/2025-12-10-phase2-layer1-canonical-extraction.md`
+
+**Implementation Summary:**
+- **6 tasks completed** (of 10 total) via executing-plans skill with TDD
+- **23 tests passing** (18 dose parser + 5 canonical extractor)
+- **5 commits** for Phase 2 implementation
+- Test mode extraction: 91.1% dose parsing success
+
+**Components Implemented:**
+
+| File | Description | Tests |
+|------|-------------|-------|
+| `extractors/dose_parser.py` | Regex dose/route/frequency extraction | 18 |
+| `extractors/canonical_extractor.py` | Med.txt → Bronze parquet pipeline | 5 |
+| `tests/test_dose_parser.py` | Dose parser test suite | 18 |
+| `tests/test_canonical_extractor.py` | Extractor test suite | 5 |
+
+**Test Mode Extraction Results:**
+```
+Total raw records: 50,000
+After cohort filter: 15,037
+After window filter: 2,184
+Final records: 2,184
+Dose parsing success: 91.1%
+Patients with medications: 26
+```
+
+**Remaining Tasks:**
+- Task 7: Full extraction (18.6M records)
+- Task 8: Add vocabulary extraction function
+- Task 9: Generate vocabulary file
+- Task 10: Final validation & documentation
+
+---
+
+## Previous Session Progress (Dec 9, 2025)
 
 ### Module 4: Medication Processing Design - COMPLETE
 

@@ -20,9 +20,18 @@ Unified medication encoding system for PE trajectory analysis. Five-layer archit
   - Frequency extraction (QD, BID, TID, PRN, etc.)
   - Drug name extraction
   - 18 tests passing
-- [ ] Canonical extractor (`extractors/canonical_extractor.py`)
-- [ ] Test mode extraction
-- [ ] Full extraction
+- [x] **Canonical Extractor** (`extractors/canonical_extractor.py`)
+  - Stream Med.txt in 1M-row chunks
+  - Filter to PE cohort (8,713 patients)
+  - Compute hours_from_t0 from patient_timelines.pkl
+  - Apply regex dose parsing
+  - Output bronze parquet with canonical schema
+  - 5 tests passing
+- [x] **Test Mode Extraction** (50,000 rows)
+  - 91.1% dose parsing success rate
+  - 2,184 records after filtering
+  - Output: `data/bronze/canonical_records_test.parquet`
+- [ ] Full extraction (18.6M records)
 - [ ] Vocabulary extraction
 
 ### Phases 3-8: Pending
