@@ -1,7 +1,7 @@
 # Module 3: Comprehensive Vitals Extraction & Processing
 
-**Version:** 3.0
-**Status:** Phase 1-2 COMPLETE (Extractors + Layers 1-3) | Phase 3 Pending
+**Version:** 3.1
+**Status:** Phase 1-2 COMPLETE | Phase 3 Design COMPLETE | Implementation Pending
 **Last Updated:** 2025-12-10
 **Dependencies:** Module 1 (patient_timelines.pkl)
 
@@ -35,12 +35,13 @@
 
 **Total Tests:** 323 passing
 
-### Phase 3: Pending
+### Phase 3: Design Complete, Implementation Pending
 
 | Component | Status | Description |
 |-----------|--------|-------------|
-| **3.7 Layer 4 Builder** | ⏳ Pending | Embeddings (FPCA, autoencoder latents) |
-| **3.8 Layer 5 Builder** | ⏳ Pending | World model states |
+| **Phase 3 Design** | ✅ COMPLETE | `docs/plans/2025-12-10-phase3-layer4-layer5-design.md` |
+| **3.7 Layer 4 Builder** | ⏳ Pending | FPCA + LSTM-VAE + Clustering |
+| **3.8 Layer 5 Builder** | ⏳ Pending | World model states (~100 dims) |
 | **3.9 Validation** | ⏳ Pending | 4-tier validation framework |
 | **3.10 Orchestrator** | ⏳ Pending | Full pipeline orchestration |
 
@@ -88,18 +89,19 @@
 └─────────────────────────┬───────────────────────────────────────┘
                           ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│ LAYER 4: Embeddings (3.7)                           ⏳ PENDING  │
-│ • Functional PCA trajectories                                   │
-│ • Autoencoder latent representations                            │
-│ • Trajectory clustering                                         │
-│ Output: embeddings.h5                                           │
+│ LAYER 4: Embeddings (3.7)                     📋 DESIGN COMPLETE│
+│ • FPCA: 10 components × 7 vitals (scikit-fda)                   │
+│ • LSTM-VAE: 32-dim latent representations (PyTorch)             │
+│ • DTW clustering (validation) + HDBSCAN (primary)               │
+│ Output: fpca_scores.parquet, vae_latents.h5, clusters.parquet   │
 └─────────────────────────┬───────────────────────────────────────┘
                           ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│ LAYER 5: World Model States (3.8)                   ⏳ PENDING  │
-│ • Learned dynamics representations                              │
-│ • State transition modeling                                     │
-│ Output: world_states.h5                                         │
+│ LAYER 5: World Model States (3.8)             📋 DESIGN COMPLETE│
+│ • ~100 dimension state vectors                                  │
+│ • Combines: vitals, FPCA, VAE, trends, clusters                 │
+│ • Reserved slots for treatment package (meds, labs, imaging)    │
+│ Output: world_states.h5, state_schema.json                      │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -362,7 +364,8 @@ module_3_vitals_processing/
 │   ├── IMPLEMENTATION_ROADMAP.md
 │   └── plans/
 │       ├── 2025-12-08-vitals-5-layer-architecture-design.md
-│       └── 2025-12-08-phase1-layer1-layer2-implementation.md
+│       ├── 2025-12-08-phase1-layer1-layer2-implementation.md
+│       └── 2025-12-10-phase3-layer4-layer5-design.md  # NEW
 └── README.md                         # This file
 ```
 
@@ -418,28 +421,45 @@ pytest module_3_vitals_processing/tests/ --cov=module_3_vitals_processing
 
 ---
 
-## Next Steps: Phase 3
+## Next Steps: Phase 3 Implementation
 
-### Submodule 3.7: Layer 4 Embeddings
+**Design document:** `docs/plans/2025-12-10-phase3-layer4-layer5-design.md`
 
-Features to implement:
-- **Functional PCA**: 10 components per vital capturing trajectory shape
-- **Autoencoder latents**: 32-dim representations per timestep
-- **Trajectory clustering**: DTW-based phenotyping
+### Implementation Order
 
-Output: `outputs/layer4/embeddings.h5`
+| Step | Component | Dependencies | Output |
+|------|-----------|--------------|--------|
+| 1 | FPCA Builder | scikit-fda | `fpca_scores.parquet` |
+| 2 | LSTM-VAE | PyTorch | `vae_latents.h5`, `vae_model.pt` |
+| 3 | DTW Clustering | tslearn | `clusters_dtw.parquet` |
+| 4 | HDBSCAN Clustering | hdbscan | `clusters_embedding.parquet` |
+| 5 | Layer 4 Builder | Steps 1-4 | All Layer 4 outputs |
+| 6 | Layer 5 Builder | Layer 4 | `world_states.h5` |
 
-### Submodule 3.8: Layer 5 World Model States
+### Install Dependencies
 
-Features to implement:
-- **~60 dimension state vectors** combining raw vitals, trends, FPC scores
-- **State transition modeling** for dynamics learning
+```bash
+pip install scikit-fda torch tslearn hdbscan
+```
 
-Output: `outputs/layer5/world_model_states.h5`
+### Success Criteria
+
+- **FPCA:** First 10 components explain >90% variance per vital
+- **VAE:** Reconstruction MSE < 0.1 (normalized), KL < 10
+- **Clustering:** 5-15 distinct phenotypes, <5% outliers
+- **States:** No NaN in non-reserved dimensions
 
 ---
 
 ## Changelog
+
+### Version 3.1 (2025-12-10)
+- **Phase 3 DESIGN COMPLETE**: Layers 4-5 architecture finalized
+  - FPCA: 10 components × 7 vitals (scikit-fda)
+  - LSTM-VAE: 32-dim latent representations (PyTorch)
+  - Clustering: DTW validation + HDBSCAN on embeddings
+  - World states: ~100 dims with reserved treatment slots
+  - Design doc: `docs/plans/2025-12-10-phase3-layer4-layer5-design.md`
 
 ### Version 3.0 (2025-12-10)
 - **Phase 2 COMPLETE**: Layer 3 feature engineering
@@ -476,5 +496,5 @@ Output: `outputs/layer5/world_model_states.h5`
 
 ---
 
-**Status:** ✅ Phase 1-2 COMPLETE | ⏳ Phase 3 Pending
-**Next Step:** Implement Submodule 3.7 (Layer 4 Embeddings)
+**Status:** ✅ Phase 1-2 COMPLETE | 📋 Phase 3 Design COMPLETE | ⏳ Implementation Pending
+**Next Step:** Implement FPCA Builder (Step 1 of Phase 3)
