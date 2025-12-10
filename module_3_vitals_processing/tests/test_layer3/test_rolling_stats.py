@@ -2,10 +2,7 @@
 import pytest
 import pandas as pd
 import numpy as np
-from processing.layer3.rolling_stats import (
-    calculate_rolling_stats,
-    ROLLING_STAT_FUNCTIONS,
-)
+from processing.layer3.rolling_stats import calculate_rolling_stats
 
 
 class TestRollingStatFunctions:

@@ -90,69 +90,77 @@ def _calculate_slope_r2(values: np.ndarray) -> tuple:
         return np.nan, np.nan
 
 
-def calculate_trend_features(
-    df: pd.DataFrame,
+def calculate_trend_features_patient(
+    patient_df: pd.DataFrame,
     vitals: List[str],
     windows: List[int],
 ) -> pd.DataFrame:
-    """Calculate trend features for each vital.
+    """Calculate trend features for a single patient.
 
-    Only uses data where mask_{vital} == 1 (Tier 1-2).
+    OPTIMIZED: Works on single patient for parallel processing.
 
     Features generated per vital per window:
-    - {vital}_slope{w}h: Linear regression slope
-    - {vital}_slope{w}h_r2: R-squared of the regression
-    - {vital}_direction{w}h: -1 (worsening), 0 (stable), 1 (improving)
+    - {vital}_slope{w}h, _r2, _direction{w}h
 
     Args:
-        df: DataFrame with vital columns and mask_{vital} columns
+        patient_df: Single patient DataFrame (already sorted by hour_from_pe)
         vitals: List of vital names to process
         windows: List of window sizes in hours
 
     Returns:
         DataFrame with trend feature columns added
     """
-    result = df.copy()
+    for vital in vitals:
+        mask_col = f'mask_{vital}'
 
-    patients = result['EMPI'].unique()
+        # Create masked values (NaN where not observed)
+        if mask_col in patient_df.columns:
+            values = patient_df[vital].where(patient_df[mask_col] == 1, np.nan).values
+        else:
+            values = patient_df[vital].values
 
+        for window in windows:
+            prefix = f'{vital}_slope{window}h'
+
+            slopes = []
+            r2s = []
+            directions = []
+
+            for i in range(len(patient_df)):
+                start_idx = max(0, i - window + 1)
+                window_values = values[start_idx:i+1]
+
+                slope, r2 = _calculate_slope_r2(window_values)
+                slopes.append(slope)
+                r2s.append(r2)
+
+                # Calculate direction
+                current_value = values[i] if not np.isnan(values[i]) else patient_df[vital].iloc[i]
+                direction = calculate_direction(slope if not np.isnan(slope) else 0, current_value, vital)
+                directions.append(direction)
+
+            patient_df[f'{prefix}'] = slopes
+            patient_df[f'{prefix}_r2'] = r2s
+            patient_df[f'{vital}_direction{window}h'] = directions
+
+    return patient_df
+
+
+def calculate_trend_features(
+    df: pd.DataFrame,
+    vitals: List[str],
+    windows: List[int],
+) -> pd.DataFrame:
+    """Calculate trend features for each vital (batch mode).
+
+    For parallel processing, use calculate_trend_features_patient instead.
+    """
+    patients = df['EMPI'].unique()
     all_results = []
+
     for patient in patients:
-        patient_df = result[result['EMPI'] == patient].sort_values('hour_from_pe').copy()
-
-        for vital in vitals:
-            mask_col = f'mask_{vital}'
-
-            # Create masked values (NaN where not observed)
-            if mask_col in patient_df.columns:
-                values = patient_df[vital].where(patient_df[mask_col] == 1, np.nan).values
-            else:
-                values = patient_df[vital].values
-
-            for window in windows:
-                prefix = f'{vital}_slope{window}h'
-
-                slopes = []
-                r2s = []
-                directions = []
-
-                for i in range(len(patient_df)):
-                    start_idx = max(0, i - window + 1)
-                    window_values = values[start_idx:i+1]
-
-                    slope, r2 = _calculate_slope_r2(window_values)
-                    slopes.append(slope)
-                    r2s.append(r2)
-
-                    # Calculate direction
-                    current_value = values[i] if not np.isnan(values[i]) else patient_df[vital].iloc[i]
-                    direction = calculate_direction(slope if not np.isnan(slope) else 0, current_value, vital)
-                    directions.append(direction)
-
-                patient_df[f'{prefix}'] = slopes
-                patient_df[f'{prefix}_r2'] = r2s
-                patient_df[f'{vital}_direction{window}h'] = directions
-
+        patient_df = df[df['EMPI'] == patient].sort_values('hour_from_pe').copy()
+        patient_df = calculate_trend_features_patient(patient_df, vitals, windows)
         all_results.append(patient_df)
 
     return pd.concat(all_results, ignore_index=True)

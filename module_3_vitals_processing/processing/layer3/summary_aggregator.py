@@ -1,6 +1,8 @@
 """Summary aggregation for Layer 3 features.
 
 Aggregates time-series features into per-patient summary over clinical windows.
+
+OPTIMIZED: Provides single-patient function for parallel processing.
 """
 from typing import List, Dict, Tuple
 import pandas as pd
@@ -19,49 +21,61 @@ SUMMARY_WINDOWS: Dict[str, Tuple[int, int]] = {
 AGGREGATIONS = ['mean', 'max', 'min']
 
 
+def aggregate_patient_to_summary(
+    patient_df: pd.DataFrame,
+    feature_cols: List[str],
+) -> dict:
+    """Aggregate time-series features to summary for a single patient.
+
+    OPTIMIZED: Works on single patient for parallel processing.
+    Returns a dict (single row) instead of DataFrame for efficiency.
+
+    Args:
+        patient_df: Single patient DataFrame (already sorted by hour_from_pe)
+        feature_cols: List of feature columns to aggregate
+
+    Returns:
+        Dict with summary features for this patient
+    """
+    row = {'EMPI': patient_df['EMPI'].iloc[0]}
+
+    for feature in feature_cols:
+        if feature not in patient_df.columns:
+            continue
+
+        for window_name, (start_hour, end_hour) in SUMMARY_WINDOWS.items():
+            # Filter to window
+            window_mask = (patient_df['hour_from_pe'] >= start_hour) & (patient_df['hour_from_pe'] < end_hour)
+            window_data = patient_df.loc[window_mask, feature]
+
+            # Skip if no data in window
+            if len(window_data) == 0 or window_data.isna().all():
+                for agg in AGGREGATIONS:
+                    row[f'{feature}_{window_name}_{agg}'] = np.nan
+                continue
+
+            # Apply aggregations
+            row[f'{feature}_{window_name}_mean'] = window_data.mean()
+            row[f'{feature}_{window_name}_max'] = window_data.max()
+            row[f'{feature}_{window_name}_min'] = window_data.min()
+
+    return row
+
+
 def aggregate_to_summary(
     df: pd.DataFrame,
     feature_cols: List[str],
 ) -> pd.DataFrame:
-    """Aggregate time-series features to per-patient summary.
+    """Aggregate time-series features to per-patient summary (batch mode).
 
-    For each feature and each window, calculates mean, max, min.
-
-    Args:
-        df: Time-series DataFrame with features
-        feature_cols: List of feature columns to aggregate
-
-    Returns:
-        DataFrame with one row per patient, ~3500 summary features
+    For parallel processing, use aggregate_patient_to_summary instead.
     """
     patients = df['EMPI'].unique()
-
     summary_rows = []
+
     for patient in patients:
         patient_df = df[df['EMPI'] == patient].sort_values('hour_from_pe')
-
-        row = {'EMPI': patient}
-
-        for feature in feature_cols:
-            if feature not in patient_df.columns:
-                continue
-
-            for window_name, (start_hour, end_hour) in SUMMARY_WINDOWS.items():
-                # Filter to window
-                window_mask = (patient_df['hour_from_pe'] >= start_hour) & (patient_df['hour_from_pe'] < end_hour)
-                window_data = patient_df.loc[window_mask, feature]
-
-                # Skip if no data in window
-                if len(window_data) == 0 or window_data.isna().all():
-                    for agg in AGGREGATIONS:
-                        row[f'{feature}_{window_name}_{agg}'] = np.nan
-                    continue
-
-                # Apply aggregations
-                row[f'{feature}_{window_name}_mean'] = window_data.mean()
-                row[f'{feature}_{window_name}_max'] = window_data.max()
-                row[f'{feature}_{window_name}_min'] = window_data.min()
-
+        row = aggregate_patient_to_summary(patient_df, feature_cols)
         summary_rows.append(row)
 
     return pd.DataFrame(summary_rows)

@@ -1,239 +1,295 @@
 # Module 3: Comprehensive Vitals Extraction & Processing
 
-**Version:** 1.1
-**Status:** Submodules 3.1-3.3 COMPLETE | 3.4-3.10 Pending
-**Last Updated:** 2025-12-08
+**Version:** 3.0
+**Status:** Phase 1-2 COMPLETE (Extractors + Layers 1-3) | Phase 3 Pending
+**Last Updated:** 2025-12-10
 **Dependencies:** Module 1 (patient_timelines.pkl)
 
 ---
 
 ## Current Implementation Status
 
-| Submodule | Status | Tests | Description |
-|-----------|--------|-------|-------------|
-| **3.1** | ✅ COMPLETE | 39 passing | Phy.txt structured extractor |
-| **3.2** | ✅ COMPLETE | 74 passing | Hnp NLP extractor (H&P notes) |
-| **3.3** | ✅ COMPLETE | 61 passing | Prg NLP extractor (Progress notes) |
-| **3.4** | ⏳ Pending | - | Vitals Harmonizer |
-| **3.5** | ⏳ Pending | - | Unit Converter & QC Filter |
-| **3.6** | ⏳ Pending | - | Temporal Aligner |
-| **3.7** | ⏳ Pending | - | Provenance Calculator |
-| **3.8** | ⏳ Pending | - | Feature Engineering |
-| **3.9** | ⏳ Pending | - | Validation Framework |
-| **3.10** | ⏳ Pending | - | Main Orchestrator |
+### Phase 1: Extractors + Layers 1-2 ✅ COMPLETE
 
-**Total Tests:** 174 passing
+| Component | Status | Tests | Description |
+|-----------|--------|-------|-------------|
+| **3.1 Phy Extractor** | ✅ COMPLETE | 39 | Structured vitals from Phy.txt |
+| **3.2 Hnp Extractor** | ✅ COMPLETE | 74 | NLP extraction from H&P notes |
+| **3.3 Prg Extractor** | ✅ COMPLETE | 61 | NLP extraction from Progress notes |
+| **3.4 Layer 1 Builder** | ✅ COMPLETE | 17 | Canonical records (PE-aligned, merged, validated) |
+| **3.5 Layer 2 Builder** | ✅ COMPLETE | 17 | Hourly grid + HDF5 tensors with imputation |
+| **Processing Helpers** | ✅ COMPLETE | 44 | Unit converter, QC filters, temporal aligner |
+
+### Phase 2: Layer 3 Feature Engineering ✅ COMPLETE
+
+| Component | Status | Tests | Description |
+|-----------|--------|-------|-------------|
+| **3.6 Layer 3 Builder** | ✅ COMPLETE | 71 | Feature engineering with parallel processing |
+| **Composite Vitals** | ✅ COMPLETE | 11 | Shock index, pulse pressure |
+| **Rolling Stats** | ✅ COMPLETE | 9 | 6h/12h/24h windows: mean, std, cv, min, max, range |
+| **Trend Features** | ✅ COMPLETE | 12 | Slope, R², direction per window |
+| **Variability** | ✅ COMPLETE | 9 | RMSSD, successive variance |
+| **Threshold Features** | ✅ COMPLETE | 8 | Cumulative hours, time-to-first |
+| **Data Density** | ✅ COMPLETE | 6 | Observation rates per vital |
+| **Summary Aggregator** | ✅ COMPLETE | 9 | Per-patient summary across clinical windows |
+
+**Total Tests:** 323 passing
+
+### Phase 3: Pending
+
+| Component | Status | Description |
+|-----------|--------|-------------|
+| **3.7 Layer 4 Builder** | ⏳ Pending | Embeddings (FPCA, autoencoder latents) |
+| **3.8 Layer 5 Builder** | ⏳ Pending | World model states |
+| **3.9 Validation** | ⏳ Pending | 4-tier validation framework |
+| **3.10 Orchestrator** | ⏳ Pending | Full pipeline orchestration |
 
 ---
 
-## Overview
+## 5-Layer Architecture
 
-Module 3 extracts vital signs from **three complementary data sources** (structured and unstructured), implements **advanced NLP** with context awareness, and generates **modeling-ready features** with complete provenance tracking and rigorous validation.
-
-### Key Capabilities
-
-- ✅ **Multi-source extraction**: Phy.txt (structured) + Hnp.csv (H&P notes) + Prg.csv (progress notes)
-- ✅ **Maximum temporal resolution**: 5-minute bins in acute phase when available
-- ✅ **Advanced NLP**: Context-aware extraction with negation handling, range parsing, narrative interpretation
-- ✅ **Full provenance**: 6-layer information preservation (raw values → merged → quality metrics)
-- ✅ **Rigorous validation**: 4-tier framework achieving ≥90% accuracy
-- ✅ **Clinical composites**: Shock index, MAP, pulse pressure, delta index
-- ✅ **Publication-ready**: Comprehensive validation report with multiple independent evidence sources
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    RAW EXTRACTIONS (3.1-3.3)                    │
+│  phy_vitals_raw.parquet  hnp_vitals_raw.parquet  prg_vitals_raw │
+└─────────────────────────┬───────────────────────────────────────┘
+                          ▼
+┌─────────────────────────────────────────────────────────────────┐
+│ LAYER 1: Canonical Records (3.4)                    ✅ COMPLETE │
+│ • Merge PHY/HNP/PRG sources → unified schema                    │
+│ • PE-relative timestamps (hours_from_pe)                        │
+│ • Physiological range validation                                │
+│ • Abnormal flagging                                             │
+│ • Calculate MAP from SBP/DBP pairs                              │
+│ Output: canonical_vitals.parquet (39M records, 7,689 patients)  │
+└─────────────────────────┬───────────────────────────────────────┘
+                          ▼
+┌─────────────────────────────────────────────────────────────────┐
+│ LAYER 2: Hourly Aggregated Grid (3.5)               ✅ COMPLETE │
+│ • Aggregate to hourly bins (-24h to +720h = 745 hours)          │
+│ • Full grid: patient × hour × vital                             │
+│ • Three-tier imputation (observed → ffill → patient → cohort)   │
+│ • HDF5 tensor generation with time deltas                       │
+│ Output: hourly_grid.parquet (5.7M rows)                         │
+│ Output: hourly_tensors.h5 (7,689 × 745 × 7)                     │
+└─────────────────────────┬───────────────────────────────────────┘
+                          ▼
+┌─────────────────────────────────────────────────────────────────┐
+│ LAYER 3: Feature Engineering (3.6)                  ✅ COMPLETE │
+│ • Composite vitals (shock_index, pulse_pressure)                │
+│ • Rolling window statistics (6h, 12h, 24h)                      │
+│ • Trend features (slope, R², direction)                         │
+│ • Variability features (RMSSD, successive variance)             │
+│ • Threshold-based features (hours_tachycardia, etc.)            │
+│ • Data density features (observation rates)                     │
+│ • Summary aggregation across clinical windows                   │
+│ Output: timeseries_features.parquet (5.7M × 315 features)       │
+│ Output: summary_features.parquet (7,689 × 4,426 features)       │
+└─────────────────────────┬───────────────────────────────────────┘
+                          ▼
+┌─────────────────────────────────────────────────────────────────┐
+│ LAYER 4: Embeddings (3.7)                           ⏳ PENDING  │
+│ • Functional PCA trajectories                                   │
+│ • Autoencoder latent representations                            │
+│ • Trajectory clustering                                         │
+│ Output: embeddings.h5                                           │
+└─────────────────────────┬───────────────────────────────────────┘
+                          ▼
+┌─────────────────────────────────────────────────────────────────┐
+│ LAYER 5: World Model States (3.8)                   ⏳ PENDING  │
+│ • Learned dynamics representations                              │
+│ • State transition modeling                                     │
+│ Output: world_states.h5                                         │
+└─────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
 ## Quick Start
 
-### Run Extraction (Current Implementation)
+### Run Full Pipeline (Phases 1-2)
 
 ```bash
 cd /home/moin/TDA_11_25
 
-# 1. Run Phy extraction (structured vitals) - ~30 min
-python3 -m module_3_vitals_processing.extractors.phy_extractor
+# Set PYTHONPATH
+export PYTHONPATH=module_3_vitals_processing:$PYTHONPATH
 
-# 2. Run Hnp extraction (H&P notes) - ~1 hour
-python3 -m module_3_vitals_processing.extractors.hnp_extractor
+# 1. Run extractors (if not already done)
+python -m extractors.phy_extractor    # ~30 min
+python -m extractors.hnp_extractor    # ~1 hour
+python -m extractors.prg_extractor    # ~2-4 hours
 
-# 3. Run Prg extraction (progress notes) - 2-4 hours
-python3 -m module_3_vitals_processing.extractors.prg_extractor
+# 2. Run Layer 1 builder (canonical records)
+python processing/layer1_builder.py   # ~3 min
 
-# 4. Run tests
-PYTHONPATH=/home/moin/TDA_11_25:$PYTHONPATH pytest module_3_vitals_processing/tests/ -v
-```
+# 3. Run Layer 2 builder (hourly grid + tensors)
+python processing/layer2_builder.py   # ~2 min (optimized)
 
-### CLI Options
+# 4. Run Layer 3 builder (feature engineering)
+python processing/layer3_builder.py   # ~15-30 min (parallel, 22 cores)
 
-```bash
-# Phy extractor options
-python3 -m module_3_vitals_processing.extractors.phy_extractor --help
-
-# Hnp extractor options
-python3 -m module_3_vitals_processing.extractors.hnp_extractor \
-  -i /path/to/Hnp.txt \
-  -o /path/to/output.parquet \
-  -w 8  # workers
-
-# Prg extractor options (with checkpointing)
-python3 -m module_3_vitals_processing.extractors.prg_extractor \
-  -i /path/to/Prg.txt \
-  -o /path/to/output.parquet \
-  -w 8 \
-  -c 10000 \  # chunk size
-  --no-resume  # start fresh, ignore checkpoint
+# 5. Run tests
+pytest tests/ -v
 ```
 
 ### Expected Outputs
 
-| Extractor | Output File | Est. Records |
-|-----------|-------------|--------------|
-| Phy | `outputs/discovery/phy_vitals_raw.parquet` | ~8-9M |
-| Hnp | `outputs/discovery/hnp_vitals_raw.parquet` | ~1.6M |
-| Prg | `outputs/discovery/prg_vitals_raw.parquet` | ~2-5M |
+| Stage | Output | Size |
+|-------|--------|------|
+| Extraction | `outputs/discovery/phy_vitals_raw.parquet` | 67 MB |
+| Extraction | `outputs/discovery/hnp_vitals_raw.parquet` | 9.4 MB |
+| Extraction | `outputs/discovery/prg_vitals_raw.parquet` | 215 MB |
+| Layer 1 | `outputs/layer1/canonical_vitals.parquet` | 30 MB |
+| Layer 2 | `outputs/layer2/hourly_grid.parquet` | 35 MB |
+| Layer 2 | `outputs/layer2/hourly_tensors.h5` | 24 MB |
+| Layer 3 | `outputs/layer3/timeseries_features.parquet` | 988 MB |
+| Layer 3 | `outputs/layer3/summary_features.parquet` | 96 MB |
 
-### Future: Full Pipeline (After 3.4-3.10)
+---
 
-```bash
-# Run full pipeline (not yet implemented)
-python module_03_vitals_processing.py
+## Data Flow Summary
 
-# Load final features
-import h5py
-with h5py.File('outputs/features/vitals_features_final.h5', 'r') as f:
-    patient_features = f['EMPI_12345']['ACUTE'][:]
+```
+Data Sources                    Records        Patients
+─────────────────────────────────────────────────────────
+PHY (structured)                160,308
+HNP (H&P notes NLP)             283,432
+PRG (Progress notes NLP)     38,601,927
+─────────────────────────────────────────────────────────
+TOTAL RAW                    39,045,667        7,689
+
+After Layer 1 (canonical)    39,045,667        7,689
+After Layer 2 (hourly grid)   5,728,305        7,689
+After Layer 3 (features)      5,728,305        7,689
+  - Timeseries features         × 315 columns
+  - Summary features            × 4,426 columns per patient
 ```
 
 ---
 
-## Data Sources
+## Layer 1 Schema (`canonical_vitals.parquet`)
 
-| Source | Type | Volume | Coverage | Clinical Context |
-|--------|------|--------|----------|------------------|
-| **Phy.txt** | Structured | 33M rows (2.7GB) | Outpatient + inpatient | Baseline vitals, clinic visits |
-| **Hnp.txt** | Unstructured notes | 136,950 notes (2.3GB) | ~80% contain vitals | **Admission vitals** (PE presentation) |
-| **Prg.txt** | Unstructured notes | 4.6M notes (29.7GB) | ~35% contain vitals | Serial inpatient vitals (trajectory) |
-
-**Why all three?**
-- **Complementary coverage**: Each source fills gaps in the others
-- **Clinical context**: Admission severity (Hnp) vs. disease trajectory (Prg) vs. baseline (Phy)
-- **Cross-validation**: Overlaps enable validation without manual annotation
-- **Encounter patterns**: Source combinations indicate disease severity (outpatient-only vs. full-trajectory)
-
----
-
-## Architecture
-
-### Six-Layer Information Preservation
-
-```
-Layer 1: Raw Source-Specific Values
-         ↓
-Layer 2: Hierarchical Merged Values + Source Attribution
-         ↓
-Layer 3: Conflict Detection & Quality Metrics
-         ↓
-Layer 4: Temporal Precision Tracking
-         ↓
-Layer 5: Temporal Consistency Validation
-         ↓
-Layer 6: Encounter Pattern Features
-```
-
-**Rationale:** Preserve all information for reproducibility, debugging, and quality assessment. Can reprocess with different strategies without re-extraction.
-
-### Ten Independent Submodules
-
-| Submodule | Purpose | Complexity | Time |
-|-----------|---------|-----------|------|
-| 3.1 | Structured extractor (Phy.txt) | ⭐ | 2 days |
-| 3.2 | H&P NLP extractor (Hnp.csv) | ⭐⭐⭐⭐ | 5-7 days |
-| 3.3 | Progress NLP extractor (Prg.csv) | ⭐⭐⭐⭐⭐ | 7-10 days |
-| 3.4 | Vitals harmonizer | ⭐⭐ | 2-3 days |
-| 3.5 | Unit converter & QC filter | ⭐⭐ | 2-3 days |
-| 3.6 | Multi-source temporal aligner | ⭐⭐⭐⭐ | 5-7 days |
-| 3.7 | Provenance & quality calculator | ⭐⭐⭐ | 4-5 days |
-| 3.8 | Feature engineering pipeline | ⭐⭐⭐⭐ | 6-8 days |
-| 3.9 | Validation framework (4-tier) | ⭐⭐⭐⭐ | 8-10 days |
-| 3.10 | Main orchestrator | ⭐⭐ | 3-4 days |
-
-**Total:** 10 weeks (includes parallelization + 2-week buffer)
+| Column | Type | Description |
+|--------|------|-------------|
+| EMPI | str | Patient identifier |
+| timestamp | datetime | Measurement time |
+| hours_from_pe | float | Hours relative to PE index |
+| vital_type | str | HR, SBP, DBP, MAP, RR, SPO2, TEMP |
+| value | float | Measurement value |
+| units | str | bpm, mmHg, %, °C, breaths/min |
+| source | str | 'phy', 'hnp', 'prg' |
+| source_detail | str | encounter_type or extraction_context |
+| confidence | float | 1.0 for phy, 0.6-1.0 for nlp |
+| is_calculated | bool | True if MAP calculated from SBP/DBP |
+| is_flagged_abnormal | bool | Outside normal clinical range |
+| report_number | str | Source report identifier |
 
 ---
 
-## Output Features
+## Layer 2 HDF5 Structure (`hourly_tensors.h5`)
 
-### Temporal Phases
+```
+/values           (7689, 745, 7)  float32  # Vital values
+/masks            (7689, 745, 7)  int8     # 1=observed, 0=imputed
+/time_deltas      (7689, 745, 7)  float32  # Hours since last observation
+/imputation_tier  (7689, 745, 7)  int8     # 1-4 tier indicators
+/patient_index    (7689,)         str      # EMPI mapping
+/vital_index      (7,)            str      # ['HR','SBP','DBP','MAP','RR','SPO2','TEMP']
+/hour_index       (745,)          int      # [-24 to 720]
+```
 
-- **BASELINE**: [-365d, -30d] @ daily resolution
-- **PRE_ACUTE**: [-30d, -7d] @ daily resolution
-- **ACUTE**: [-7d, +1d] @ hourly resolution
-- **HIGH_RES_ACUTE**: [-24h, +24h] @ 5-minute resolution
-- **SUBACUTE**: [+2d, +14d] @ hourly resolution
-- **RECOVERY**: [+15d, +90d] @ daily resolution
+### Load Tensors in Python
 
-### Feature Categories
-
-**Per Vital Per Phase:**
-- Basic statistics: mean, median, min, max, std, first, last
-- Trajectory: slope, direction, volatility, range, time_to_normalization
-- Coverage: n_measurements, time_coverage (% of phase with data)
-- Clinical flags: any_tachycardia, prop_tachycardia, max_tachycardia_duration
-
-**Special: Admission Vitals**
-- ADMISSION_HR, ADMISSION_SBP, ADMISSION_DBP, ADMISSION_RR, ADMISSION_SPO2, ADMISSION_TEMP
-- ADMISSION_shock_index, ADMISSION_pulse_pressure, ADMISSION_MAP
-- ADMISSION_tachycardia_flag, ADMISSION_hypoxemia_flag, etc.
-
-**Clinical Composites:**
 ```python
-shock_index = HR / SBP  # >1.0 indicates shock
-pulse_pressure = SBP - DBP  # <25 indicates low cardiac output
-MAP = DBP + (SBP - DBP) / 3  # <65 inadequate organ perfusion
-modified_shock_index = HR / MAP
-delta_index = HR - RR  # Negative suggests severe PE
-```
+import h5py
+import numpy as np
 
-**Quality Metrics:**
-- Completeness by source (phy, hnp, prg, overall)
-- Conflict rate, outlier rate, implausible change rate
-- Temporal precision (avg/max time delta from grid)
-- Encounter pattern (categorical: outpatient_only → full_trajectory)
+with h5py.File('outputs/layer2/hourly_tensors.h5', 'r') as f:
+    values = f['values'][:]          # (7689, 745, 7)
+    masks = f['masks'][:]            # 1=observed, 0=imputed
+    time_deltas = f['time_deltas'][:]
+    patients = f['patient_index'][:].astype(str)
+    vitals = f['vital_index'][:].astype(str)
+    hours = f['hour_index'][:]
+
+    # Get specific patient
+    patient_idx = np.where(patients == '100000272')[0][0]
+    patient_hr = values[patient_idx, :, 0]  # HR trajectory
+```
 
 ---
 
-## Validation Strategy
+## Layer 3 Features
 
-### Four Independent Tiers
+### Timeseries Features (`timeseries_features.parquet`)
 
-**Tier 1: Cross-Validation with Structured Data**
-- Match note extractions to Phy.txt structured values
-- Calculate clinical agreement, correlation, MAE, Bland-Altman
-- Target: ≥90% clinical agreement per vital
-- Coverage: ~30-40% of extractions (others validated via Tiers 2-4)
+| Category | Count | Pattern | Description |
+|----------|-------|---------|-------------|
+| **Composite Vitals** | 2 | `shock_index`, `pulse_pressure` | Derived from HR/SBP/DBP |
+| **Rolling Stats** | 162 | `{vital}_roll{6,12,24}h_{mean,std,cv,min,max,range}` | 9 vitals × 3 windows × 6 stats |
+| **Trend Features** | 81 | `{vital}_slope{6,12,24}h`, `_r2`, `_direction` | Slope, R², direction per window |
+| **Variability** | 18 | `{vital}_rmssd`, `{vital}_successive_var` | 9 vitals × 2 metrics |
+| **Threshold Hours** | 10 | `hours_{tachycardia,hypotension,...}` | Cumulative hours at threshold |
+| **Time to First** | 5 | `time_to_first_{condition}` | Hours until first crossing |
+| **Observation Density** | 19 | `{vital}_obs_pct`, `{vital}_obs_count` | Data quality indicators |
+| **Masks** | 9 | `mask_{vital}` | 1=Tier1-2 (observed), 0=Tier3-4 |
 
-**Tier 2: Strategic Manual Review**
-- Stratified sample: 200 notes (high-discrepancy, critical values, edge cases)
-- Dual independent annotation with inter-rater reliability
-- Error taxonomy: false negatives, false positives, context errors, unit errors
-- Target: ≥90% accuracy, κ ≥ 0.80
+**Total:** 315 columns × 5,728,305 rows
 
-**Tier 3: Continuous Statistical Monitoring**
-- Distribution validation (KS test vs. reference populations)
-- Outlier detection (modified Z-score >3.5)
-- Temporal plausibility (rate of change per hour)
-- Digit preference analysis
-- Target: <1% out-of-range, <2% outliers, <1% implausible transitions
+### Summary Features (`summary_features.parquet`)
 
-**Tier 4: Pattern-Specific Validation**
-- Negation handling (false positive rate <5%)
-- Range handling consistency
-- Unit conversion accuracy (100%)
+Aggregates timeseries features across **5 clinical windows**:
 
-### Validation Timeline
+| Window | Hours | Clinical Meaning |
+|--------|-------|------------------|
+| `pre` | -24 to 0 | Pre-PE baseline |
+| `acute` | 0 to 24 | Acute phase |
+| `early` | 24 to 72 | Early treatment response |
+| `stab` | 72 to 168 | Stabilization (days 3-7) |
+| `recov` | 168 to 720 | Recovery (days 7-30) |
 
-- **Week 8**: Tier 1 cross-validation + sample generation
-- **Week 9**: Dual independent annotation (33 hours reviewer time)
-- **Week 10**: Tiers 3-4 + comprehensive report generation
+Each feature gets `{feature}_{window}_{mean,max,min}` → **4,426 features per patient**
+
+### Load Layer 3 Features
+
+```python
+import pandas as pd
+
+# Timeseries features (one row per patient-hour)
+ts = pd.read_parquet('outputs/layer3/timeseries_features.parquet')
+
+# Summary features (one row per patient)
+summary = pd.read_parquet('outputs/layer3/summary_features.parquet')
+
+# Example: Get rolling HR mean for acute phase
+hr_acute = summary['HR_roll6h_mean_acute_mean']
+```
+
+---
+
+## Physiological Ranges
+
+| Vital | Valid Range | Abnormal Thresholds |
+|-------|-------------|---------------------|
+| HR | 20-300 bpm | <60 or >100 |
+| SBP | 40-300 mmHg | <90 or >180 |
+| DBP | 20-200 mmHg | <60 or >110 |
+| MAP | 30-200 mmHg | <65 or >110 |
+| RR | 4-60 /min | <12 or >24 |
+| SpO2 | 50-100% | <92% |
+| Temp | 30-45°C | <36 or >38.5°C |
+
+---
+
+## Imputation Strategy
+
+| Tier | Condition | Fill Value | Limits |
+|------|-----------|------------|--------|
+| 1 | Observed | Actual value | - |
+| 2 | Forward-fill | Last observed | HR/BP/RR: 6h, SpO2: 4h, Temp: 12h |
+| 3 | Patient mean | Patient's own mean | When forward-fill exceeded |
+| 4 | Cohort mean | Population mean | When patient has zero measurements |
 
 ---
 
@@ -242,399 +298,183 @@ delta_index = HR - RR  # Negative suggests severe PE
 ```
 module_3_vitals_processing/
 ├── config/
-│   └── vitals_config.py                # Paths and constants
+│   └── vitals_config.py              # Paths and constants
 ├── extractors/
-│   ├── phy_extractor.py                # Submodule 3.1 ✅ COMPLETE (265 lines)
-│   ├── hnp_extractor.py                # Submodule 3.2 ✅ COMPLETE (662 lines)
-│   ├── hnp_patterns.py                 # Hnp regex patterns (29 patterns)
-│   ├── prg_extractor.py                # Submodule 3.3 ✅ COMPLETE (542 lines)
-│   ├── prg_patterns.py                 # Prg regex patterns (43 patterns)
+│   ├── phy_extractor.py              # ✅ 3.1 Structured (265 lines)
+│   ├── hnp_extractor.py              # ✅ 3.2 H&P NLP (662 lines)
+│   ├── hnp_patterns.py               # Hnp regex patterns
+│   ├── prg_extractor.py              # ✅ 3.3 Progress NLP (542 lines)
+│   ├── prg_patterns.py               # Prg regex patterns
 │   └── __init__.py
-├── processing/                         # Submodules 3.4-3.8 (TBD)
-│   ├── harmonizer.py                   # Submodule 3.4 (planned)
-│   ├── unit_converter.py               # Submodule 3.5 (planned)
-│   ├── qc_filter.py                    # Submodule 3.5 (planned)
-│   ├── temporal_aligner.py             # Submodule 3.6 (planned)
-│   ├── provenance_calculator.py        # Submodule 3.7 (planned)
-│   └── feature_engineer.py             # Submodule 3.8 (planned)
-├── validation/                         # Submodule 3.9 (TBD)
-│   ├── cross_validator.py              # Tier 1 (planned)
-│   ├── manual_review_sampler.py        # Tier 2 (planned)
-│   ├── statistical_validator.py        # Tier 3 (planned)
-│   ├── pattern_validator.py            # Tier 4 (planned)
-│   └── report_generator.py             # HTML report (planned)
+├── processing/
+│   ├── __init__.py
+│   ├── unit_converter.py             # ✅ Temperature F→C (45 lines)
+│   ├── qc_filters.py                 # ✅ Physiological validation (75 lines)
+│   ├── temporal_aligner.py           # ✅ PE-relative time (65 lines)
+│   ├── layer1_builder.py             # ✅ 3.4 Canonical records (375 lines)
+│   ├── layer2_builder.py             # ✅ 3.5 Hourly grid + tensors (430 lines)
+│   ├── layer3_builder.py             # ✅ 3.6 Feature engineering (250 lines)
+│   └── layer3/                       # Layer 3 feature calculators
+│       ├── __init__.py
+│       ├── composite_vitals.py       # Shock index, pulse pressure
+│       ├── rolling_stats.py          # Rolling mean, std, cv, min, max, range
+│       ├── trend_features.py         # Slope, R², direction
+│       ├── variability_features.py   # RMSSD, successive variance
+│       ├── threshold_features.py     # Cumulative hours, time-to-first
+│       ├── data_density.py           # Observation rates
+│       └── summary_aggregator.py     # Per-patient summary
 ├── tests/
-│   ├── test_phy_extractor.py           # ✅ 39 tests
-│   ├── test_hnp_extractor.py           # ✅ 70 tests
-│   ├── test_hnp_patterns.py            # ✅ 4 tests
-│   ├── test_prg_extractor.py           # ✅ 34 tests
-│   └── test_prg_patterns.py            # ✅ 27 tests
+│   ├── test_phy_extractor.py         # ✅ 39 tests
+│   ├── test_hnp_extractor.py         # ✅ 70 tests
+│   ├── test_hnp_patterns.py          # ✅ 4 tests
+│   ├── test_prg_extractor.py         # ✅ 34 tests
+│   ├── test_prg_patterns.py          # ✅ 27 tests
+│   ├── test_unit_converter.py        # ✅ 8 tests
+│   ├── test_qc_filters.py            # ✅ 20 tests
+│   ├── test_temporal_aligner.py      # ✅ 16 tests
+│   ├── test_layer1_builder.py        # ✅ 17 tests
+│   ├── test_layer2_builder.py        # ✅ 17 tests
+│   ├── test_layer3_builder.py        # ✅ 7 tests
+│   └── test_layer3/                  # Layer 3 feature tests
+│       ├── test_composite_vitals.py  # ✅ 11 tests
+│       ├── test_rolling_stats.py     # ✅ 9 tests
+│       ├── test_trend_features.py    # ✅ 12 tests
+│       ├── test_variability_features.py  # ✅ 9 tests
+│       ├── test_threshold_features.py    # ✅ 8 tests
+│       ├── test_data_density.py      # ✅ 6 tests
+│       └── test_summary_aggregator.py    # ✅ 9 tests
 ├── outputs/
-│   └── discovery/                      # Extraction outputs
-│       ├── phy_vitals_raw.parquet      # From 3.1
-│       ├── hnp_vitals_raw.parquet      # From 3.2
-│       └── prg_vitals_raw.parquet      # From 3.3
+│   ├── discovery/                    # Raw extractions
+│   │   ├── phy_vitals_raw.parquet
+│   │   ├── hnp_vitals_raw.parquet
+│   │   └── prg_vitals_raw.parquet
+│   ├── layer1/                       # Canonical records
+│   │   └── canonical_vitals.parquet
+│   ├── layer2/                       # Hourly grid + tensors
+│   │   ├── hourly_grid.parquet
+│   │   └── hourly_tensors.h5
+│   └── layer3/                       # Feature engineering
+│       ├── timeseries_features.parquet
+│       └── summary_features.parquet
 ├── docs/
-│   ├── ARCHITECTURE.md                 # Full technical design
-│   ├── SUBMODULES_QUICK_REFERENCE.md   # Fast lookup guide
-│   ├── IMPLEMENTATION_ROADMAP.md       # Week-by-week plan
-│   ├── BRAINSTORMING_SESSION_SUMMARY.md
-│   └── plans/                          # Implementation plans
-│       ├── 2025-11-25-submodule-3-1-phy-extractor.md
-│       ├── 2025-12-02-submodule-3-2-hnp-extractor-design.md
-│       ├── 2025-12-02-submodule-3-2-hnp-extractor.md
-│       ├── 2024-12-08-prg-nlp-extractor-design.md
-│       └── 2024-12-08-prg-nlp-extractor-implementation.md
-├── module_03_vitals_processing.py      # Main entry point (Submodule 3.10 - TBD)
-└── README.md                           # This file
+│   ├── ARCHITECTURE.md
+│   ├── SUBMODULES_QUICK_REFERENCE.md
+│   ├── IMPLEMENTATION_ROADMAP.md
+│   └── plans/
+│       ├── 2025-12-08-vitals-5-layer-architecture-design.md
+│       └── 2025-12-08-phase1-layer1-layer2-implementation.md
+└── README.md                         # This file
 ```
-
----
-
-## Usage Examples
-
-### Basic: Run Full Pipeline
-
-```bash
-python module_03_vitals_processing.py --config config/vitals_config.yaml
-```
-
-### Advanced: Run Specific Submodules
-
-```bash
-# Structured data only (fast test)
-python module_03_vitals_processing.py --submodules 3.1,3.4,3.5,3.6,3.7,3.8
-
-# Resume from checkpoint
-python module_03_vitals_processing.py --resume-from 3.6
-
-# Validation only (if features already exist)
-python module_03_vitals_processing.py --submodules 3.9
-```
-
-### Python API: Load Features
-
-```python
-import h5py
-import numpy as np
-
-# Load patient vitals features
-with h5py.File('outputs/features/vitals_features_final.h5', 'r') as f:
-    patient_id = 'EMPI_12345'
-
-    # Get ACUTE phase features
-    acute = f[patient_id]['ACUTE']
-    hr_mean = acute['HR_mean'][()]
-    hr_max = acute['HR_max'][()]
-    tachycardia = acute['any_tachycardia'][()]
-
-    # Get admission vitals
-    admission = f[patient_id]['ADMISSION']
-    admission_hr = admission['HR'][()]
-    shock_index = admission['shock_index'][()]
-
-    # Get quality metrics
-    quality = f[patient_id]['QUALITY']
-    completeness = quality['completeness_overall'][()]
-    encounter_pattern = quality['encounter_pattern'][()].decode()
-
-    print(f"Patient {patient_id}:")
-    print(f"  Acute HR: {hr_mean:.1f} bpm (max: {hr_max:.1f})")
-    print(f"  Admission HR: {admission_hr:.1f}, Shock Index: {shock_index:.2f}")
-    print(f"  Completeness: {completeness:.1%}")
-    print(f"  Encounter: {encounter_pattern}")
-```
-
-### Export to DataFrame
-
-```python
-import pandas as pd
-import h5py
-
-def load_patient_features(h5_path, patient_id):
-    """Load all features for a patient into a flat dict"""
-    features = {}
-    with h5py.File(h5_path, 'r') as f:
-        patient = f[patient_id]
-
-        # Load all temporal phases
-        for phase in ['BASELINE', 'ACUTE', 'SUBACUTE', 'RECOVERY']:
-            if phase in patient:
-                for key in patient[phase].keys():
-                    features[f'{phase}_{key}'] = patient[phase][key][()]
-
-        # Load admission and quality
-        for group in ['ADMISSION', 'QUALITY', 'COMPOSITES']:
-            if group in patient:
-                for key in patient[group].keys():
-                    features[f'{group}_{key}'] = patient[group][key][()]
-
-    return features
-
-# Load all patients
-patient_ids = [...]  # List of patient EMPIs
-all_features = []
-for pid in patient_ids:
-    features = load_patient_features('outputs/features/vitals_features_final.h5', pid)
-    features['EMPI'] = pid
-    all_features.append(features)
-
-df = pd.DataFrame(all_features)
-df.to_csv('vitals_features_flat.csv', index=False)
-```
-
----
-
-## Configuration
-
-Edit `config/vitals_config.yaml` to customize:
-
-```yaml
-# Which sources to use
-extraction:
-  use_phy: true
-  use_hnp: true
-  use_prg: true
-
-# Temporal resolution
-temporal_alignment:
-  HIGH_RES_ACUTE:
-    start_hours: -24
-    end_hours: 24
-    resolution: "5T"  # 5 minutes
-
-# QC thresholds
-qc_thresholds:
-  HR: [20, 250]  # [min, max] bpm
-  SBP: [50, 300]  # mmHg
-  # ...
-
-# Clinical flag thresholds
-clinical_thresholds:
-  tachycardia: 100  # bpm
-  hypoxemia: 90     # %
-  hypotension: 90   # mmHg SBP
-  # ...
-```
-
----
-
-## Performance Benchmarks
-
-| Operation | Target Time | Hardware |
-|-----------|-------------|----------|
-| Phy.txt extraction | <30 min | 16 cores |
-| Hnp.csv extraction | <2 hours | 16 cores |
-| Prg.csv extraction | <8 hours | 16 cores |
-| Temporal alignment | <1 hour | 16 cores |
-| Feature engineering | <30 min | 16 cores |
-| **Full pipeline** | **<12 hours** | 16 cores |
-
-**Storage:** ~24 GB total (all intermediate + final outputs)
-
----
-
-## Success Criteria
-
-### Data Quality
-- ✅ Extraction accuracy ≥90% (cross-validation + manual review)
-- ✅ Data completeness ≥80% overall
-- ✅ <1% out-of-range values
-- ✅ <1% implausible temporal transitions
-
-### Coverage
-- ✅ ≥95% of patients with any vitals
-- ✅ ≥70% of patients with admission vitals
-- ✅ ≥50% of patients with high-res acute vitals
-
-### Validation
-- ✅ Cross-validation clinical agreement ≥90%
-- ✅ Inter-rater reliability κ ≥0.80
-- ✅ Negation false positive rate <5%
-- ✅ Unit conversion accuracy 100%
-
----
-
-## Known Limitations
-
-1. **NLP Extraction Accuracy**: Regex-based extraction achieves ~85-90% accuracy on unstructured notes. Medical NER (spaCy, scispaCy) could improve to ~95% but adds complexity.
-
-2. **Cross-Validation Coverage**: Only ~30-40% of note extractions can be validated against structured data. Remaining cases validated through manual review and statistical checks.
-
-3. **Temporal Precision**: Some measurements binned to nearest 5-minute interval may have actual timestamps up to ±2.5 minutes from bin center. Time delta tracked in provenance.
-
-4. **Narrative Extractions**: Descriptive text ("tachycardic", "afebrile") mapped to approximate numeric values with confidence <1.0. Use with caution.
-
-5. **Historical Vitals**: Current implementation focuses on actual measured vitals. "Prior" or "home" vitals may be incorrectly extracted as current (negation detection reduces but doesn't eliminate).
-
----
-
-## Future Enhancements
-
-### Post-V1.0
-- **Medical NER**: Implement scispaCy or MedCAT for improved extraction accuracy (90% → 95%)
-- **Waveform Data**: Extract continuous vital sign waveforms if available (enables HRV, waveform analysis)
-- **Multi-Modal Integration**: Combine vitals with labs, medications, procedures in unified temporal model
-- **Temporal Attention**: Use transformer architectures to learn which timepoints are most predictive
-- **Real-Time Extraction**: Adapt pipeline for live EHR streaming (clinical decision support)
-
----
-
-## Documentation
-
-Comprehensive documentation in `docs/`:
-
-- **[ARCHITECTURE.md](docs/ARCHITECTURE.md)**: Full technical design (~12,000 words)
-  - Clinical context & goals
-  - Data sources detailed comparison
-  - 6-layer information preservation architecture
-  - 10 submodules with functions, I/O, complexity
-  - 4-tier validation strategy with benchmarks
-  - Design decisions & rationale
-  - Risk mitigation
-  - Future enhancements
-
-- **[SUBMODULES_QUICK_REFERENCE.md](docs/SUBMODULES_QUICK_REFERENCE.md)**: Fast lookup guide
-  - Dependency graph
-  - Submodule summary table
-  - Quick reference cards per submodule
-  - Critical paths (fast/MVP/complete)
-  - Data flow diagram
-  - Quick start commands
-
-- **[IMPLEMENTATION_ROADMAP.md](docs/IMPLEMENTATION_ROADMAP.md)**: Week-by-week implementation plan
-  - 10-week timeline with milestones
-  - Day-by-day task breakdowns
-  - Success criteria per week
-  - Checkpoint questions
-  - Risk mitigation timeline
-  - Handoff checklist
-
-- **API.md** (TBD): Function-level documentation
-- **USER_GUIDE.md** (TBD): Detailed usage examples and tutorials
-- **VALIDATION_PROTOCOL.md** (TBD): Step-by-step validation procedures
-
----
-
-## Dependencies
-
-### Python Packages
-```txt
-pandas>=1.5.0
-numpy>=1.23.0
-h5py>=3.7.0
-pyarrow>=10.0.0  # For parquet
-pyyaml>=6.0
-scikit-learn>=1.1.0
-scipy>=1.9.0
-matplotlib>=3.6.0
-seaborn>=0.12.0
-dask[complete]>=2022.11.0  # For large file processing
-tqdm>=4.64.0  # Progress bars
-pytest>=7.2.0  # Testing
-```
-
-### External Dependencies
-- **Module 1**: `patient_timelines.pkl` (provides PE index times and temporal windows)
-
-### Data Files
-- `/home/moin/TDA_11_1/Data/FNR_20240409_091633_Phy.txt` (33M rows)
-- `/home/moin/TDA_11_1/Data/Hnp.csv` (257K notes)
-- `/home/moin/TDA_11_1/Data/Prg.csv` (8.7M notes)
 
 ---
 
 ## Testing
 
 ```bash
+cd /home/moin/TDA_11_25
+export PYTHONPATH=module_3_vitals_processing:$PYTHONPATH
+
 # Run all tests
-pytest tests/ -v
+pytest module_3_vitals_processing/tests/ -v
 
 # Run specific test module
-pytest tests/test_phy_extractor.py -v
+pytest module_3_vitals_processing/tests/test_layer3_builder.py -v
+
+# Run Layer 3 feature tests
+pytest module_3_vitals_processing/tests/test_layer3/ -v
 
 # Run with coverage
-pytest tests/ --cov=. --cov-report=html
-
-# Run integration tests only
-pytest tests/ -m integration
+pytest module_3_vitals_processing/tests/ --cov=module_3_vitals_processing
 ```
 
-**Test Coverage Target:** >80%
+**Current Test Results:** 323 tests passing
 
 ---
 
-## Contributing
+## Performance
 
-### Development Workflow
-1. Branch from `main` for each submodule (`feature/3.X-name`)
-2. Write tests BEFORE implementation (TDD)
-3. Implement functionality
-4. Ensure all tests pass (`pytest tests/`)
-5. Format code (`black .`, `flake8 .`)
-6. Submit pull request with description
-7. Code review + merge
+### Layer 2 Builder (Optimized)
 
-### Code Standards
-- Type hints for all functions
-- Google-style docstrings
-- PEP 8 compliance
-- >80% test coverage for new code
+| Step | Time | Notes |
+|------|------|-------|
+| Load Layer 1 | ~3s | 30 MB parquet |
+| Hourly aggregation | ~5s | Vectorized pandas |
+| Create full grid | ~10s | 5.7M rows |
+| Imputation | ~36s | 22 parallel workers |
+| HDF5 tensor creation | ~15s | Vectorized numpy |
+| Time deltas | ~2s | Numba JIT |
+| **Total** | **~2 min** | 22 CPU cores |
 
----
+### Layer 3 Builder (Optimized)
 
-## Citation
-
-If you use this module in published research, please cite:
-
-```
-[TBD - Add citation after publication]
-```
+| Step | Time | Notes |
+|------|------|-------|
+| Load Layer 2 + masks | ~10s | Vectorized numpy indexing |
+| Add composites | ~1s | Vectorized |
+| Split by patient | ~30s | groupby (was 18 min with filter) |
+| Feature calculation | ~14 min | 22 parallel workers |
+| Combine + save | ~30s | Parquet compression |
+| **Total** | **~15-20 min** | 22 CPU cores |
 
 ---
 
-## Contact & Support
+## Next Steps: Phase 3
 
-**Project:** TDA 11.1 - Pulmonary Embolism Risk Prediction
-**Module Owner:** [TBD]
-**Issues:** [Repository issue tracker]
-**Documentation:** `docs/` directory
+### Submodule 3.7: Layer 4 Embeddings
+
+Features to implement:
+- **Functional PCA**: 10 components per vital capturing trajectory shape
+- **Autoencoder latents**: 32-dim representations per timestep
+- **Trajectory clustering**: DTW-based phenotyping
+
+Output: `outputs/layer4/embeddings.h5`
+
+### Submodule 3.8: Layer 5 World Model States
+
+Features to implement:
+- **~60 dimension state vectors** combining raw vitals, trends, FPC scores
+- **State transition modeling** for dynamics learning
+
+Output: `outputs/layer5/world_model_states.h5`
 
 ---
 
 ## Changelog
 
+### Version 3.0 (2025-12-10)
+- **Phase 2 COMPLETE**: Layer 3 feature engineering
+  - Timeseries features: 5.7M rows × 315 columns
+  - Summary features: 7,689 patients × 4,426 features
+  - Composite vitals: shock_index, pulse_pressure
+  - Rolling stats: 6h/12h/24h windows (mean, std, cv, min, max, range)
+  - Trend features: slope, R², direction
+  - Variability: RMSSD, successive variance
+  - Threshold features: cumulative hours, time-to-first
+  - Data density: observation rates per vital
+  - Summary aggregation across 5 clinical windows
+  - **Optimized**: Parallel processing (22 cores), vectorized operations
+- **71 new tests** for Layer 3 components
+- **323 total tests** passing
+
+### Version 2.0 (2025-12-09)
+- **Phase 1 COMPLETE**: Layers 1-2 implemented and tested
+  - Layer 1: 39M canonical records from 3 sources
+  - Layer 2: 5.7M hourly grid with 4-tier imputation
+  - HDF5 tensors: (7,689 × 745 × 7) ready for ML
+  - Optimized with parallel processing + numba JIT
+- **New architecture**: 5-layer design (replaces 10-submodule plan)
+- **252 tests** passing
+
 ### Version 1.1 (2025-12-08)
-- **Submodule 3.3 COMPLETE:** Prg NLP extractor with checkpointing
-  - 61 tests, 542 lines of code
-  - Skip section filtering (allergies, medications, history)
-  - Temperature method capture (oral, temporal, rectal, etc.)
-  - Checkpoint/resume for 30GB file processing
+- Submodule 3.3 COMPLETE: Prg NLP extractor
 
 ### Version 1.0.2 (2025-12-02)
-- **Submodule 3.2 COMPLETE:** Hnp NLP extractor
-  - 74 tests, 662 lines of code
-  - Section-aware extraction with negation handling
-  - Context validation and confidence scoring
+- Submodule 3.2 COMPLETE: Hnp NLP extractor
 
 ### Version 1.0.1 (2025-11-25)
-- **Submodule 3.1 COMPLETE:** Phy structured extractor
-  - 39 tests, 265 lines of code
-  - BP parsing, concept mapping, parallel processing
-
-### Version 1.0 (2025-11-09)
-- Initial architecture design
-- 10 submodules defined
-- 4-tier validation framework
-- Comprehensive documentation
+- Submodule 3.1 COMPLETE: Phy structured extractor
 
 ---
 
-## License
-
-[TBD - Add appropriate license]
-
----
-
-**Status:** ✅ Submodules 3.1-3.3 COMPLETE | ⏳ 3.4-3.10 Pending
-**Next Step:** Run extractions, then implement Submodule 3.4 (Vitals Harmonizer)
+**Status:** ✅ Phase 1-2 COMPLETE | ⏳ Phase 3 Pending
+**Next Step:** Implement Submodule 3.7 (Layer 4 Embeddings)

@@ -3,10 +3,15 @@
 Transforms Layer 2 hourly grid into:
 - timeseries_features.parquet: ~295 features per hour
 - summary_features.parquet: ~3500 features per patient
+
+Optimized for maximum CPU utilization with parallel processing.
 """
 from typing import List
 from pathlib import Path
 import multiprocessing as mp
+from concurrent.futures import ProcessPoolExecutor, as_completed
+import warnings
+import sys
 
 import pandas as pd
 import numpy as np
@@ -14,12 +19,15 @@ import h5py
 from tqdm import tqdm
 
 from processing.layer3.composite_vitals import add_composite_vitals
-from processing.layer3.rolling_stats import calculate_rolling_stats
-from processing.layer3.trend_features import calculate_trend_features
-from processing.layer3.variability_features import calculate_variability_features
-from processing.layer3.threshold_features import calculate_threshold_features
-from processing.layer3.data_density import calculate_data_density
-from processing.layer3.summary_aggregator import aggregate_to_summary
+from processing.layer3.rolling_stats import calculate_rolling_stats_patient
+from processing.layer3.trend_features import calculate_trend_features_patient
+from processing.layer3.variability_features import calculate_variability_features_patient
+from processing.layer3.threshold_features import calculate_threshold_features_patient
+from processing.layer3.data_density import calculate_data_density_patient
+from processing.layer3.summary_aggregator import aggregate_patient_to_summary
+
+# Suppress pandas fragmentation warnings during parallel processing
+warnings.filterwarnings('ignore', category=pd.errors.PerformanceWarning)
 
 # All vitals including composites
 LAYER3_VITALS: List[str] = [
@@ -33,8 +41,8 @@ RAW_VITALS: List[str] = ['HR', 'SBP', 'DBP', 'MAP', 'RR', 'SPO2', 'TEMP']
 # Rolling window sizes
 ROLLING_WINDOWS: List[int] = [6, 12, 24]
 
-# Get CPU count
-N_JOBS = max(1, mp.cpu_count() - 1)
+# Get CPU count - use all cores for maximum performance
+N_JOBS = mp.cpu_count()
 
 
 def load_layer2_with_masks(
@@ -45,6 +53,8 @@ def load_layer2_with_masks(
 
     Pivots from long format (vital_type column) to wide format (one column per vital).
     Adds mask_{vital} columns from imputation_tier tensor.
+
+    OPTIMIZED: Uses vectorized numpy indexing instead of iterrows().
 
     Args:
         parquet_path: Path to hourly_grid.parquet
@@ -72,31 +82,70 @@ def load_layer2_with_masks(
         patient_index = [p.decode() if isinstance(p, bytes) else p for p in f['patient_index'][:]]
         vital_index = [v.decode() if isinstance(v, bytes) else v for v in f['vital_index'][:]]
 
-    # Create patient/vital/hour to tier mapping
+    # Create index mappings
     patient_to_idx = {p: i for i, p in enumerate(patient_index)}
     vital_to_idx = {v: i for i, v in enumerate(vital_index)}
 
-    # Add mask columns (mask=1 for Tier 1-2, mask=0 for Tier 3-4)
-    for vital in RAW_VITALS:
-        if vital in vital_to_idx:
-            v_idx = vital_to_idx[vital]
-            mask_values = []
+    # VECTORIZED: Create patient and hour index arrays
+    print(f"  Creating mask columns (vectorized)...")
+    empi_array = wide['EMPI'].values
+    hour_array = wide['hour_from_pe'].values.astype(int)
 
-            for _, row in wide.iterrows():
-                empi = row['EMPI']
-                hour = int(row['hour_from_pe'])
+    # Map EMPIs to patient indices (-1 for unknown)
+    patient_idx_array = np.array([patient_to_idx.get(empi, -1) for empi in empi_array])
 
-                if empi in patient_to_idx and -24 <= hour <= 720:
-                    p_idx = patient_to_idx[empi]
-                    h_idx = hour + 24  # Convert to 0-indexed
-                    tier = imputation_tiers[p_idx, h_idx, v_idx]
-                    mask_values.append(1 if tier <= 2 else 0)
-                else:
-                    mask_values.append(0)
+    # Convert hours to tensor indices (hour + 24, with bounds check)
+    hour_idx_array = hour_array + 24
+    valid_hours = (hour_idx_array >= 0) & (hour_idx_array < imputation_tiers.shape[1])
+    valid_patients = patient_idx_array >= 0
+    valid_mask = valid_hours & valid_patients
 
-            wide[f'mask_{vital}'] = mask_values
+    # Add mask columns for each vital using vectorized indexing
+    for vital in tqdm(RAW_VITALS, desc="  Building masks"):
+        if vital not in vital_to_idx:
+            wide[f'mask_{vital}'] = 0
+            continue
+
+        v_idx = vital_to_idx[vital]
+        mask_values = np.zeros(len(wide), dtype=np.int8)
+
+        # Use advanced indexing for valid entries
+        valid_indices = np.where(valid_mask)[0]
+        if len(valid_indices) > 0:
+            p_idxs = patient_idx_array[valid_indices]
+            h_idxs = hour_idx_array[valid_indices]
+            tiers = imputation_tiers[p_idxs, h_idxs, v_idx]
+            mask_values[valid_indices] = (tiers <= 2).astype(np.int8)
+
+        wide[f'mask_{vital}'] = mask_values
 
     return wide
+
+
+def process_single_patient(args) -> tuple:
+    """Process all features for a single patient.
+
+    This function is designed to be called in parallel.
+    Returns (patient_df, summary_row).
+    """
+    patient_df, vitals, windows, feature_cols = args
+
+    # Calculate all features for this patient
+    patient_df = calculate_rolling_stats_patient(patient_df, vitals=vitals, windows=windows)
+    patient_df = calculate_trend_features_patient(patient_df, vitals=vitals, windows=windows)
+    patient_df = calculate_variability_features_patient(patient_df, vitals=vitals)
+    patient_df = calculate_threshold_features_patient(patient_df)
+    patient_df = calculate_data_density_patient(patient_df, vitals=vitals)
+
+    # Get feature columns for summary (after all features added)
+    if feature_cols is None:
+        exclude_cols = {'EMPI', 'hour_from_pe'} | set(vitals) | {f'mask_{v}' for v in vitals}
+        feature_cols = [c for c in patient_df.columns if c not in exclude_cols]
+
+    # Aggregate to summary
+    summary_row = aggregate_patient_to_summary(patient_df, feature_cols=feature_cols)
+
+    return patient_df, summary_row
 
 
 def build_layer3(
@@ -107,6 +156,8 @@ def build_layer3(
 ) -> None:
     """Build Layer 3 features from Layer 2 data.
 
+    OPTIMIZED: Uses multiprocessing for parallel patient processing.
+
     Args:
         layer2_parquet_path: Path to hourly_grid.parquet
         layer2_hdf5_path: Path to hourly_tensors.h5
@@ -114,60 +165,66 @@ def build_layer3(
         summary_output_path: Output path for summary_features.parquet
     """
     print("\n" + "=" * 60)
-    print("Layer 3 Builder - Feature Engineering")
+    print("Layer 3 Builder - Feature Engineering (OPTIMIZED)")
     print("=" * 60)
-    print(f"CPU cores: {mp.cpu_count()}, using {N_JOBS} workers")
+    print(f"CPU cores available: {mp.cpu_count()}, using {N_JOBS} workers")
 
     # Step 1: Load Layer 2 data
-    print("\n[1/8] Loading Layer 2 data...")
+    print("\n[1/3] Loading Layer 2 data...")
     df = load_layer2_with_masks(layer2_parquet_path, layer2_hdf5_path)
-    print(f"  Loaded {len(df):,} rows from {df['EMPI'].nunique():,} patients")
+    n_patients = df['EMPI'].nunique()
+    print(f"  Loaded {len(df):,} rows from {n_patients:,} patients")
 
-    # Step 2: Add composite vitals
-    print("\n[2/8] Calculating composite vitals...")
+    # Step 2: Add composite vitals (vectorized, fast)
+    print("\n[2/3] Calculating composite vitals...")
     df = add_composite_vitals(df)
 
-    # Add mask columns for composites (same as components)
-    df['mask_shock_index'] = (df['mask_HR'] == 1) & (df['mask_SBP'] == 1)
-    df['mask_pulse_pressure'] = (df['mask_SBP'] == 1) & (df['mask_DBP'] == 1)
-    df['mask_shock_index'] = df['mask_shock_index'].astype(int)
-    df['mask_pulse_pressure'] = df['mask_pulse_pressure'].astype(int)
-
+    # Add mask columns for composites
+    df['mask_shock_index'] = ((df['mask_HR'] == 1) & (df['mask_SBP'] == 1)).astype(np.int8)
+    df['mask_pulse_pressure'] = ((df['mask_SBP'] == 1) & (df['mask_DBP'] == 1)).astype(np.int8)
     print(f"  Added shock_index and pulse_pressure")
 
-    # Step 3: Rolling statistics
-    print("\n[3/8] Calculating rolling statistics...")
-    df = calculate_rolling_stats(df, vitals=LAYER3_VITALS, windows=ROLLING_WINDOWS)
+    # Step 3: Process all patients in parallel
+    print(f"\n[3/3] Processing {n_patients:,} patients in parallel ({N_JOBS} workers)...")
+    sys.stdout.flush()
 
-    # Step 4: Trend features
-    print("\n[4/8] Calculating trend features...")
-    df = calculate_trend_features(df, vitals=LAYER3_VITALS, windows=ROLLING_WINDOWS)
+    # Split data by patient using groupby (much faster than filtering)
+    print("  Splitting data by patient (using groupby)...")
+    sys.stdout.flush()
+    grouped = df.groupby('EMPI', sort=False)
+    patient_dfs = [group.sort_values('hour_from_pe').copy() for _, group in tqdm(grouped, desc="  Preparing patients", unit="patient", total=n_patients)]
 
-    # Step 5: Variability features
-    print("\n[5/8] Calculating variability features...")
-    df = calculate_variability_features(df, vitals=LAYER3_VITALS)
+    # Prepare args for parallel processing
+    args_list = [(pdf, LAYER3_VITALS, ROLLING_WINDOWS, None) for pdf in patient_dfs]
 
-    # Step 6: Threshold features
-    print("\n[6/8] Calculating threshold features...")
-    df = calculate_threshold_features(df)
+    # Process in parallel with progress bar
+    print("  Starting parallel feature calculation...")
+    sys.stdout.flush()
+    all_timeseries = []
+    all_summaries = []
 
-    # Step 7: Data density features
-    print("\n[7/8] Calculating data density features...")
-    df = calculate_data_density(df, vitals=LAYER3_VITALS)
+    with ProcessPoolExecutor(max_workers=N_JOBS) as executor:
+        futures = {executor.submit(process_single_patient, args): i for i, args in enumerate(args_list)}
 
-    # Save time-series output
+        with tqdm(total=len(futures), desc="  Computing features", unit="patient") as pbar:
+            for future in as_completed(futures):
+                try:
+                    patient_df, summary_row = future.result()
+                    all_timeseries.append(patient_df)
+                    all_summaries.append(summary_row)
+                except Exception as e:
+                    print(f"  Warning: Patient processing failed: {e}")
+                pbar.update(1)
+
+    # Combine results
+    print("\n  Combining results...")
+    timeseries_df = pd.concat(all_timeseries, ignore_index=True)
+    summary_df = pd.DataFrame(all_summaries)
+
+    # Save outputs
     print(f"\n  Saving time-series features to {timeseries_output_path}")
     timeseries_output_path.parent.mkdir(parents=True, exist_ok=True)
-    df.to_parquet(timeseries_output_path, index=False)
-
-    # Step 8: Aggregate to summary
-    print("\n[8/8] Aggregating to summary features...")
-
-    # Get all feature columns (exclude identifiers and raw vitals)
-    exclude_cols = {'EMPI', 'hour_from_pe'} | set(LAYER3_VITALS) | {f'mask_{v}' for v in LAYER3_VITALS}
-    feature_cols = [c for c in df.columns if c not in exclude_cols]
-
-    summary_df = aggregate_to_summary(df, feature_cols=feature_cols)
+    timeseries_df.to_parquet(timeseries_output_path, index=False)
 
     print(f"  Saving summary features to {summary_output_path}")
     summary_output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -176,7 +233,7 @@ def build_layer3(
     print("\n" + "=" * 60)
     print("Layer 3 COMPLETE")
     print("=" * 60)
-    print(f"  Time-series: {len(df):,} rows x {len(df.columns)} columns")
+    print(f"  Time-series: {len(timeseries_df):,} rows x {len(timeseries_df.columns)} columns")
     print(f"  Summary: {len(summary_df):,} patients x {len(summary_df.columns)} features")
 
 
