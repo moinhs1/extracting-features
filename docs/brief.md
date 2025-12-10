@@ -1,5 +1,5 @@
 # Session Brief: TDA Project - PE Trajectory Pipeline
-*Last Updated: 2025-12-09*
+*Last Updated: 2025-12-10*
 
 ---
 
@@ -13,11 +13,11 @@
 - [ ] Phase 2: Submodule 3.6 - Layer 3 Feature Engineering
 - [ ] Phase 3: Submodules 3.7-3.8 - Layers 4-5 (Embeddings, World Models)
 
-**Module 4 Medications Processing:**
+**Module 4 Medications Processing - Phase 2 IN PROGRESS:**
 - [x] Design complete - 5-layer architecture
 - [x] Config files created (therapeutic_classes.yaml, dose_patterns.yaml, medication_config.py)
-- [ ] Phase 1: UMLS/RxNorm setup
-- [ ] Phase 2: Layer 1 - Canonical extraction
+- [x] Phase 1: Directory structure, RxNorm setup script
+- [x] **Phase 2 (In Progress):** Dose parser COMPLETE (18 tests), canonical extractor in progress
 - [ ] Phase 3: RxNorm mapping + LLM benchmark
 - [ ] Phases 4-7: Layers 2-5 (parallel)
 - [ ] Phase 8: Exporters & validation
