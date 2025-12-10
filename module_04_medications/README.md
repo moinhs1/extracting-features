@@ -2,7 +2,7 @@
 
 Unified medication encoding system for PE trajectory analysis. Five-layer architecture serving GBTM, GRU-D, XGBoost, and World Model analyses.
 
-## Status: Phase 3 (RxNorm Mapping) IN PROGRESS
+## Status: Phase 4 (Layer 2 Therapeutic Classes) COMPLETE ✅
 
 ---
 
@@ -14,54 +14,45 @@ Unified medication encoding system for PE trajectory analysis. Five-layer archit
 - [x] RxNorm setup script and database (`rxnorm.db`)
 
 ### Phase 2: Layer 1 Canonical Extraction - COMPLETE ✅
-- [x] **Dose Parser** (`extractors/dose_parser.py`)
-  - Regex-based extraction for dose value/unit (mg, mcg, units, etc.)
-  - Route extraction (IV, PO, SC, IM, topical, inhaled, etc.)
-  - Frequency extraction (QD, BID, TID, PRN, etc.)
-  - Drug name extraction
-  - 18 tests passing
-- [x] **Canonical Extractor** (`extractors/canonical_extractor.py`)
-  - Stream Med.txt in 1M-row chunks
-  - Filter to PE cohort (8,713 patients)
-  - Compute hours_from_t0 from patient_timelines.pkl
-  - Apply regex dose parsing
-  - Output bronze parquet with canonical schema
-  - 5 tests passing
-- [x] **Vocabulary Extraction** - 2 tests passing
-- [x] **Full Extraction Results:**
-  - Total raw records: 18.6M
-  - After cohort filter: 9.6M
-  - After window filter: 1.71M
-  - Dose parsing success: **89.9%** (target >=80% ✅)
-  - Patients with medications: **8,394** (96.3% of cohort)
-  - Unique medication strings: **10,879**
+- [x] **Dose Parser** (`extractors/dose_parser.py`) - 18 tests
+- [x] **Canonical Extractor** (`extractors/canonical_extractor.py`) - 5 tests
+- [x] **Vocabulary Extraction** - 2 tests
+- [x] **Results:**
+  - Records: 1.71M (from 18.6M raw)
+  - Dose parsing: **89.9%** (target >=80% ✅)
+  - Patients: **8,394** (96.3% of cohort)
+  - Unique medications: **10,879**
   - Output: `data/bronze/canonical_records.parquet` (23 MB)
-  - Vocabulary: `data/bronze/medication_vocabulary.parquet` (389 KB)
 
-### Phase 3: RxNorm Mapping - IN PROGRESS 🔄
-- [x] **RxNorm Mapper Tests** (`tests/test_rxnorm_mapper.py`)
-  - 10 tests for exact/fuzzy/ingredient matching
-  - All tests passing
-- [x] **RxNorm Mapper** (`extractors/rxnorm_mapper.py`)
-  - Exact match against RXNCONSO (case-insensitive)
-  - Fuzzy match using rapidfuzz (Levenshtein, threshold 85%)
+### Phase 3: RxNorm Mapping - COMPLETE ✅
+- [x] **RxNorm Mapper** (`extractors/rxnorm_mapper.py`) - 10 tests
+  - Exact match against RXNCONSO
+  - Fuzzy match using rapidfuzz (85% threshold)
   - Ingredient extraction from product names
   - Ingredient lookup via RXNREL relationships
-  - LRU caching for performance (50K exact, 10K ingredient)
-  - 429 lines of code
-- [x] **Sample Mapping Verified:**
-  - 91.4% success rate on first 500 medications
-  - Above 85% target ✅
-- [ ] **Pending:**
-  - Run full vocabulary mapping (~10K unique strings)
-  - Apply mapping to canonical records
-  - Save silver parquet outputs
+- [x] **Full Mapping Results:**
+  - Vocabulary mapping: **82.9%** (10,879 unique strings)
+  - Record-level mapping: **92.4%** (1.58M/1.71M records) ✅
+  - Unique ingredients mapped: **1,582**
+  - Output: `data/silver/mapped_medications.parquet` (32 MB)
 
-### Phases 4-8: Pending
-- Phase 4: Layer 2 Therapeutic Classes (53 classes)
+### Phase 4: Layer 2 Therapeutic Classes - COMPLETE ✅
+- [x] **Class Indicator Builder** (`transformers/class_indicator_builder.py`) - 14 tests
+  - Map ingredients to 53 therapeutic classes
+  - Dose-based therapeutic/prophylactic classification (UFH, LMWH)
+  - Time window assignment (baseline/acute/subacute/recovery)
+  - Aggregate indicators per patient-window
+- [x] **Results:**
+  - Patient-window combinations: **25,038**
+  - Patients: **7,786**
+  - Classes: **53** (with counts and first-occurrence times)
+  - Anticoagulant in acute window: **54.7%**
+  - Output: `data/gold/therapeutic_classes/class_indicators.parquet`
+
+### Phases 5-8: Pending
 - Phase 5: Layer 3 Individual Medications (200-400 sparse indicators)
-- Phase 6: Layer 4 Embeddings (5 types: semantic, ontological, co-occurrence, PK, hierarchical)
-- Phase 7: Layer 5 Dose Intensity (raw, DDD-normalized, weight-adjusted)
+- Phase 6: Layer 4 Embeddings (5 types)
+- Phase 7: Layer 5 Dose Intensity
 - Phase 8: Exporters & Validation
 
 ---
@@ -443,7 +434,7 @@ scipy>=1.11
 
 ---
 
-**Version:** 1.2.0 (Phase 3 In Progress)
+**Version:** 1.3.0 (Phase 4 Complete)
 **Last Updated:** 2025-12-10
 
 ---
@@ -456,7 +447,8 @@ scipy>=1.11
 | `test_canonical_extractor.py` | 5 | ✅ Pass |
 | `test_vocabulary.py` | 2 | ✅ Pass |
 | `test_rxnorm_mapper.py` | 10 | ✅ Pass |
-| **Total** | **35** | **✅ All Passing** |
+| `test_class_indicator_builder.py` | 14 | ✅ Pass |
+| **Total** | **49** | **✅ All Passing** |
 
 Run all tests:
 ```bash

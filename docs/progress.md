@@ -33,8 +33,9 @@ gantt
     Medications 5-Layer Design     :done, m4d, 2025-12-08, 1d
     Phase 1: Setup & RxNorm DB     :done, m4a, 2025-12-09, 1d
     Phase 2: Layer 1 Extraction    :done, m4b, 2025-12-10, 1d
-    Phase 3: RxNorm Mapping        :active, m4c, 2025-12-10, 1d
-    Phases 4-8: Layers 2-5         :pending, m4e, after m4c, 2d
+    Phase 3: RxNorm Mapping        :done, m4c, 2025-12-10, 1d
+    Phase 4: Layer 2 Classes       :done, m4d2, 2025-12-10, 1d
+    Phases 5-8: Layers 3-5         :pending, m4e, after m4d2, 2d
 
     section Module 5
     Diagnoses/Procedures          :pending, m5a, after m4e, 2d
@@ -53,7 +54,7 @@ pie title Module Completion Status
     "Module 1 - Complete" : 100
     "Module 2 - Complete (needs rerun)" : 90
     "Module 3 - Phase 1 Complete" : 60
-    "Module 4 - Phase 3 In Progress" : 35
+    "Module 4 - Phase 4 Complete" : 50
     "Module 5 - Not Started" : 0
     "Module 6 - Not Started" : 0
     "Module 7 - Not Started" : 0
@@ -116,24 +117,25 @@ pie title Module Completion Status
 **Tests:** 252 total (174 extractors + 78 processing)
 **Output:** `canonical_vitals.parquet`, `hourly_grid.parquet`, `hourly_tensors.h5`
 
-### Module 4: Medication Processing - Phase 3 IN PROGRESS 🔄
+### Module 4: Medication Processing - Phase 4 COMPLETE ✅
 
 | Task | Status | Date | Notes |
 |------|--------|------|-------|
 | 5-Layer Architecture Design | Complete | Dec 8 | 53 therapeutic classes |
 | Phase 1: Setup | Complete | Dec 9 | RxNorm DB, config files |
 | Phase 2: Layer 1 Extraction | Complete | Dec 10 | 25 tests, 89.9% parsing |
-| Phase 3: RxNorm Mapping | In Progress | Dec 10 | 10 tests, 91.4% sample rate |
-| Phase 4: Layer 2 Classes | Pending | - | 53 therapeutic classes |
+| Phase 3: RxNorm Mapping | Complete | Dec 10 | 10 tests, 92.4% record mapping |
+| Phase 4: Layer 2 Classes | Complete | Dec 10 | 14 tests, 53 classes, 25K rows |
 | Phase 5: Layer 3 Individual | Pending | - | 200-400 sparse indicators |
 | Phase 6: Layer 4 Embeddings | Pending | - | 5 embedding types |
 | Phase 7: Layer 5 Dose Intensity | Pending | - | Raw, DDD, weight-adjusted |
 | Phase 8: Exporters | Pending | - | GBTM, GRU-D, XGBoost exports |
 
-**Tests:** 35 total (18 dose parser + 5 canonical + 2 vocab + 10 rxnorm)
-**Output so far:**
+**Tests:** 49 total (18 dose + 5 canonical + 2 vocab + 10 rxnorm + 14 class builder)
+**Output:**
 - `data/bronze/canonical_records.parquet` (23 MB, 1.71M records)
-- `data/bronze/medication_vocabulary.parquet` (389 KB, 10,879 unique)
+- `data/silver/mapped_medications.parquet` (32 MB, 92.4% mapped)
+- `data/gold/therapeutic_classes/class_indicators.parquet` (25K patient-windows)
 
 ### Modules 5-7: Future Work
 
@@ -174,9 +176,9 @@ timeline
                 : Module 4 design complete
 
     Dec 10, 2025 : Module 4 Progress
-                 : Phase 2 Layer 1 complete
-                 : Phase 3 RxNorm mapping started
-                 : 35 tests, 91.4% mapping rate
+                 : Phases 2-4 complete
+                 : 49 tests, 92.4% mapping
+                 : 53 therapeutic classes built
 ```
 
 ## Cohort Statistics
@@ -199,8 +201,8 @@ timeline
 | Module 1 | - | - | No formal tests |
 | Module 2 | - | - | No formal tests |
 | Module 3 | 9 files | 252 | ✅ All Pass |
-| Module 4 | 4 files | 35 | ✅ All Pass |
-| **Total** | **13 files** | **287** | **✅ All Pass** |
+| Module 4 | 5 files | 49 | ✅ All Pass |
+| **Total** | **14 files** | **301** | **✅ All Pass** |
 
 ## Technical Debt & Issues
 
@@ -214,11 +216,11 @@ timeline
 
 ## Next Actions
 
-1. **Immediate:** Complete Phase 3 RxNorm mapping (Tasks 4-7)
-2. **Short-term:** Run Module 3 Layer 1-2 on real data
-3. **Medium-term:** Module 4 Phases 4-8, Module 3 Phase 2-3
+1. **Immediate:** Module 4 Phase 5 - Layer 3 Individual Medications
+2. **Short-term:** Module 4 Phases 6-8, Run Module 3 Layer 1-2 on real data
+3. **Medium-term:** Module 3 Phase 2-3 (Layers 3-5)
 4. **Long-term:** Modules 5-7, ML model development
 
 ---
 
-*Version: 3.0 | Updated: 2025-12-10*
+*Version: 4.0 | Updated: 2025-12-10*
