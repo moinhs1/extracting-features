@@ -13,16 +13,22 @@
 - [ ] Phase 2: Submodule 3.6 - Layer 3 Feature Engineering
 - [ ] Phase 3: Submodules 3.7-3.8 - Layers 4-5 (Embeddings, World Models)
 
-**Module 4 Medications Processing - Phase 2 COMPLETE ✅:**
+**Module 4 Medications Processing - Phase 3 IN PROGRESS 🔄:**
 - [x] Design complete - 5-layer architecture
 - [x] Config files created (therapeutic_classes.yaml, dose_patterns.yaml, medication_config.py)
-- [x] Phase 1: Directory structure, RxNorm setup script
+- [x] Phase 1: Directory structure, RxNorm setup script + database
 - [x] **Phase 2 COMPLETE:**
   - [x] Dose parser (18 tests)
   - [x] Canonical extractor (5 tests)
   - [x] Vocabulary extraction (2 tests)
   - [x] Full extraction: 1.71M records, 89.9% parsing, 8,394 patients
-- [ ] Phase 3: RxNorm mapping + LLM benchmark
+- [~] **Phase 3 IN PROGRESS:**
+  - [x] RxNorm mapper tests (10 tests)
+  - [x] RxNorm mapper implementation (exact/fuzzy/ingredient matching)
+  - [x] Sample mapping verified: 91.4% success rate
+  - [ ] Run full vocabulary mapping (~10K unique)
+  - [ ] Apply mapping to canonical records
+  - [ ] Save silver parquet outputs
 - [ ] Phases 4-7: Layers 2-5 (parallel)
 - [ ] Phase 8: Exporters & validation
 
@@ -36,9 +42,50 @@
 
 ## Current Session Progress (Dec 10, 2025)
 
-### Module 4: Phase 2 Layer 1 Implementation - COMPLETE ✅
+### Module 4: Phase 3 RxNorm Mapping - IN PROGRESS 🔄
 
-**Goal:** Implement Layer 1 canonical extraction per plan `docs/plans/2025-12-10-phase2-layer1-canonical-extraction.md`
+**Goal:** Map medication vocabulary (~10K unique strings) to RxNorm concepts using multi-step pipeline (exact → fuzzy → ingredient), achieving ≥85% mapping rate.
+
+**Implementation Summary:**
+- **3 of 7 tasks completed** via executing-plans skill
+- **35 tests passing** (18 dose parser + 5 canonical + 2 vocab + 10 rxnorm)
+- **2 commits** for Phase 3 so far
+- Sample mapping: **91.4% success rate** (above 85% target)
+
+**Components Implemented:**
+
+| File | Description | Tests |
+|------|-------------|-------|
+| `extractors/rxnorm_mapper.py` | Multi-step RxNorm mapping pipeline | 10 |
+| `tests/test_rxnorm_mapper.py` | Mapping test suite | 10 |
+
+**RxNorm Mapper Features:**
+- Exact match against RXNCONSO (case-insensitive)
+- Fuzzy match using rapidfuzz (Levenshtein, 85% threshold)
+- Ingredient extraction from product names
+- Ingredient lookup via RXNREL relationships
+- LRU caching (50K exact matches, 10K ingredients)
+- Batch mapping with progress callback
+
+**Sample Mapping Results (first 500):**
+```
+Total unique medications: 10,879
+Exact matches: 7
+Fuzzy matches: 342
+Ingredient matches: 108
+Failed: 43
+Success rate: 91.4% (target >=85% ✅)
+```
+
+**Pending Tasks:**
+- Task 4: Run full vocabulary mapping
+- Task 5: Apply mapping to canonical records
+- Task 6: Update extractors package exports
+- Task 7: Final validation
+
+---
+
+### Module 4: Phase 2 Layer 1 Implementation - COMPLETE ✅
 
 **Implementation Summary:**
 - **10 tasks completed** via executing-plans skill with TDD
@@ -77,8 +124,6 @@ Unique medications: 10,879
 - Apixaban: 20,579 records
 - Warfarin: 6,043 records
 - Rivaroxaban: 3,291 records
-
-**Next:** Phase 3 - RxNorm Mapping
 
 ---
 

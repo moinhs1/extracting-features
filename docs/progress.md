@@ -1,5 +1,5 @@
 # Project Progress Tracker
-*Last Updated: 2025-11-25*
+*Last Updated: 2025-12-10*
 
 ## Overall Project Status
 
@@ -23,15 +23,21 @@ gantt
     Rerun on Expanded Cohort      :pending, m2e, after m1e, 1d
 
     section Module 3
-    Vitals Processing Design       :pending, m3a, after m2e, 1d
-    Vital Sign Extraction         :pending, m3b, after m3a, 2d
-    Temporal Features             :pending, m3c, after m3b, 1d
+    Vitals 5-Layer Design          :done, m3d, 2025-12-08, 1d
+    Extractors (PHY/HNP/PRG)       :done, m3a, 2025-12-02, 3d
+    Layer 1-2 Builders             :done, m3b, 2025-12-09, 1d
+    Layer 3 Feature Engineering    :pending, m3c, after m3b, 1d
+    Layers 4-5 Embeddings          :pending, m3e, after m3c, 1d
 
     section Module 4
-    Medications Processing         :pending, m4a, after m3c, 2d
+    Medications 5-Layer Design     :done, m4d, 2025-12-08, 1d
+    Phase 1: Setup & RxNorm DB     :done, m4a, 2025-12-09, 1d
+    Phase 2: Layer 1 Extraction    :done, m4b, 2025-12-10, 1d
+    Phase 3: RxNorm Mapping        :active, m4c, 2025-12-10, 1d
+    Phases 4-8: Layers 2-5         :pending, m4e, after m4c, 2d
 
     section Module 5
-    Diagnoses/Procedures          :pending, m5a, after m4a, 2d
+    Diagnoses/Procedures          :pending, m5a, after m4e, 2d
 
     section Module 6
     Temporal Alignment            :pending, m6a, after m5a, 2d
@@ -46,8 +52,8 @@ gantt
 pie title Module Completion Status
     "Module 1 - Complete" : 100
     "Module 2 - Complete (needs rerun)" : 90
-    "Module 3 - Not Started" : 0
-    "Module 4 - Not Started" : 0
+    "Module 3 - Phase 1 Complete" : 60
+    "Module 4 - Phase 3 In Progress" : 35
     "Module 5 - Not Started" : 0
     "Module 6 - Not Started" : 0
     "Module 7 - Not Started" : 0
@@ -55,7 +61,7 @@ pie title Module Completion Status
 
 ## Detailed Module Status
 
-### Module 1: Core Infrastructure
+### Module 1: Core Infrastructure - COMPLETE ✅
 
 | Task | Status | Date | Notes |
 |------|--------|------|-------|
@@ -74,9 +80,9 @@ pie title Module Completion Status
 | tqdm progress bars | Complete | Nov 25 | All 10 loops |
 | Expanded cohort rerun | Complete | Nov 25 | 8,713 patients |
 
-**Current Output:** 8,713 patients, 33 MB outcomes.csv, 36 MB timelines.pkl
+**Output:** 8,713 patients, 33 MB outcomes.csv, 36 MB patient_timelines.pkl
 
-### Module 2: Laboratory Processing
+### Module 2: Laboratory Processing - COMPLETE ✅ (needs rerun)
 
 | Task | Status | Date | Notes |
 |------|--------|------|-------|
@@ -93,23 +99,49 @@ pie title Module Completion Status
 
 **Previous Output:** 3,565 patients, 35 MB features.csv, 646 MB sequences.h5
 
-### Module 3: Vitals Processing
+### Module 3: Vitals Processing - Phase 1 COMPLETE ✅
 
 | Task | Status | Date | Notes |
 |------|--------|------|-------|
-| Design vital sign extraction | Pending | - | HR, BP, SpO2, RR, Temp |
-| Parse flowsheet data | Pending | - | - |
-| Calculate temporal features | Pending | - | - |
-| Triple encoding | Pending | - | Values + masks + deltas |
+| 5-Layer Architecture Design | Complete | Dec 8 | Approved design doc |
+| Submodule 3.1: PHY Extractor | Complete | Nov 25 | 39 tests, structured vitals |
+| Submodule 3.2: HNP Extractor | Complete | Dec 2 | 74 tests, H&P NLP |
+| Submodule 3.3: PRG Extractor | Complete | Dec 8 | 61 tests, Progress notes NLP |
+| Submodule 3.4: Layer 1 Builder | Complete | Dec 9 | 17 tests, canonical records |
+| Submodule 3.5: Layer 2 Builder | Complete | Dec 9 | 17 tests, hourly grid + HDF5 |
+| Processing helpers | Complete | Dec 9 | unit_converter, qc_filters, temporal_aligner |
+| Submodule 3.6: Layer 3 Features | Pending | - | Rolling stats, trends |
+| Submodules 3.7-3.8: Layers 4-5 | Pending | - | Embeddings, world models |
 
-### Module 4-7: Future Work
+**Tests:** 252 total (174 extractors + 78 processing)
+**Output:** `canonical_vitals.parquet`, `hourly_grid.parquet`, `hourly_tensors.h5`
+
+### Module 4: Medication Processing - Phase 3 IN PROGRESS 🔄
+
+| Task | Status | Date | Notes |
+|------|--------|------|-------|
+| 5-Layer Architecture Design | Complete | Dec 8 | 53 therapeutic classes |
+| Phase 1: Setup | Complete | Dec 9 | RxNorm DB, config files |
+| Phase 2: Layer 1 Extraction | Complete | Dec 10 | 25 tests, 89.9% parsing |
+| Phase 3: RxNorm Mapping | In Progress | Dec 10 | 10 tests, 91.4% sample rate |
+| Phase 4: Layer 2 Classes | Pending | - | 53 therapeutic classes |
+| Phase 5: Layer 3 Individual | Pending | - | 200-400 sparse indicators |
+| Phase 6: Layer 4 Embeddings | Pending | - | 5 embedding types |
+| Phase 7: Layer 5 Dose Intensity | Pending | - | Raw, DDD, weight-adjusted |
+| Phase 8: Exporters | Pending | - | GBTM, GRU-D, XGBoost exports |
+
+**Tests:** 35 total (18 dose parser + 5 canonical + 2 vocab + 10 rxnorm)
+**Output so far:**
+- `data/bronze/canonical_records.parquet` (23 MB, 1.71M records)
+- `data/bronze/medication_vocabulary.parquet` (389 KB, 10,879 unique)
+
+### Modules 5-7: Future Work
 
 | Module | Status | Description |
 |--------|--------|-------------|
-| Module 4 | Pending | Medications processing |
-| Module 5 | Pending | Diagnoses/procedures |
-| Module 6 | Pending | Temporal alignment |
-| Module 7 | Pending | Trajectory engineering |
+| Module 5 | Pending | Diagnoses/procedures processing |
+| Module 6 | Pending | Temporal alignment across modalities |
+| Module 7 | Pending | Trajectory feature engineering |
 
 ## Key Milestones
 
@@ -131,21 +163,44 @@ timeline
                  : Performance optimization
                  : Module 1 rerun complete
 
-    Upcoming : Module 2 Rerun
-             : Module 3 Vitals
-             : Remaining modules
+    Dec 2-8, 2025 : Module 3 Extractors
+                  : PHY/HNP/PRG extractors
+                  : 174 tests passing
+                  : 5-layer design approved
+
+    Dec 9, 2025 : Module 3 Phase 1
+                : Layer 1-2 builders complete
+                : 252 total tests
+                : Module 4 design complete
+
+    Dec 10, 2025 : Module 4 Progress
+                 : Phase 2 Layer 1 complete
+                 : Phase 3 RxNorm mapping started
+                 : 35 tests, 91.4% mapping rate
 ```
 
 ## Cohort Statistics
 
-| Metric | Previous (Nov 9) | Current (Nov 25) | Change |
-|--------|------------------|------------------|--------|
+| Metric | Previous (Nov 9) | Current (Nov 25+) | Change |
+|--------|------------------|-------------------|--------|
 | Total Patients | 3,565 | 8,713 | +145% |
 | PE Events | 3,565 | 8,713 | +145% |
 | 30d Mortality | ~10% | 11.2% | +1.2pp |
 | ICU Admission | ~35% | 35.8% | +0.8pp |
 | Vasopressor Use | ~25% | 26.7% | +1.7pp |
 | Lab Measurements | 7.6M | TBD | - |
+| Medication Records | - | 1.71M | New |
+| Unique Medications | - | 10,879 | New |
+
+## Test Coverage Summary
+
+| Module | Test Files | Tests | Status |
+|--------|------------|-------|--------|
+| Module 1 | - | - | No formal tests |
+| Module 2 | - | - | No formal tests |
+| Module 3 | 9 files | 252 | ✅ All Pass |
+| Module 4 | 4 files | 35 | ✅ All Pass |
+| **Total** | **13 files** | **287** | **✅ All Pass** |
 
 ## Technical Debt & Issues
 
@@ -155,14 +210,15 @@ timeline
 | Dictionary overwrite bug | Critical | Fixed | Use groupby aggregation |
 | POC variant fragmentation | Medium | Fixed | Manual consolidation |
 | Module 2 needs rerun | Medium | Pending | On expanded cohort |
+| Pickle loading context | Low | Fixed | Inject class into `__main__` |
 
 ## Next Actions
 
-1. **Immediate:** Rerun Module 2 on 8,713 patient cohort
-2. **Short-term:** Implement Module 3 (Vitals Processing)
-3. **Medium-term:** Complete Modules 4-7
-4. **Long-term:** ML model development
+1. **Immediate:** Complete Phase 3 RxNorm mapping (Tasks 4-7)
+2. **Short-term:** Run Module 3 Layer 1-2 on real data
+3. **Medium-term:** Module 4 Phases 4-8, Module 3 Phase 2-3
+4. **Long-term:** Modules 5-7, ML model development
 
 ---
 
-*Version: 2.0 | Updated: 2025-11-25*
+*Version: 3.0 | Updated: 2025-12-10*

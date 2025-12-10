@@ -2,18 +2,18 @@
 
 Unified medication encoding system for PE trajectory analysis. Five-layer architecture serving GBTM, GRU-D, XGBoost, and World Model analyses.
 
-## Status: Phase 2 (Layer 1) COMPLETE
+## Status: Phase 3 (RxNorm Mapping) IN PROGRESS
 
 ---
 
 ## Implementation Progress
 
-### Phase 1: Setup - Complete
+### Phase 1: Setup - COMPLETE ✅
 - [x] Directory structure created
 - [x] Configuration files (`medication_config.py`, `therapeutic_classes.yaml`, `dose_patterns.yaml`)
-- [x] RxNorm setup script
+- [x] RxNorm setup script and database (`rxnorm.db`)
 
-### Phase 2: Layer 1 Canonical Extraction - COMPLETE
+### Phase 2: Layer 1 Canonical Extraction - COMPLETE ✅
 - [x] **Dose Parser** (`extractors/dose_parser.py`)
   - Regex-based extraction for dose value/unit (mg, mcg, units, etc.)
   - Route extraction (IV, PO, SC, IM, topical, inhaled, etc.)
@@ -38,12 +38,30 @@ Unified medication encoding system for PE trajectory analysis. Five-layer archit
   - Output: `data/bronze/canonical_records.parquet` (23 MB)
   - Vocabulary: `data/bronze/medication_vocabulary.parquet` (389 KB)
 
-### Phases 3-8: Pending
-- Phase 3: RxNorm Mapping
-- Phase 4: Layer 2 Therapeutic Classes
-- Phase 5: Layer 3 Individual Medications
-- Phase 6: Layer 4 Embeddings
-- Phase 7: Layer 5 Dose Intensity
+### Phase 3: RxNorm Mapping - IN PROGRESS 🔄
+- [x] **RxNorm Mapper Tests** (`tests/test_rxnorm_mapper.py`)
+  - 10 tests for exact/fuzzy/ingredient matching
+  - All tests passing
+- [x] **RxNorm Mapper** (`extractors/rxnorm_mapper.py`)
+  - Exact match against RXNCONSO (case-insensitive)
+  - Fuzzy match using rapidfuzz (Levenshtein, threshold 85%)
+  - Ingredient extraction from product names
+  - Ingredient lookup via RXNREL relationships
+  - LRU caching for performance (50K exact, 10K ingredient)
+  - 429 lines of code
+- [x] **Sample Mapping Verified:**
+  - 91.4% success rate on first 500 medications
+  - Above 85% target ✅
+- [ ] **Pending:**
+  - Run full vocabulary mapping (~10K unique strings)
+  - Apply mapping to canonical records
+  - Save silver parquet outputs
+
+### Phases 4-8: Pending
+- Phase 4: Layer 2 Therapeutic Classes (53 classes)
+- Phase 5: Layer 3 Individual Medications (200-400 sparse indicators)
+- Phase 6: Layer 4 Embeddings (5 types: semantic, ontological, co-occurrence, PK, hierarchical)
+- Phase 7: Layer 5 Dose Intensity (raw, DDD-normalized, weight-adjusted)
 - Phase 8: Exporters & Validation
 
 ---
@@ -425,5 +443,23 @@ scipy>=1.11
 
 ---
 
-**Version:** 1.1.0 (Phase 2 In Progress)
+**Version:** 1.2.0 (Phase 3 In Progress)
 **Last Updated:** 2025-12-10
+
+---
+
+## Test Summary
+
+| Test File | Tests | Status |
+|-----------|-------|--------|
+| `test_dose_parser.py` | 18 | ✅ Pass |
+| `test_canonical_extractor.py` | 5 | ✅ Pass |
+| `test_vocabulary.py` | 2 | ✅ Pass |
+| `test_rxnorm_mapper.py` | 10 | ✅ Pass |
+| **Total** | **35** | **✅ All Passing** |
+
+Run all tests:
+```bash
+cd /home/moin/TDA_11_25
+PYTHONPATH=module_04_medications:$PYTHONPATH pytest module_04_medications/tests/ -v
+```
