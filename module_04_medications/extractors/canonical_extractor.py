@@ -124,6 +124,20 @@ def iter_med_chunks(
 # COHORT INTEGRATION
 # =============================================================================
 
+class _PatientTimelineUnpickler(pickle.Unpickler):
+    """Custom unpickler to handle PatientTimeline class from __main__."""
+
+    def find_class(self, module, name):
+        if name == 'PatientTimeline':
+            # Import and return the PatientTimeline class regardless of original module
+            module1_path = str(Path(__file__).parent.parent.parent / "module_1_core_infrastructure")
+            if module1_path not in sys.path:
+                sys.path.insert(0, module1_path)
+            import module_01_core_infrastructure
+            return module_01_core_infrastructure.PatientTimeline
+        return super().find_class(module, name)
+
+
 def load_patient_timelines() -> Dict:
     """
     Load patient timelines from Module 1.
@@ -131,12 +145,8 @@ def load_patient_timelines() -> Dict:
     Returns:
         Dictionary mapping EMPI -> PatientTimeline object
     """
-    # Need to import PatientTimeline class for unpickling
-    sys.path.insert(0, str(Path(__file__).parent.parent.parent / "module_1_core_infrastructure"))
-    from module_01_core_infrastructure import PatientTimeline
-
     with open(PATIENT_TIMELINES_PKL, 'rb') as f:
-        timelines = pickle.load(f)
+        timelines = _PatientTimelineUnpickler(f).load()
 
     return timelines
 
@@ -267,6 +277,9 @@ def parse_medications(df: pd.DataFrame) -> pd.DataFrame:
     # Parse each medication string
     parsed = df['Medication'].apply(parse_medication_string)
     parsed_df = pd.DataFrame(parsed.tolist())
+
+    # Set parsed_df index to match df index for proper alignment
+    parsed_df.index = df.index
 
     # Add parsed columns
     for col in parsed_df.columns:
