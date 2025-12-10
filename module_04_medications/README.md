@@ -2,7 +2,36 @@
 
 Unified medication encoding system for PE trajectory analysis. Five-layer architecture serving GBTM, GRU-D, XGBoost, and World Model analyses.
 
-## Status: Design Complete, Implementation Pending
+## Status: Phase 2 (Layer 1) In Progress
+
+---
+
+## Implementation Progress
+
+### Phase 1: Setup - Complete
+- [x] Directory structure created
+- [x] Configuration files (`medication_config.py`, `therapeutic_classes.yaml`, `dose_patterns.yaml`)
+- [x] RxNorm setup script
+
+### Phase 2: Layer 1 Canonical Extraction - In Progress
+- [x] **Dose Parser** (`extractors/dose_parser.py`)
+  - Regex-based extraction for dose value/unit (mg, mcg, units, etc.)
+  - Route extraction (IV, PO, SC, IM, topical, inhaled, etc.)
+  - Frequency extraction (QD, BID, TID, PRN, etc.)
+  - Drug name extraction
+  - 18 tests passing
+- [ ] Canonical extractor (`extractors/canonical_extractor.py`)
+- [ ] Test mode extraction
+- [ ] Full extraction
+- [ ] Vocabulary extraction
+
+### Phases 3-8: Pending
+- Phase 3: RxNorm Mapping
+- Phase 4: Layer 2 Therapeutic Classes
+- Phase 5: Layer 3 Individual Medications
+- Phase 6: Layer 4 Embeddings
+- Phase 7: Layer 5 Dose Intensity
+- Phase 8: Exporters & Validation
 
 ---
 
@@ -383,5 +412,5 @@ scipy>=1.11
 
 ---
 
-**Version:** 1.0.0 (Design)
-**Last Updated:** 2025-12-09
+**Version:** 1.1.0 (Phase 2 In Progress)
+**Last Updated:** 2025-12-10

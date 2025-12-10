@@ -190,6 +190,19 @@ def load_pe_times(timeline_path: Path) -> Dict[str, datetime]:
     Returns:
         Dict mapping EMPI to PE timestamp (time_zero)
     """
+    import sys
+    import __main__
+
+    # Add module 1 to path so PatientTimeline class can be found during unpickling
+    module1_dir = timeline_path.parent.parent
+    if str(module1_dir) not in sys.path:
+        sys.path.insert(0, str(module1_dir))
+
+    # Import and inject into __main__ for pickle compatibility
+    # (pickle was saved when module_01 was running as __main__)
+    from module_01_core_infrastructure import PatientTimeline
+    __main__.PatientTimeline = PatientTimeline
+
     with open(timeline_path, "rb") as f:
         timelines = pickle.load(f)
 
