@@ -2,7 +2,7 @@
 
 Unified medication encoding system for PE trajectory analysis. Five-layer architecture serving GBTM, GRU-D, XGBoost, and World Model analyses.
 
-## Status: Phase 4 (Layer 2 Therapeutic Classes) COMPLETE ✅
+## Status: Phase 5 (Layer 3 Individual Medications) COMPLETE ✅
 
 ---
 
@@ -49,8 +49,22 @@ Unified medication encoding system for PE trajectory analysis. Five-layer archit
   - Anticoagulant in acute window: **54.7%**
   - Output: `data/gold/therapeutic_classes/class_indicators.parquet`
 
-### Phases 5-8: Pending
-- Phase 5: Layer 3 Individual Medications (200-400 sparse indicators)
+### Phase 5: Layer 3 Individual Medications - COMPLETE ✅
+- [x] **Individual Indicator Builder** (`transformers/individual_indicator_builder.py`) - 4 tests
+  - Prevalence filtering (≥20 patients + exception medications)
+  - Vectorized pivot operations (~100x faster than iterrows)
+  - Sparse matrix storage in HDF5
+  - Parallel processing option (--parallel --jobs N)
+- [x] **Results:**
+  - Individual medication indicators: **581**
+  - Patient-window combinations: **26,499**
+  - Total features: **1,747** (binary + count + dose per med)
+  - Sparsity: **98.4%** (target >90% ✅)
+  - Processing time: **2.9s** (vectorized)
+  - Output: `data/gold/individual_indicators/individual_indicators.parquet`
+  - Output: `data/gold/individual_indicators/individual_indicators_sparse.h5`
+
+### Phases 6-8: Pending
 - Phase 6: Layer 4 Embeddings (5 types)
 - Phase 7: Layer 5 Dose Intensity
 - Phase 8: Exporters & Validation
@@ -434,8 +448,8 @@ scipy>=1.11
 
 ---
 
-**Version:** 1.3.0 (Phase 4 Complete)
-**Last Updated:** 2025-12-10
+**Version:** 1.4.0 (Phase 5 Complete)
+**Last Updated:** 2025-12-11
 
 ---
 
@@ -448,7 +462,8 @@ scipy>=1.11
 | `test_vocabulary.py` | 2 | ✅ Pass |
 | `test_rxnorm_mapper.py` | 10 | ✅ Pass |
 | `test_class_indicator_builder.py` | 14 | ✅ Pass |
-| **Total** | **49** | **✅ All Passing** |
+| `test_individual_indicator_builder.py` | 4 | ✅ Pass |
+| **Total** | **53** | **✅ All Passing** |
 
 Run all tests:
 ```bash

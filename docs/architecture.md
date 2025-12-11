@@ -1,5 +1,5 @@
 # System Architecture
-*Last Updated: 2025-11-25*
+*Last Updated: 2025-12-11*
 
 ## High-Level Pipeline Overview
 
@@ -30,11 +30,19 @@ flowchart TB
         M3_Features[Temporal Features]
     end
 
+    subgraph Module4["Module 4: Medication Processing"]
+        M4_Extract[Layer 1: Canonical Extract<br/>1.71M records]
+        M4_RxNorm[RxNorm Mapping<br/>92.4% coverage]
+        M4_Class[Layer 2: Therapeutic Classes<br/>53 indicators]
+        M4_Indiv[Layer 3: Individual Meds<br/>581 indicators]
+    end
+
     subgraph Outputs["Output Files"]
         OUT_CSV[(outcomes.csv<br/>8,713 patients)]
         OUT_PKL[(patient_timelines.pkl)]
         OUT_LAB[(lab_features.csv)]
         OUT_H5[(lab_sequences.h5)]
+        OUT_MED[(medication outputs)]
     end
 
     %% Data flow
@@ -60,6 +68,13 @@ flowchart TB
     OUT_PKL --> M3_Extract
     RPDR --> M3_Extract
     M3_Extract --> M3_Features
+
+    OUT_PKL --> M4_Extract
+    RPDR --> M4_Extract
+    M4_Extract --> M4_RxNorm
+    M4_RxNorm --> M4_Class
+    M4_Class --> M4_Indiv
+    M4_Indiv --> OUT_MED
 ```
 
 ## Module 1: Core Infrastructure
@@ -166,6 +181,49 @@ flowchart TB
     P2_Feat --> F4
 ```
 
+## Module 4: Medication Processing
+
+```mermaid
+flowchart TB
+    subgraph Layer1["Layer 1: Canonical Extraction"]
+        L1_Parse[Parse Med.txt<br/>1.71M records]
+        L1_Dose[Regex Dose Parsing<br/>89.9% success]
+        L1_Bronze[Bronze: canonical_records.parquet<br/>23 MB]
+    end
+
+    subgraph RxNorm["RxNorm Mapping"]
+        RX_DB[(RxNorm SQLite<br/>394K concepts)]
+        RX_Map[Multi-strategy Mapping<br/>Exact → Fuzzy → Contains]
+        RX_Silver[Silver: mapped_medications.parquet<br/>92.4% coverage]
+    end
+
+    subgraph Layer2["Layer 2: Therapeutic Classes"]
+        L2_YAML[therapeutic_classes.yaml<br/>53 classes]
+        L2_Build[Class Indicator Builder<br/>Vectorized]
+        L2_Gold[Gold: class_indicators.parquet<br/>25K rows × 162 cols]
+    end
+
+    subgraph Layer3["Layer 3: Individual Medications"]
+        L3_Filter[Prevalence Filter<br/>≥20 patients + exceptions]
+        L3_Build[Individual Builder<br/>Vectorized pivot ops]
+        L3_Gold[Gold: individual_indicators.parquet<br/>26K rows × 1,747 cols]
+        L3_Sparse[Sparse HDF5<br/>98.4% sparsity]
+    end
+
+    L1_Parse --> L1_Dose
+    L1_Dose --> L1_Bronze
+    L1_Bronze --> RX_Map
+    RX_DB --> RX_Map
+    RX_Map --> RX_Silver
+    RX_Silver --> L2_Build
+    L2_YAML --> L2_Build
+    L2_Build --> L2_Gold
+    RX_Silver --> L3_Filter
+    L3_Filter --> L3_Build
+    L3_Build --> L3_Gold
+    L3_Build --> L3_Sparse
+```
+
 ## Data Flow Architecture
 
 ```mermaid
@@ -260,5 +318,7 @@ TDA_11_25/
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 3.0 | 2025-12-11 | Module 4 Layers 1-3 complete (581 med indicators, 98.4% sparse) |
+| 2.5 | 2025-12-10 | Module 4 Phases 2-4 (RxNorm mapping, 53 therapeutic classes) |
 | 2.0 | 2025-11-25 | Expanded cohort (8,713 patients), Module 1 optimization |
 | 1.0 | 2025-11-09 | Initial Module 1 + Module 2 complete (3,565 patients) |
