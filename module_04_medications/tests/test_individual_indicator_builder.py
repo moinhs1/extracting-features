@@ -46,28 +46,29 @@ class TestPrevalenceFiltering:
 
 
 class TestIndicatorCreation:
-    """Test sparse indicator creation."""
+    """Test vectorized indicator creation."""
 
-    def test_create_indicators_single_patient(self):
-        """Create indicators for single patient."""
-        from transformers.individual_indicator_builder import create_patient_indicators
+    def test_build_indicators_vectorized(self):
+        """Build indicators using vectorized pivot operations."""
+        from transformers.individual_indicator_builder import build_indicators_vectorized
 
+        # Create test data with hours in 'acute' window (0-24h)
         df = pd.DataFrame({
             'empi': ['100', '100', '100'],
-            'hours_from_t0': [1, 2, 3],
+            'hours_from_t0': [1, 2, 3],  # All in acute window
             'ingredient_name': ['aspirin', 'aspirin', 'metoprolol'],
             'parsed_dose_value': [325, 325, 50],
         })
 
         medications = ['aspirin', 'metoprolol', 'lisinopril']
 
-        result = create_patient_indicators(df, medications, window='acute')
+        result = build_indicators_vectorized(df, medications)
 
-        assert len(result) == 1
-        assert result.iloc[0]['med_aspirin'] == True
+        assert len(result) == 1  # One patient-window
+        assert result.iloc[0]['med_aspirin'] == 1
         assert result.iloc[0]['med_aspirin_count'] == 2
-        assert result.iloc[0]['med_metoprolol'] == True
-        assert result.iloc[0]['med_lisinopril'] == False
+        assert result.iloc[0]['med_metoprolol'] == 1
+        assert result.iloc[0]['med_lisinopril'] == 0
 
 
 class TestSparseStorage:
