@@ -2,7 +2,7 @@
 
 Unified medication encoding system for PE trajectory analysis. Five-layer architecture serving GBTM, GRU-D, XGBoost, and World Model analyses.
 
-## Status: Phase 6 (Layer 4 Embeddings) COMPLETE ✅
+## Status: Phase 7 (Layer 5 Dose Intensity) COMPLETE ✅
 
 ---
 
@@ -77,8 +77,20 @@ Unified medication encoding system for PE trajectory analysis. Five-layer archit
   - Training sequences: **8,267 patients**
   - Output: `data/embeddings/medication_embeddings.h5` (585 KB)
 
-### Phases 7-8: Pending
-- Phase 7: Layer 5 Dose Intensity
+### Phase 7: Layer 5 Dose Intensity - COMPLETE ✅
+- [x] **Dose Intensity Builder** (`transformers/dose_intensity_builder.py`) - 9 tests
+  - WHO DDD (Defined Daily Dose) normalization
+  - Daily dose aggregation by therapeutic class
+  - Intensity features (cumulative exposure, trend, hours since last)
+  - Vasopressor-specific metrics (concurrent count, mcg/kg/min conversion)
+- [x] **Results:**
+  - Intensity records: **78,305** (daily patient-class aggregations)
+  - Patients: **7,944**
+  - Classes with intensity features: **4** (anticoagulants, vasopressors, opioids, diuretics)
+  - DDD ratios calculated: **57,698** records
+  - Output: `data/gold/dose_intensity/dose_intensity.parquet`
+
+### Phase 8: Pending
 - Phase 8: Exporters & Validation
 
 ---
@@ -460,7 +472,7 @@ scipy>=1.11
 
 ---
 
-**Version:** 1.5.0 (Phase 6 Complete)
+**Version:** 1.6.0 (Phase 7 Complete)
 **Last Updated:** 2025-12-11
 
 ---
@@ -476,7 +488,8 @@ scipy>=1.11
 | `test_class_indicator_builder.py` | 14 | ✅ Pass |
 | `test_individual_indicator_builder.py` | 4 | ✅ Pass |
 | `test_embedding_generator.py` | 5 | ✅ Pass |
-| **Total** | **58** | **✅ All Passing** |
+| `test_dose_intensity_builder.py` | 9 | ✅ Pass |
+| **Total** | **67** | **✅ All Passing** |
 
 Run all tests:
 ```bash
