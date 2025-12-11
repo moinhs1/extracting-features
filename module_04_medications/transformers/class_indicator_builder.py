@@ -107,6 +107,25 @@ def get_all_class_ids() -> List[str]:
     return sorted(class_ids)
 
 
+def get_union_classes() -> Dict[str, List[str]]:
+    """
+    Get classes defined as unions of other classes.
+
+    Returns:
+        Dict mapping union class ID to list of component class IDs
+    """
+    classes = _load_class_definitions()
+    unions = {}
+
+    for category_data in classes.values():
+        if isinstance(category_data, dict):
+            for class_id, class_def in category_data.items():
+                if isinstance(class_def, dict) and 'union_of' in class_def:
+                    unions[class_id] = class_def['union_of']
+
+    return unions
+
+
 # =============================================================================
 # DOSE-BASED CLASSIFICATION
 # =============================================================================
@@ -320,7 +339,28 @@ def aggregate_class_indicators(df: pd.DataFrame) -> pd.DataFrame:
 
         results.append(row)
 
-    return pd.DataFrame(results)
+    result_df = pd.DataFrame(results)
+
+    # Compute union classes (e.g., cv_vasopressor_any = any of component vasopressors)
+    union_classes = get_union_classes()
+    for union_id, components in union_classes.items():
+        if union_id in result_df.columns:
+            # Union is True if ANY component is True
+            component_cols = [c for c in components if c in result_df.columns]
+            if component_cols:
+                result_df[union_id] = result_df[component_cols].any(axis=1)
+
+                # Sum counts from components
+                count_cols = [f'{c}_count' for c in components if f'{c}_count' in result_df.columns]
+                if count_cols:
+                    result_df[f'{union_id}_count'] = result_df[count_cols].sum(axis=1)
+
+                # Min first_hours from components
+                hour_cols = [f'{c}_first_hours' for c in components if f'{c}_first_hours' in result_df.columns]
+                if hour_cols:
+                    result_df[f'{union_id}_first_hours'] = result_df[hour_cols].min(axis=1)
+
+    return result_df
 
 
 # =============================================================================

@@ -92,16 +92,42 @@ def create_hourly_tensor(
 
         # Map ingredient to feature indices
         feature_map = {
+            # Anticoagulants
             'heparin': ['ac_ufh_ther', 'ac_ufh_proph'],
             'enoxaparin': ['ac_lmwh_ther', 'ac_lmwh_proph'],
             'dalteparin': ['ac_lmwh_ther', 'ac_lmwh_proph'],
+            'tinzaparin': ['ac_lmwh_ther', 'ac_lmwh_proph'],
             'warfarin': ['ac_vka'],
             'apixaban': ['ac_xa_inhibitor'],
             'rivaroxaban': ['ac_xa_inhibitor'],
+            'edoxaban': ['ac_xa_inhibitor'],
+            'dabigatran': ['ac_dti'],
+            'argatroban': ['ac_dti'],
+            'bivalirudin': ['ac_dti'],
+            # Vasopressors
             'norepinephrine': ['cv_vasopressor_any'],
             'epinephrine': ['cv_vasopressor_any'],
+            'dopamine': ['cv_vasopressor_any'],
+            'phenylephrine': ['cv_vasopressor_any'],
+            'vasopressin': ['cv_vasopressor_any'],
+            # Inotropes
+            'dobutamine': ['cv_inotrope_any'],
+            'milrinone': ['cv_inotrope_any'],
+            'digoxin': ['cv_inotrope_any'],
+            # Opioids
             'morphine': ['ps_opioid'],
             'fentanyl': ['ps_opioid'],
+            'hydromorphone': ['ps_opioid'],
+            'oxycodone': ['ps_opioid'],
+            # Benzodiazepines
+            'midazolam': ['ps_benzodiazepine'],
+            'lorazepam': ['ps_benzodiazepine'],
+            'diazepam': ['ps_benzodiazepine'],
+            # Steroids
+            'prednisone': ['ai_steroid_systemic'],
+            'methylprednisolone': ['ai_steroid_systemic'],
+            'dexamethasone': ['ai_steroid_systemic'],
+            'hydrocortisone': ['ai_steroid_systemic'],
         }
 
         active_features = feature_map.get(ingredient, [])
