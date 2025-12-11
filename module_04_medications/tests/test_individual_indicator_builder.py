@@ -17,17 +17,18 @@ class TestPrevalenceFiltering:
         """Filter medications by patient count threshold."""
         from transformers.individual_indicator_builder import filter_by_prevalence
 
+        # Create 25 unique patients for aspirin/common_drug, 1 for rare_drug
         df = pd.DataFrame({
-            'empi': ['1', '1', '2', '2', '3', '3'] * 10 + ['1'] * 5,
-            'ingredient_name': ['aspirin'] * 30 + ['rare_drug'] * 5 + ['common_drug'] * 30,
+            'empi': [f'p{i}' for i in range(25)] + ['p1'] + [f'p{i}' for i in range(25)],
+            'ingredient_name': ['aspirin'] * 25 + ['rare_drug'] + ['common_drug'] * 25,
         })
 
         # With threshold of 20 patients
         result = filter_by_prevalence(df, min_patients=20)
 
-        assert 'aspirin' in result
-        assert 'common_drug' in result
-        assert 'rare_drug' not in result  # Only in 1 patient
+        assert 'aspirin' in result  # 25 patients
+        assert 'common_drug' in result  # 25 patients
+        assert 'rare_drug' not in result  # Only 1 patient
 
     def test_always_include_exceptions(self):
         """Always include critical medications regardless of prevalence."""
