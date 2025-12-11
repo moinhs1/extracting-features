@@ -292,13 +292,13 @@ def get_ingredient_for_rxcui(rxcui: str) -> Optional[Dict[str, str]]:
             'ingredient_name': row['STR'],
         }
 
-    # Look up via relationships
+    # Look up via relationships (has_ingredient for SCD/SBD, has_form for PIN)
     cursor = conn.execute("""
         SELECT r.RXCUI2 as ingredient_rxcui, c.STR as ingredient_name
         FROM RXNREL r
         JOIN RXNCONSO c ON r.RXCUI2 = c.RXCUI
         WHERE r.RXCUI1 = ?
-          AND r.RELA = 'has_ingredient'
+          AND r.RELA IN ('has_ingredient', 'has_form')
           AND c.SAB = 'RXNORM'
           AND c.TTY = 'IN'
         LIMIT 1
