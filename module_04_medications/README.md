@@ -2,7 +2,7 @@
 
 Unified medication encoding system for PE trajectory analysis. Five-layer architecture serving GBTM, GRU-D, XGBoost, and World Model analyses.
 
-## Status: Phase 7 (Layer 5 Dose Intensity) COMPLETE ✅
+## Status: MODULE COMPLETE ✅ (All 8 Phases)
 
 ---
 
@@ -90,8 +90,25 @@ Unified medication encoding system for PE trajectory analysis. Five-layer archit
   - DDD ratios calculated: **57,698** records
   - Output: `data/gold/dose_intensity/dose_intensity.parquet`
 
-### Phase 8: Pending
-- Phase 8: Exporters & Validation
+### Phase 8: Exporters & Validation - COMPLETE ✅
+- [x] **GBTM Exporter** (`exporters/gbtm_exporter.py`)
+  - Long format CSV for R lcmm package
+  - Wide format CSV for visualization
+  - Daily resolution (days 0-6)
+- [x] **GRU-D Exporter** (`exporters/grud_exporter.py`)
+  - HDF5 tensors (n_patients × n_hours × n_features)
+  - Observation mask and time-since-last delta
+- [x] **XGBoost Exporter** (`exporters/xgboost_exporter.py`)
+  - Wide tabular parquet combining all layers
+- [x] **Validation Suite** (`validation/layer_validators.py`)
+  - Cross-layer consistency checks
+  - Quality metric validation
+- [x] **Results:**
+  - GBTM: 54,502 patient-day records × 14 features
+  - GRU-D: (8,394 × 168 × 12) tensor
+  - XGBoost: 8,211 patients × 831 features
+  - Validation: 17/21 checks passed
+  - Outputs: `exports/gbtm_*.csv`, `exports/grud_medications.h5`, `exports/xgboost_*.parquet`
 
 ---
 
@@ -472,7 +489,7 @@ scipy>=1.11
 
 ---
 
-**Version:** 1.6.0 (Phase 7 Complete)
+**Version:** 2.0.0 (Module Complete)
 **Last Updated:** 2025-12-11
 
 ---
