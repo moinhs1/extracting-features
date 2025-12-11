@@ -1,5 +1,5 @@
 # Project Progress Tracker
-*Last Updated: 2025-12-11*
+*Last Updated: 2025-12-11 (Phase 6)*
 
 ## Overall Project Status
 
@@ -36,7 +36,8 @@ gantt
     Phase 3: RxNorm Mapping        :done, m4c, 2025-12-10, 1d
     Phase 4: Layer 2 Classes       :done, m4d2, 2025-12-10, 1d
     Phase 5: Layer 3 Individual    :done, m4e, 2025-12-11, 1d
-    Phases 6-8: Layers 4-5         :pending, m4f, after m4e, 2d
+    Phase 6: Layer 4 Embeddings    :done, m4f, 2025-12-11, 1d
+    Phases 7-8: Layer 5 + Export   :pending, m4g, after m4f, 1d
 
     section Module 5
     Diagnoses/Procedures          :pending, m5a, after m4e, 2d
@@ -55,7 +56,7 @@ pie title Module Completion Status
     "Module 1 - Complete" : 100
     "Module 2 - Complete (needs rerun)" : 90
     "Module 3 - Phase 1 Complete" : 60
-    "Module 4 - Phase 5 Complete" : 65
+    "Module 4 - Phase 6 Complete" : 75
     "Module 5 - Not Started" : 0
     "Module 6 - Not Started" : 0
     "Module 7 - Not Started" : 0
@@ -118,7 +119,7 @@ pie title Module Completion Status
 **Tests:** 252 total (174 extractors + 78 processing)
 **Output:** `canonical_vitals.parquet`, `hourly_grid.parquet`, `hourly_tensors.h5`
 
-### Module 4: Medication Processing - Phase 5 COMPLETE ✅
+### Module 4: Medication Processing - Phase 6 COMPLETE ✅
 
 | Task | Status | Date | Notes |
 |------|--------|------|-------|
@@ -128,17 +129,17 @@ pie title Module Completion Status
 | Phase 3: RxNorm Mapping | Complete | Dec 10 | 10 tests, 92.4% record mapping |
 | Phase 4: Layer 2 Classes | Complete | Dec 10 | 14 tests, 53 classes, 25K rows |
 | Phase 5: Layer 3 Individual | Complete | Dec 11 | 4 tests, 581 meds, 98.4% sparse |
-| Phase 6: Layer 4 Embeddings | Pending | - | 5 embedding types |
+| Phase 6: Layer 4 Embeddings | Complete | Dec 11 | 5 tests, 2 embedding types |
 | Phase 7: Layer 5 Dose Intensity | Pending | - | Raw, DDD, weight-adjusted |
 | Phase 8: Exporters | Pending | - | GBTM, GRU-D, XGBoost exports |
 
-**Tests:** 53 total (18 dose + 5 canonical + 2 vocab + 10 rxnorm + 14 class + 4 individual)
+**Tests:** 58 total (18 dose + 5 canonical + 2 vocab + 10 rxnorm + 14 class + 4 individual + 5 embeddings)
 **Output:**
 - `data/bronze/canonical_records.parquet` (23 MB, 1.71M records)
 - `data/silver/mapped_medications.parquet` (32 MB, 92.4% mapped)
 - `data/gold/therapeutic_classes/class_indicators.parquet` (25K patient-windows)
 - `data/gold/individual_indicators/individual_indicators.parquet` (26K × 1,747)
-- `data/gold/individual_indicators/individual_indicators_sparse.h5` (98.4% sparse)
+- `data/embeddings/medication_embeddings.h5` (769 co-occurrence + 1,582 PK)
 
 ### Modules 5-7: Future Work
 
@@ -183,10 +184,10 @@ timeline
                  : 49 tests, 92.4% mapping
                  : 53 therapeutic classes built
 
-    Dec 11, 2025 : Module 4 Layer 3
+    Dec 11, 2025 : Module 4 Layers 3-4
                  : 581 individual med indicators
-                 : 98.4% sparsity achieved
-                 : 2.9s optimized processing
+                 : Word2Vec co-occurrence embeddings
+                 : 58 tests passing
 ```
 
 ## Cohort Statistics
@@ -209,8 +210,8 @@ timeline
 | Module 1 | - | - | No formal tests |
 | Module 2 | - | - | No formal tests |
 | Module 3 | 9 files | 252 | ✅ All Pass |
-| Module 4 | 6 files | 53 | ✅ All Pass |
-| **Total** | **15 files** | **305** | **✅ All Pass** |
+| Module 4 | 7 files | 58 | ✅ All Pass |
+| **Total** | **16 files** | **310** | **✅ All Pass** |
 
 ## Technical Debt & Issues
 
@@ -224,11 +225,11 @@ timeline
 
 ## Next Actions
 
-1. **Immediate:** Module 4 Phase 6 - Layer 4 Embeddings (Semantic, Ontological, Co-occurrence)
-2. **Short-term:** Module 4 Phases 7-8 (Dose Intensity, Exporters)
+1. **Immediate:** Module 4 Phase 7 - Layer 5 Dose Intensity (Raw, DDD-normalized)
+2. **Short-term:** Module 4 Phase 8 - Exporters (GBTM, GRU-D, XGBoost)
 3. **Medium-term:** Module 3 Layers 3-5 (Feature Engineering, Embeddings)
 4. **Long-term:** Modules 5-7, ML model development
 
 ---
 
-*Version: 5.0 | Updated: 2025-12-11*
+*Version: 6.0 | Updated: 2025-12-11*

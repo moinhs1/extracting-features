@@ -2,7 +2,7 @@
 
 Unified medication encoding system for PE trajectory analysis. Five-layer architecture serving GBTM, GRU-D, XGBoost, and World Model analyses.
 
-## Status: Phase 5 (Layer 3 Individual Medications) COMPLETE ✅
+## Status: Phase 6 (Layer 4 Embeddings) COMPLETE ✅
 
 ---
 
@@ -64,8 +64,20 @@ Unified medication encoding system for PE trajectory analysis. Five-layer archit
   - Output: `data/gold/individual_indicators/individual_indicators.parquet`
   - Output: `data/gold/individual_indicators/individual_indicators_sparse.h5`
 
-### Phases 6-8: Pending
-- Phase 6: Layer 4 Embeddings (5 types)
+### Phase 6: Layer 4 Embeddings - COMPLETE ✅
+- [x] **Embedding Generator** (`transformers/embedding_generator.py`) - 5 tests
+  - Semantic embeddings (BioBERT/PubMedBERT) - optional
+  - Co-occurrence embeddings (Word2Vec on patient sequences)
+  - Pharmacokinetic feature embeddings (hand-crafted)
+  - Patient-level aggregation (mean, max, sum)
+  - HDF5 storage with compression
+- [x] **Results:**
+  - Co-occurrence embeddings: **769 medications × 128 dims**
+  - Pharmacokinetic embeddings: **1,582 medications × 10 dims**
+  - Training sequences: **8,267 patients**
+  - Output: `data/embeddings/medication_embeddings.h5` (585 KB)
+
+### Phases 7-8: Pending
 - Phase 7: Layer 5 Dose Intensity
 - Phase 8: Exporters & Validation
 
@@ -448,7 +460,7 @@ scipy>=1.11
 
 ---
 
-**Version:** 1.4.0 (Phase 5 Complete)
+**Version:** 1.5.0 (Phase 6 Complete)
 **Last Updated:** 2025-12-11
 
 ---
@@ -463,7 +475,8 @@ scipy>=1.11
 | `test_rxnorm_mapper.py` | 10 | ✅ Pass |
 | `test_class_indicator_builder.py` | 14 | ✅ Pass |
 | `test_individual_indicator_builder.py` | 4 | ✅ Pass |
-| **Total** | **53** | **✅ All Passing** |
+| `test_embedding_generator.py` | 5 | ✅ Pass |
+| **Total** | **58** | **✅ All Passing** |
 
 Run all tests:
 ```bash

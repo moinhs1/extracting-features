@@ -62,7 +62,7 @@ open outputs/discovery/test_n10_cluster_dendrogram_interactive.html
 | **1. Core Infrastructure** | Time Zero, temporal windows, outcomes | ✅ Complete | - |
 | **2. Lab Processing** | LOINC harmonization, temporal features | ✅ Complete | 22 |
 | **3. Vitals Processing** | NLP extraction, hourly grid, tensors | 🔄 Phase 1 Complete | 252 |
-| **4. Medication Processing** | RxNorm mapping, 5-layer encoding | 🔄 Phase 5 Complete | 53 |
+| **4. Medication Processing** | RxNorm mapping, 5-layer encoding | 🔄 Phase 6 Complete | 58 |
 | **5. Clinical NLP** | Note features, entities | ⬜ Not Started | - |
 | **6. Temporal Alignment** | Multi-modal hourly alignment | ⬜ Not Started | - |
 | **7. Trajectory Features** | Rolling windows, CSD indicators | ⬜ Not Started | - |
@@ -201,7 +201,7 @@ outputs/discovery/
 | **Layer 1** | Canonical Records | `canonical_records.parquet` (23 MB, 1.71M records) | ✅ Complete |
 | **Layer 2** | Therapeutic Classes | `class_indicators.parquet` (53 classes, 25K rows) | ✅ Complete |
 | **Layer 3** | Individual Medications | `individual_indicators.parquet` (581 meds, 98.4% sparse) | ✅ Complete |
-| **Layer 4** | Embeddings | Semantic, Ontological, Co-occurrence, PK, Hierarchical | ⬜ Pending |
+| **Layer 4** | Embeddings | `medication_embeddings.h5` (769 co-occur + 1,582 PK) | ✅ Complete |
 | **Layer 5** | Dose Intensity | DDD-normalized, weight-adjusted features | ⬜ Pending |
 
 #### Key Features
@@ -564,11 +564,11 @@ def test_my_feature():
 
 ## Changelog
 
-### 2025-12-11 - Module 4 Layer 3 Individual Medications
-- ✨ 581 individual medication indicators (prevalence ≥20 + exceptions)
-- ✨ 98.4% sparsity with sparse HDF5 storage
-- ✨ Optimized vectorized processing (1.7M records in 2.9s)
-- ✨ 53 tests passing
+### 2025-12-11 - Module 4 Layers 3-4 Complete
+- ✨ Layer 3: 581 individual medication indicators (98.4% sparse)
+- ✨ Layer 4: Word2Vec co-occurrence embeddings (769 meds × 128d)
+- ✨ Layer 4: Pharmacokinetic embeddings (1,582 meds × 10d)
+- ✨ 58 tests passing
 
 ### 2025-12-10 - Module 4 Phases 2-4
 - ✨ Layer 1 canonical extraction (1.71M records, 89.9% dose parsing)
@@ -609,4 +609,4 @@ def test_my_feature():
 
 **Status:** 🔄 Active Development
 **Last Updated:** 2025-12-11
-**Version:** 2.5.0
+**Version:** 2.6.0
