@@ -163,3 +163,56 @@ TEMP_PATTERNS = [
     (r'(?:T|temp)[\s:=]+(\d{2,3}\.?\d?)(?!\d)', 0.70, 'specialized'),
     (r'(?:afebrile|febrile)[^0-9]*(9\d\.?\d{0,2}|10[0-4]\.?\d{0,2}|3[5-9]\.?\d{0,2})', 0.68, 'specialized'),
 ]
+
+# O2 Flow Rate patterns - captures flow in L/min
+O2_FLOW_PATTERNS = [
+    # Standard tier
+    (r'(?:on|via)\s+(\d+(?:\.\d)?)\s*L\s*(?:NC|nasal\s+cannula)', 0.95, 'standard'),
+    (r'(\d+(?:\.\d)?)\s*L(?:PM|/min|iters?\s*/\s*min)', 0.95, 'standard'),
+    (r'O2\s+Flow\s+Rate[^0-9]*(\d+(?:\.\d)?)', 0.92, 'standard'),
+
+    # Optimized tier
+    (r'(\d+(?:\.\d)?)\s*L\s*(?:NC|nasal\s+cannula|NRB|non-rebreather|mask|FM|face\s+mask|HFNC|high\s*-?\s*flow)', 0.88, 'optimized'),
+    (r'(?:nasal\s+cannula|NC|high\s+flow|face\s+mask|HFNC|NRB)[^0-9]*(?:at|with|delivering)[^0-9]*(\d+(?:\.\d)?)\s*L?', 0.85, 'optimized'),
+    (r'(?:on|receiving|with|at)\s+(\d+(?:\.\d)?)\s*L?\s*(?:O2|oxygen)', 0.82, 'optimized'),
+
+    # Specialized tier
+    (r'(\d+(?:\.\d)?)\s*L\s*(?:O2|oxygen)', 0.75, 'specialized'),
+    (r'flow[^0-9]*(?:rate|of)?[^0-9]*(\d+(?:\.\d)?)\s*L?', 0.70, 'specialized'),
+    (r'O2[^0-9]*(\d+(?:\.\d)?)\s*L', 0.68, 'specialized'),
+]
+
+# O2 Device patterns - returns device string (not numeric)
+O2_DEVICE_PATTERNS = [
+    # Standard tier - specific devices
+    (r'(?:on|via)\s+(nasal\s+cannula|NC)', 0.95, 'standard'),
+    (r'(?:on|via)\s+(room\s+air|RA|ambient\s+air)', 0.95, 'standard'),
+    (r'(?:on|via)\s+(HFNC|high\s*-?\s*flow\s+nasal\s+cannula|high\s+flow)', 0.95, 'standard'),
+    (r'(?:on|via)\s+(NRB|non-rebreather|non\s+rebreather)', 0.92, 'standard'),
+    (r'(?:on|via)\s+(face\s+mask|FM|simple\s+mask|venturi\s+mask)', 0.92, 'standard'),
+
+    # Optimized tier
+    (r'(nasal\s+cannula|NC|nasal\s+prongs)', 0.85, 'optimized'),
+    (r'(room\s+air|RA)', 0.85, 'optimized'),
+    (r'(CPAP|BiPAP|ventilator|mechanical\s+ventilation|intubated)', 0.88, 'optimized'),
+
+    # Specialized tier
+    (r'supplemental[^0-9\n]*(oxygen|O2)', 0.75, 'specialized'),
+    (r'(?:oxygen\s+therapy|O2\s+therapy)', 0.72, 'specialized'),
+]
+
+# BMI patterns
+BMI_PATTERNS = [
+    # Standard tier
+    (r'BMI\s*:?\s*(\d{1,2}(?:\.\d{1,2})?)', 0.95, 'standard'),
+    (r'(?:Body\s+Mass\s+Index|body\s+mass\s+index)\s*:?\s*(\d{1,2}(?:\.\d{1,2})?)', 0.95, 'standard'),
+
+    # Optimized tier
+    (r'BMI[^0-9]*of[^0-9]*(\d{1,2}(?:\.\d{1,2})?)', 0.88, 'optimized'),
+    (r'BMI[^0-9]*(\d{1,2}(?:\.\d{1,2})?)\s*(?:kg/m2|kg/m\^?2)', 0.88, 'optimized'),
+    (r'calculated\s+BMI[^0-9]*(\d{1,2}(?:\.\d{1,2})?)', 0.85, 'optimized'),
+
+    # Specialized tier
+    (r'(?:overweight|obese|obesity)[^0-9\n]*(?:BMI)[^0-9\n]*(\d{1,2}(?:\.\d{1,2})?)', 0.75, 'specialized'),
+    (r'BMI\s*(?:of|is|was|=)[^0-9]*(\d{1,2}\.?\d{0,2})', 0.72, 'specialized'),
+]
