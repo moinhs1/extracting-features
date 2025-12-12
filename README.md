@@ -62,7 +62,7 @@ open outputs/discovery/test_n10_cluster_dendrogram_interactive.html
 | **1. Core Infrastructure** | Time Zero, temporal windows, outcomes | ✅ Complete | - |
 | **2. Lab Processing** | LOINC harmonization, temporal features | ✅ Complete | 22 |
 | **3. Vitals Processing** | NLP extraction, hourly grid, tensors | 🔄 Phase 1 Complete | 252 |
-| **4. Medication Processing** | RxNorm mapping, 5-layer encoding | 🔄 Phase 6 Complete | 58 |
+| **4. Medication Processing** | RxNorm mapping, 5-layer encoding | ✅ Complete | 67 |
 | **5. Clinical NLP** | Note features, entities | ⬜ Not Started | - |
 | **6. Temporal Alignment** | Multi-modal hourly alignment | ⬜ Not Started | - |
 | **7. Trajectory Features** | Rolling windows, CSD indicators | ⬜ Not Started | - |
@@ -188,11 +188,11 @@ outputs/discovery/
 
 ---
 
-### Module 4: Medication Processing 🔄
+### Module 4: Medication Processing ✅
 
 **Purpose:** Unified medication encoding for all trajectory analysis methods
 
-**Status:** Phase 5 Complete (Layers 1-3)
+**Status:** COMPLETE (All 8 Phases + Bug Fixes)
 
 #### Architecture: 5-Layer System
 
@@ -202,7 +202,8 @@ outputs/discovery/
 | **Layer 2** | Therapeutic Classes | `class_indicators.parquet` (53 classes, 25K rows) | ✅ Complete |
 | **Layer 3** | Individual Medications | `individual_indicators.parquet` (581 meds, 98.4% sparse) | ✅ Complete |
 | **Layer 4** | Embeddings | `medication_embeddings.h5` (769 co-occur + 1,582 PK) | ✅ Complete |
-| **Layer 5** | Dose Intensity | DDD-normalized, weight-adjusted features | ⬜ Pending |
+| **Layer 5** | Dose Intensity | `dose_intensity.parquet` (86K records, 97.2% DDD) | ✅ Complete |
+| **Exports** | GBTM, GRU-D, XGBoost | `exports/` directory | ✅ Complete |
 
 #### Key Features
 
@@ -564,11 +565,20 @@ def test_my_feature():
 
 ## Changelog
 
-### 2025-12-11 - Module 4 Layers 3-4 Complete
+### 2025-12-12 - Module 4 COMPLETE + Bug Fixes
+- ✅ All 8 phases complete including exporters (GBTM, GRU-D, XGBoost)
+- 🐛 Fixed heparin PIN→IN ingredient mapping (`has_form` relationship)
+- 🐛 Fixed union class computation (cv_vasopressor_any, cv_inotrope_any)
+- 🐛 Expanded DDD mappings (hydromorphone, bumetanide, mcg units)
+- 📈 Improved anticoag coverage: 55.6% → 62.4%
+- 📈 Improved DDD coverage: 73.7% → 97.2%
+- ✨ 67 tests passing
+
+### 2025-12-11 - Module 4 Layers 3-5 Complete
 - ✨ Layer 3: 581 individual medication indicators (98.4% sparse)
 - ✨ Layer 4: Word2Vec co-occurrence embeddings (769 meds × 128d)
 - ✨ Layer 4: Pharmacokinetic embeddings (1,582 meds × 10d)
-- ✨ 58 tests passing
+- ✨ Layer 5: Dose intensity features (86K daily records)
 
 ### 2025-12-10 - Module 4 Phases 2-4
 - ✨ Layer 1 canonical extraction (1.71M records, 89.9% dose parsing)
@@ -608,5 +618,5 @@ def test_my_feature():
 ---
 
 **Status:** 🔄 Active Development
-**Last Updated:** 2025-12-11
-**Version:** 2.6.0
+**Last Updated:** 2025-12-12
+**Version:** 2.7.0

@@ -1,5 +1,5 @@
 # Project Progress Tracker
-*Last Updated: 2025-12-11 (Phase 6)*
+*Last Updated: 2025-12-12 (Module 4 COMPLETE)*
 
 ## Overall Project Status
 
@@ -37,7 +37,8 @@ gantt
     Phase 4: Layer 2 Classes       :done, m4d2, 2025-12-10, 1d
     Phase 5: Layer 3 Individual    :done, m4e, 2025-12-11, 1d
     Phase 6: Layer 4 Embeddings    :done, m4f, 2025-12-11, 1d
-    Phases 7-8: Layer 5 + Export   :pending, m4g, after m4f, 1d
+    Phase 7: Layer 5 Dose          :done, m4g, 2025-12-11, 1d
+    Phase 8: Exporters + Bug Fixes :done, m4h, 2025-12-12, 1d
 
     section Module 5
     Diagnoses/Procedures          :pending, m5a, after m4e, 2d
@@ -56,7 +57,7 @@ pie title Module Completion Status
     "Module 1 - Complete" : 100
     "Module 2 - Complete (needs rerun)" : 90
     "Module 3 - Phase 1 Complete" : 60
-    "Module 4 - Phase 6 Complete" : 75
+    "Module 4 - COMPLETE" : 100
     "Module 5 - Not Started" : 0
     "Module 6 - Not Started" : 0
     "Module 7 - Not Started" : 0
@@ -119,7 +120,7 @@ pie title Module Completion Status
 **Tests:** 252 total (174 extractors + 78 processing)
 **Output:** `canonical_vitals.parquet`, `hourly_grid.parquet`, `hourly_tensors.h5`
 
-### Module 4: Medication Processing - Phase 6 COMPLETE ✅
+### Module 4: Medication Processing - COMPLETE ✅
 
 | Task | Status | Date | Notes |
 |------|--------|------|-------|
@@ -127,19 +128,30 @@ pie title Module Completion Status
 | Phase 1: Setup | Complete | Dec 9 | RxNorm DB, config files |
 | Phase 2: Layer 1 Extraction | Complete | Dec 10 | 25 tests, 89.9% parsing |
 | Phase 3: RxNorm Mapping | Complete | Dec 10 | 10 tests, 92.4% record mapping |
-| Phase 4: Layer 2 Classes | Complete | Dec 10 | 14 tests, 53 classes, 25K rows |
+| Phase 4: Layer 2 Classes | Complete | Dec 10 | 14 tests, 53 classes + union_of |
 | Phase 5: Layer 3 Individual | Complete | Dec 11 | 4 tests, 581 meds, 98.4% sparse |
 | Phase 6: Layer 4 Embeddings | Complete | Dec 11 | 5 tests, 2 embedding types |
-| Phase 7: Layer 5 Dose Intensity | Pending | - | Raw, DDD, weight-adjusted |
-| Phase 8: Exporters | Pending | - | GBTM, GRU-D, XGBoost exports |
+| Phase 7: Layer 5 Dose Intensity | Complete | Dec 11 | 86K records, 97.2% DDD coverage |
+| Phase 8: Exporters & Validation | Complete | Dec 12 | GBTM, GRU-D, XGBoost exports |
+| Bug Fixes | Complete | Dec 12 | Heparin mapping, DDD expansion |
 
-**Tests:** 58 total (18 dose + 5 canonical + 2 vocab + 10 rxnorm + 14 class + 4 individual + 5 embeddings)
+**Bug Fixes Applied (Dec 12):**
+- Fixed PIN→IN ingredient lookup (`has_form` relationship)
+- Fixed union class computation (cv_vasopressor_any, cv_inotrope_any)
+- Expanded DDD mappings (hydromorphone, bumetanide, unit variants)
+- **Results:** Anticoag 55.6%→62.4%, DDD 73.7%→97.2%
+
+**Tests:** 67 total
 **Output:**
 - `data/bronze/canonical_records.parquet` (23 MB, 1.71M records)
 - `data/silver/mapped_medications.parquet` (32 MB, 92.4% mapped)
 - `data/gold/therapeutic_classes/class_indicators.parquet` (25K patient-windows)
 - `data/gold/individual_indicators/individual_indicators.parquet` (26K × 1,747)
-- `data/embeddings/medication_embeddings.h5` (769 co-occurrence + 1,582 PK)
+- `data/gold/dose_intensity/dose_intensity.parquet` (86K records)
+- `data/embeddings/medication_embeddings.h5` (769 co-occur + 1,582 PK)
+- `exports/gbtm_medication_*.csv` (54K rows × 14 features)
+- `exports/grud_medications.h5` (8,394 × 168 × 12 tensor)
+- `exports/xgboost_medication_features.parquet` (8,219 × 831 features)
 
 ### Modules 5-7: Future Work
 
@@ -184,10 +196,15 @@ timeline
                  : 49 tests, 92.4% mapping
                  : 53 therapeutic classes built
 
-    Dec 11, 2025 : Module 4 Layers 3-4
+    Dec 11, 2025 : Module 4 Layers 3-5
                  : 581 individual med indicators
                  : Word2Vec co-occurrence embeddings
-                 : 58 tests passing
+                 : Layer 5 dose intensity (86K records)
+
+    Dec 12, 2025 : Module 4 COMPLETE
+                 : Bug fixes (heparin, DDD mapping)
+                 : All 3 exporters (GBTM, GRU-D, XGBoost)
+                 : 67 tests passing
 ```
 
 ## Cohort Statistics
@@ -210,8 +227,8 @@ timeline
 | Module 1 | - | - | No formal tests |
 | Module 2 | - | - | No formal tests |
 | Module 3 | 9 files | 252 | ✅ All Pass |
-| Module 4 | 7 files | 58 | ✅ All Pass |
-| **Total** | **16 files** | **310** | **✅ All Pass** |
+| Module 4 | 8 files | 67 | ✅ All Pass |
+| **Total** | **17 files** | **319** | **✅ All Pass** |
 
 ## Technical Debt & Issues
 
@@ -225,11 +242,11 @@ timeline
 
 ## Next Actions
 
-1. **Immediate:** Module 4 Phase 7 - Layer 5 Dose Intensity (Raw, DDD-normalized)
-2. **Short-term:** Module 4 Phase 8 - Exporters (GBTM, GRU-D, XGBoost)
-3. **Medium-term:** Module 3 Layers 3-5 (Feature Engineering, Embeddings)
-4. **Long-term:** Modules 5-7, ML model development
+1. **Immediate:** Module 3 Layers 3-5 (Feature Engineering, Embeddings)
+2. **Short-term:** Module 2 Rerun on expanded cohort (8,713 patients)
+3. **Medium-term:** Module 5 - Diagnoses/Procedures processing
+4. **Long-term:** Modules 6-7, ML model development
 
 ---
 
-*Version: 6.0 | Updated: 2025-12-11*
+*Version: 7.0 | Updated: 2025-12-12*

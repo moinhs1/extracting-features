@@ -1,5 +1,5 @@
 # System Architecture
-*Last Updated: 2025-12-11*
+*Last Updated: 2025-12-12*
 
 ## High-Level Pipeline Overview
 
@@ -30,11 +30,13 @@ flowchart TB
         M3_Features[Temporal Features]
     end
 
-    subgraph Module4["Module 4: Medication Processing"]
+    subgraph Module4["Module 4: Medication Processing ✅"]
         M4_Extract[Layer 1: Canonical Extract<br/>1.71M records]
         M4_RxNorm[RxNorm Mapping<br/>92.4% coverage]
         M4_Class[Layer 2: Therapeutic Classes<br/>53 indicators]
         M4_Indiv[Layer 3: Individual Meds<br/>581 indicators]
+        M4_Embed[Layer 4: Embeddings<br/>769 + 1,582]
+        M4_Dose[Layer 5: Dose Intensity<br/>86K records, 97.2% DDD]
     end
 
     subgraph Outputs["Output Files"]
@@ -74,7 +76,11 @@ flowchart TB
     M4_Extract --> M4_RxNorm
     M4_RxNorm --> M4_Class
     M4_Class --> M4_Indiv
+    M4_Class --> M4_Embed
+    M4_Class --> M4_Dose
     M4_Indiv --> OUT_MED
+    M4_Embed --> OUT_MED
+    M4_Dose --> OUT_MED
 ```
 
 ## Module 1: Core Infrastructure
@@ -181,7 +187,7 @@ flowchart TB
     P2_Feat --> F4
 ```
 
-## Module 4: Medication Processing
+## Module 4: Medication Processing ✅ COMPLETE
 
 ```mermaid
 flowchart TB
@@ -193,13 +199,13 @@ flowchart TB
 
     subgraph RxNorm["RxNorm Mapping"]
         RX_DB[(RxNorm SQLite<br/>394K concepts)]
-        RX_Map[Multi-strategy Mapping<br/>Exact → Fuzzy → Contains]
+        RX_Map[Multi-strategy Mapping<br/>Exact → Fuzzy → has_form]
         RX_Silver[Silver: mapped_medications.parquet<br/>92.4% coverage]
     end
 
     subgraph Layer2["Layer 2: Therapeutic Classes"]
-        L2_YAML[therapeutic_classes.yaml<br/>53 classes]
-        L2_Build[Class Indicator Builder<br/>Vectorized]
+        L2_YAML[therapeutic_classes.yaml<br/>53 classes + union_of]
+        L2_Build[Class Indicator Builder<br/>Vectorized + union classes]
         L2_Gold[Gold: class_indicators.parquet<br/>25K rows × 162 cols]
     end
 
@@ -207,7 +213,24 @@ flowchart TB
         L3_Filter[Prevalence Filter<br/>≥20 patients + exceptions]
         L3_Build[Individual Builder<br/>Vectorized pivot ops]
         L3_Gold[Gold: individual_indicators.parquet<br/>26K rows × 1,747 cols]
-        L3_Sparse[Sparse HDF5<br/>98.4% sparsity]
+    end
+
+    subgraph Layer4["Layer 4: Embeddings"]
+        L4_CoOccur[Co-occurrence Word2Vec<br/>769 meds × 128d]
+        L4_PK[Pharmacokinetic Features<br/>1,582 meds × 10d]
+        L4_HDF5[medication_embeddings.h5<br/>585 KB]
+    end
+
+    subgraph Layer5["Layer 5: Dose Intensity"]
+        L5_DDD[WHO DDD Normalization<br/>97.2% coverage]
+        L5_Daily[Daily Aggregation<br/>86K records]
+        L5_Gold[Gold: dose_intensity.parquet]
+    end
+
+    subgraph Exports["Method-Specific Exports"]
+        EX_GBTM[GBTM: CSV<br/>54K rows × 14 features]
+        EX_GRUD[GRU-D: HDF5<br/>8,394 × 168 × 12]
+        EX_XGB[XGBoost: Parquet<br/>8,219 × 831 features]
     end
 
     L1_Parse --> L1_Dose
@@ -218,10 +241,21 @@ flowchart TB
     RX_Silver --> L2_Build
     L2_YAML --> L2_Build
     L2_Build --> L2_Gold
-    RX_Silver --> L3_Filter
+    RX_Silver --> L3_Build
     L3_Filter --> L3_Build
     L3_Build --> L3_Gold
-    L3_Build --> L3_Sparse
+    RX_Silver --> L4_CoOccur
+    L4_CoOccur --> L4_HDF5
+    L4_PK --> L4_HDF5
+    RX_Silver --> L5_DDD
+    L5_DDD --> L5_Daily
+    L5_Daily --> L5_Gold
+    L2_Gold --> EX_GBTM
+    L5_Gold --> EX_GBTM
+    RX_Silver --> EX_GRUD
+    L2_Gold --> EX_XGB
+    L3_Gold --> EX_XGB
+    L5_Gold --> EX_XGB
 ```
 
 ## Data Flow Architecture
@@ -318,7 +352,8 @@ TDA_11_25/
 
 | Version | Date | Changes |
 |---------|------|---------|
-| 3.0 | 2025-12-11 | Module 4 Layers 1-3 complete (581 med indicators, 98.4% sparse) |
+| 4.0 | 2025-12-12 | Module 4 COMPLETE - All 8 phases, bug fixes (heparin mapping, DDD expansion) |
+| 3.0 | 2025-12-11 | Module 4 Layers 1-4 complete (581 med indicators, embeddings) |
 | 2.5 | 2025-12-10 | Module 4 Phases 2-4 (RxNorm mapping, 53 therapeutic classes) |
 | 2.0 | 2025-11-25 | Expanded cohort (8,713 patients), Module 1 optimization |
 | 1.0 | 2025-11-09 | Initial Module 1 + Module 2 complete (3,565 patients) |

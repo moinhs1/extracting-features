@@ -2,7 +2,7 @@
 
 Unified medication encoding system for PE trajectory analysis. Five-layer architecture serving GBTM, GRU-D, XGBoost, and World Model analyses.
 
-## Status: MODULE COMPLETE ✅ (All 8 Phases)
+## Status: MODULE COMPLETE ✅ (All 8 Phases + Bug Fixes)
 
 ---
 
@@ -42,11 +42,13 @@ Unified medication encoding system for PE trajectory analysis. Five-layer archit
   - Dose-based therapeutic/prophylactic classification (UFH, LMWH)
   - Time window assignment (baseline/acute/subacute/recovery)
   - Aggregate indicators per patient-window
+  - **Union class computation** (cv_vasopressor_any, cv_inotrope_any from `union_of` YAML)
 - [x] **Results:**
-  - Patient-window combinations: **25,038**
+  - Patient-window combinations: **25,333**
   - Patients: **7,786**
   - Classes: **53** (with counts and first-occurrence times)
-  - Anticoagulant in acute window: **54.7%**
+  - Anticoagulant in acute window: **62.4%** (improved from 55.6% after bug fix)
+  - Vasopressor in acute: **8.83%**, Inotrope in acute: **1.59%**
   - Output: `data/gold/therapeutic_classes/class_indicators.parquet`
 
 ### Phase 5: Layer 3 Individual Medications - COMPLETE ✅
@@ -83,11 +85,12 @@ Unified medication encoding system for PE trajectory analysis. Five-layer archit
   - Daily dose aggregation by therapeutic class
   - Intensity features (cumulative exposure, trend, hours since last)
   - Vasopressor-specific metrics (concurrent count, mcg/kg/min conversion)
+  - **Expanded DDD mappings** (hydromorphone, bumetanide, mcg unit variants)
 - [x] **Results:**
-  - Intensity records: **78,305** (daily patient-class aggregations)
+  - Intensity records: **86,415** (daily patient-class aggregations)
   - Patients: **7,944**
   - Classes with intensity features: **4** (anticoagulants, vasopressors, opioids, diuretics)
-  - DDD ratios calculated: **57,698** records
+  - DDD coverage: **97.2%** (improved from 73.7% after expansion)
   - Output: `data/gold/dose_intensity/dose_intensity.parquet`
 
 ### Phase 8: Exporters & Validation - COMPLETE ✅
@@ -104,11 +107,23 @@ Unified medication encoding system for PE trajectory analysis. Five-layer archit
   - Cross-layer consistency checks
   - Quality metric validation
 - [x] **Results:**
-  - GBTM: 54,502 patient-day records × 14 features
-  - GRU-D: (8,394 × 168 × 12) tensor
-  - XGBoost: 8,211 patients × 831 features
-  - Validation: 17/21 checks passed
+  - GBTM: 54,607 patient-day records × 14 features
+  - GRU-D: (8,394 × 168 × 12) tensor, 0.25% observation rate
+  - XGBoost: 8,219 patients × 831 features
+  - Validation: All critical checks passed
   - Outputs: `exports/gbtm_*.csv`, `exports/grud_medications.h5`, `exports/xgboost_*.parquet`
+
+### Bug Fixes Applied (2025-12-12)
+- [x] **Heparin Ingredient Mapping**: Added `has_form` relationship for PIN→IN lookup
+  - Fixed 883 vocabulary entries (heparin, porcine → heparin)
+  - Improved acute anticoag: 55.6% → 62.4% (+6.8pp)
+- [x] **Union Class Computation**: Fixed cv_vasopressor_any/cv_inotrope_any
+  - Now properly computed from `union_of` YAML directive
+  - Vasopressor coverage: 0% → 8.83%
+- [x] **DDD Mapping Expansion**: Added hydromorphone, bumetanide, mcg units
+  - DDD coverage: 73.7% → 97.2% (+23.5pp)
+- [x] **GRU-D Feature Mapping**: Expanded ingredient→feature mapping
+  - All 12 features now have data
 
 ---
 
@@ -489,8 +504,8 @@ scipy>=1.11
 
 ---
 
-**Version:** 2.0.0 (Module Complete)
-**Last Updated:** 2025-12-11
+**Version:** 2.1.0 (Module Complete + Bug Fixes)
+**Last Updated:** 2025-12-12
 
 ---
 
