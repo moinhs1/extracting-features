@@ -77,3 +77,29 @@ HR_PATTERNS = [
     (r'(?:atrial|junctional|ventricular)[^0-9]*rhythm[^0-9]*(\d{2,3})', 0.70, 'specialized'),
     (r'(?<=\W)(?:HR|P)[\s:=]*(\d{2,3})[\s,]', 0.68, 'specialized'),
 ]
+
+# Blood Pressure patterns - captures (SBP, DBP)
+# IMPORTANT: No bare (\d{2,3})/(\d{2,3}) pattern - matches dates!
+BP_PATTERNS = [
+    # Standard tier (0.90-1.0) - explicit label
+    (r'(?:Blood\s*[Pp]ressure|BP)\s*:?\s*\(?\!?\)?\s*(\d{2,3})[/\\](\d{2,3})', 0.95, 'standard'),
+    (r'(?:BP|Blood\s*Pressure)\s*:?\s*(\d{2,3})\s*[/\\]\s*(\d{2,3})\s*(?:mmHg|mm\s*Hg)?', 0.95, 'standard'),
+    (r'\(\d+-\d+\)/\(\d+-\d+\)\s*(\d{2,3})[/\\](\d{2,3})', 0.92, 'standard'),  # Reference range
+    (r'(\d{2,3})[/\\](\d{2,3})\s*(?:mmHg|mm\s*Hg)', 0.90, 'standard'),  # With unit
+
+    # Optimized tier (0.80-0.90) - strong context
+    (r'(?:vitals?|v/?s)[:\s].{0,30}?(\d{2,3})[/\\](\d{2,3})', 0.88, 'optimized'),
+    (r'blood\s+pressure[^0-9]*(\d{2,3})[^0-9]*(?:over|/)[^0-9]*(\d{2,3})', 0.88, 'optimized'),
+    (r'(?:systolic|SBP)[^0-9]*(\d{2,3})[^0-9]*(?:diastolic|DBP)[^0-9]*(\d{2,3})', 0.85, 'optimized'),
+    (r'(?:BP|Blood\s*Pressure)[^0-9]*of[^0-9]*(\d{2,3})[/\\](\d{2,3})', 0.85, 'optimized'),
+    (r'initial\s+(?:vitals|VS)[^0-9]*(?:BP|blood)[^0-9]*(\d{2,3})[/\\](\d{2,3})', 0.85, 'optimized'),
+    (r'cuff[^0-9]*(\d{2,3})[/\\](\d{2,3})', 0.82, 'optimized'),
+    (r'(?:avg|average)\s+BP[^0-9]*(\d{2,3})[/\\](\d{2,3})', 0.82, 'optimized'),
+
+    # Specialized tier (0.65-0.80) - contextual
+    (r'VS[^\d\n]*[\d/,:.]+[^\d\n]*(\d{2,3})[/\\](\d{2,3})', 0.75, 'specialized'),
+    (r'pressure\s+of\s+(\d{2,3})[/\\](\d{2,3})', 0.72, 'specialized'),
+    (r'(?:measured|documented|recorded)[^0-9]*(?:bp|blood\s+pressure)[^0-9]*(\d{2,3})[/\\](\d{2,3})', 0.70, 'specialized'),
+    (r'(?:admission|initial|presenting)[^0-9]*(?:bp|blood\s+pressure)[^0-9]*(\d{2,3})[/\\](\d{2,3})', 0.70, 'specialized'),
+    (r'bp\s*=\s*(\d{2,3})[/\\](\d{2,3})', 0.68, 'specialized'),
+]
