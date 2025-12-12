@@ -336,3 +336,118 @@ def extract_all_vitals(text: str) -> Dict[str, List[Dict]]:
         'SPO2': extract_spo2(text),
         'TEMP': extract_temperature(text),
     }
+
+
+def extract_o2_flow(text: str) -> List[Dict]:
+    """Extract O2 flow rate values from text."""
+    results = []
+    seen_positions = set()
+
+    for pattern, confidence, tier in O2_FLOW_PATTERNS:
+        for match in re.finditer(pattern, text, re.IGNORECASE):
+            position = match.start()
+
+            if any(abs(position - p) < 15 for p in seen_positions):
+                continue
+
+            if is_in_skip_section(text, position):
+                continue
+
+            try:
+                value = float(match.group(1))
+            except (ValueError, IndexError):
+                continue
+
+            min_val, max_val = VALID_RANGES['O2_FLOW']
+            if not (min_val <= value <= max_val):
+                continue
+
+            results.append({
+                'value': value,
+                'units': 'L/min',
+                'confidence': confidence,
+                'position': position,
+                'tier': tier,
+            })
+            seen_positions.add(position)
+
+    return results
+
+
+def extract_o2_device(text: str) -> List[Dict]:
+    """Extract O2 device from text (returns string)."""
+    results = []
+    seen_positions = set()
+
+    for pattern, confidence, tier in O2_DEVICE_PATTERNS:
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            position = match.start()
+
+            if any(abs(position - p) < 15 for p in seen_positions):
+                continue
+
+            if is_in_skip_section(text, position):
+                continue
+
+            device = match.group(1) if match.lastindex >= 1 else match.group(0)
+
+            results.append({
+                'value': device.strip(),
+                'confidence': confidence,
+                'position': position,
+                'tier': tier,
+            })
+            seen_positions.add(position)
+
+    return results
+
+
+def extract_bmi(text: str) -> List[Dict]:
+    """Extract BMI values from text."""
+    results = []
+    seen_positions = set()
+
+    for pattern, confidence, tier in BMI_PATTERNS:
+        for match in re.finditer(pattern, text, re.IGNORECASE):
+            position = match.start()
+
+            if any(abs(position - p) < 15 for p in seen_positions):
+                continue
+
+            if is_in_skip_section(text, position):
+                continue
+
+            try:
+                value = float(match.group(1))
+            except (ValueError, IndexError):
+                continue
+
+            min_val, max_val = VALID_RANGES['BMI']
+            if not (min_val <= value <= max_val):
+                continue
+
+            results.append({
+                'value': value,
+                'units': 'kg/m2',
+                'confidence': confidence,
+                'position': position,
+                'tier': tier,
+            })
+            seen_positions.add(position)
+
+    return results
+
+
+def extract_supplemental_vitals(text: str) -> Dict[str, List[Dict]]:
+    """
+    Extract supplemental vitals from text.
+
+    Returns:
+        Dict with keys: O2_FLOW, O2_DEVICE, BMI
+    """
+    return {
+        'O2_FLOW': extract_o2_flow(text),
+        'O2_DEVICE': extract_o2_device(text),
+        'BMI': extract_bmi(text),
+    }

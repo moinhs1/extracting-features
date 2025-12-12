@@ -134,3 +134,67 @@ class TestExtractTemperature:
         results = extract_temperature("Temp: 98.6")
         if results:
             assert results[0]['value'] < 50  # Converted to C
+
+
+class TestExtractO2Flow:
+    """Test O2 flow rate extraction."""
+
+    def test_basic_flow(self):
+        from extractors.unified_extractor import extract_o2_flow
+        results = extract_o2_flow("on 2L NC")
+        assert len(results) >= 1
+        assert results[0]['value'] == 2
+
+    def test_high_flow(self):
+        from extractors.unified_extractor import extract_o2_flow
+        results = extract_o2_flow("40L HFNC")
+        assert len(results) >= 1
+        assert results[0]['value'] == 40
+
+    def test_range_validation(self):
+        from extractors.unified_extractor import extract_o2_flow
+        # 100L is invalid
+        results = extract_o2_flow("100L NC")
+        assert len(results) == 0
+
+
+class TestExtractO2Device:
+    """Test O2 device extraction."""
+
+    def test_nasal_cannula(self):
+        from extractors.unified_extractor import extract_o2_device
+        results = extract_o2_device("on nasal cannula")
+        assert len(results) >= 1
+
+    def test_room_air(self):
+        from extractors.unified_extractor import extract_o2_device
+        results = extract_o2_device("on room air")
+        assert len(results) >= 1
+
+
+class TestExtractBMI:
+    """Test BMI extraction."""
+
+    def test_basic_bmi(self):
+        from extractors.unified_extractor import extract_bmi
+        results = extract_bmi("BMI: 24.5")
+        assert len(results) >= 1
+        assert results[0]['value'] == 24.5
+
+    def test_range_validation(self):
+        from extractors.unified_extractor import extract_bmi
+        # BMI of 5 is invalid
+        results = extract_bmi("BMI: 5")
+        assert len(results) == 0
+
+
+class TestExtractSupplemental:
+    """Test supplemental extraction function."""
+
+    def test_extract_supplemental(self):
+        from extractors.unified_extractor import extract_supplemental_vitals
+        text = "on 2L NC, BMI 28.3"
+        results = extract_supplemental_vitals(text)
+        assert 'O2_FLOW' in results
+        assert 'O2_DEVICE' in results
+        assert 'BMI' in results
