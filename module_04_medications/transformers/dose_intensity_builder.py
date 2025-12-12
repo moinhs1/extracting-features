@@ -47,18 +47,20 @@ DDD_VALUES = {
     'argatroban': {'mg': None},  # Weight-based
 
     # Vasopressors (per hour, convert to daily)
-    'norepinephrine': {'mg': 24},  # Variable, use 1mg/hr as reference
-    'epinephrine': {'mg': 12},
-    'vasopressin': {'units': 24},  # Variable
+    'norepinephrine': {'mg': 24, 'mcg': 24000},  # 24mg = 24000mcg
+    'epinephrine': {'mg': 12, 'mcg': 12000},
+    'vasopressin': {'units': 24},
     'dopamine': {'mg': 600},
     'dobutamine': {'mg': 500},
-    'phenylephrine': {'mg': 100},
+    'phenylephrine': {'mg': 100, 'mcg': 100000},
 
     # Common medications
     'aspirin': {'mg': 100},
     'morphine': {'mg': 30},
-    'fentanyl': {'mcg': 600},
+    'fentanyl': {'mcg': 600, 'mg': 0.6},  # 0.6mg = 600mcg
+    'hydromorphone': {'mg': 4, 'mcg': 4000},  # WHO DDD = 4mg oral, 4mg parenteral
     'furosemide': {'mg': 40},
+    'bumetanide': {'mg': 1},  # WHO DDD = 1mg
     'metoprolol': {'mg': 150},
     'lisinopril': {'mg': 10},
     'prednisone': {'mg': 10},
