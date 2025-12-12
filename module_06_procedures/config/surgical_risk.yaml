@@ -1,0 +1,115 @@
+# module_06_procedures/config/surgical_risk.yaml
+# VTE risk classification for surgical procedures
+
+risk_levels:
+  very_high:
+    vte_risk: ">4%"
+    description: "Very high VTE risk procedures"
+    ccs_categories:
+      - "153"  # Hip replacement
+      - "154"  # Knee replacement
+      - "158"  # Spinal fusion
+      - "166"  # Laminectomy
+      - "169"  # Debridement of wounds/burns
+    procedure_patterns:
+      - "hip replacement"
+      - "knee replacement"
+      - "total hip"
+      - "total knee"
+      - "cancer surgery"
+      - "major trauma"
+      - "pelvic surgery"
+
+  high:
+    vte_risk: "2-4%"
+    description: "High VTE risk procedures"
+    ccs_categories:
+      - "43"   # Heart valve procedures
+      - "44"   # Coronary bypass
+      - "49"   # Other OR heart procedures
+      - "36"   # Lobectomy/pneumonectomy
+      - "75"   # Small bowel resection
+      - "78"   # Colorectal resection
+      - "84"   # Cholecystectomy
+      - "99"   # Hysterectomy
+      - "142"  # Partial excision bone
+    procedure_patterns:
+      - "cabg"
+      - "coronary bypass"
+      - "valve replacement"
+      - "thoracotomy"
+      - "colectomy"
+      - "nephrectomy"
+
+  moderate:
+    vte_risk: "1-2%"
+    description: "Moderate VTE risk procedures"
+    ccs_categories:
+      - "51"   # Endarterectomy
+      - "52"   # Aortic resection
+      - "56"   # Varicose vein stripping
+      - "80"   # Appendectomy
+      - "85"   # Inguinal hernia repair
+      - "90"   # Cesarean section
+    procedure_patterns:
+      - "laparoscopic"
+      - "spine surgery"
+      - "hernia repair"
+
+  low:
+    vte_risk: "<1%"
+    description: "Low VTE risk procedures"
+    ccs_categories:
+      - "145"  # Bunionectomy
+      - "146"  # Arthroscopy
+      - "147"  # Treatment of fracture
+    procedure_patterns:
+      - "minor orthopedic"
+      - "ambulatory"
+
+  minimal:
+    vte_risk: "<0.5%"
+    description: "Minimal VTE risk procedures"
+    ccs_categories:
+      - "61"   # GI endoscopy
+      - "62"   # GI endoscopic biopsy
+      - "63"   # GI endoscopic excision
+      - "173"  # Skin biopsy
+    procedure_patterns:
+      - "endoscopy"
+      - "skin procedure"
+      - "minor procedure"
+
+betos_categories:
+  P1:
+    description: "Major procedures"
+    invasiveness: 3
+  P2:
+    description: "Minor procedures"
+    invasiveness: 2
+  P3:
+    description: "Ambulatory procedures"
+    invasiveness: 1
+  I:
+    description: "Imaging"
+    invasiveness: 0
+  T:
+    description: "Tests"
+    invasiveness: 0
+  E:
+    description: "Evaluation and management"
+    invasiveness: 0
+
+invasiveness_levels:
+  0:
+    description: "Non-invasive"
+    examples: ["external monitoring", "cast application"]
+  1:
+    description: "Minimally invasive"
+    examples: ["percutaneous", "endoscopic"]
+  2:
+    description: "Moderately invasive"
+    examples: ["laparoscopic", "small incision"]
+  3:
+    description: "Highly invasive"
+    examples: ["major incision", "organ entry"]
