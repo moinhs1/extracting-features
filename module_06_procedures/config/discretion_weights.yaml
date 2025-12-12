@@ -1,0 +1,106 @@
+# module_06_procedures/config/discretion_weights.yaml
+# Clinician discretion weights for world model action representation
+
+discretion_levels:
+  high:
+    weight: 1.0
+    description: "Full clinician choice - counterfactually modifiable"
+    procedures:
+      - category: "thrombolysis"
+        description: "Systemic thrombolysis decision"
+        cpt_codes: []  # Medication, not procedure
+
+      - category: "catheter_directed_therapy"
+        description: "CDT decision"
+        cpt_codes: ["37211", "37212", "37213", "37214"]
+
+      - category: "ivc_filter"
+        description: "IVC filter placement decision"
+        cpt_codes: ["37191"]
+
+      - category: "surgical_embolectomy"
+        description: "Surgical embolectomy decision"
+        cpt_codes: ["33910", "33915", "33916"]
+
+  moderate:
+    weight_range: [0.6, 0.8]
+    description: "Some discretion - often clinically indicated but timing/type varies"
+    procedures:
+      - category: "intubation"
+        description: "Intubation for respiratory failure"
+        weight: 0.7
+        cpt_codes: ["31500"]
+
+      - category: "ecmo"
+        description: "ECMO initiation"
+        weight: 0.7
+        cpt_codes: ["33946", "33947"]
+
+      - category: "vasopressor_escalation"
+        description: "Escalation of vasopressor support"
+        weight: 0.6
+        cpt_codes: []  # Medication, not procedure
+
+      - category: "central_access"
+        description: "Central line for monitoring/access"
+        weight: 0.6
+        cpt_codes: ["36555", "36556", "36557", "36558"]
+
+  low:
+    weight_range: [0.2, 0.4]
+    description: "Minimal discretion - strongly indicated by physiology"
+    procedures:
+      - category: "transfusion"
+        description: "Transfusion for hemorrhage"
+        weight: 0.3
+        cpt_codes: ["36430"]
+
+      - category: "dialysis"
+        description: "Dialysis for renal failure"
+        weight: 0.3
+        cpt_codes: ["90935", "90937", "90945", "90947"]
+
+      - category: "chest_tube"
+        description: "Chest tube for pneumothorax/effusion"
+        weight: 0.4
+        cpt_codes: ["32551", "32556", "32557"]
+
+  none:
+    weight: 0.0
+    description: "No discretion - obligate response to event"
+    procedures:
+      - category: "cpr"
+        description: "CPR for cardiac arrest"
+        cpt_codes: ["92950"]
+        treatment: "state_update_only"
+
+# World model state transitions
+state_updates:
+  irreversible:
+    description: "Once true, cannot become false"
+    states:
+      - "cardiac_arrest_occurred"
+      - "major_bleeding_occurred"
+      - "rrt_initiated"
+
+  reversible:
+    description: "Can return to baseline"
+    states:
+      - "on_mechanical_ventilation"
+      - "on_vasopressors"
+      - "on_ecmo"
+
+# Support level ordinal scale
+support_levels:
+  0:
+    description: "Room air, no support"
+  1:
+    description: "Supplemental O2 (NC, face mask)"
+  2:
+    description: "HFNC or NIPPV"
+  3:
+    description: "Mechanical ventilation"
+  4:
+    description: "Mechanical ventilation + vasopressors"
+  5:
+    description: "ECMO"
