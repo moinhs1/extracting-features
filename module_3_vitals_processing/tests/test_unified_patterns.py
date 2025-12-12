@@ -128,3 +128,109 @@ class TestBPPatterns:
             # Filter out date-like values
             valid_bp = [r for r in results if r['sbp'] > 50 and r['dbp'] > 25]
             assert len(valid_bp) == 0, f"Matched date as BP in '{text}': {results}"
+
+
+class TestRRPatterns:
+    """Test respiratory rate pattern coverage."""
+
+    @pytest.fixture
+    def rr_patterns(self):
+        from extractors.unified_patterns import RR_PATTERNS
+        return RR_PATTERNS
+
+    def _extract_rr(self, text, patterns):
+        results = []
+        for pattern, confidence, tier in patterns:
+            for match in re.finditer(pattern, text, re.IGNORECASE):
+                try:
+                    value = float(match.group(1))
+                    results.append({'value': value, 'confidence': confidence})
+                except (ValueError, IndexError):
+                    continue
+        return results
+
+    def test_standard_rr(self, rr_patterns):
+        """RR: 18 should match."""
+        results = self._extract_rr("RR: 18", rr_patterns)
+        assert any(r['value'] == 18 for r in results)
+
+    def test_respiratory_rate_spelled(self, rr_patterns):
+        """Respiratory Rate 20 should match."""
+        results = self._extract_rr("Respiratory Rate 20", rr_patterns)
+        assert any(r['value'] == 20 for r in results)
+
+    def test_breaths_per_min(self, rr_patterns):
+        """16 breaths/min should match."""
+        results = self._extract_rr("16 breaths/min", rr_patterns)
+        assert any(r['value'] == 16 for r in results)
+
+
+class TestSpO2Patterns:
+    """Test SpO2 pattern coverage."""
+
+    @pytest.fixture
+    def spo2_patterns(self):
+        from extractors.unified_patterns import SPO2_PATTERNS
+        return SPO2_PATTERNS
+
+    def _extract_spo2(self, text, patterns):
+        results = []
+        for pattern, confidence, tier in patterns:
+            for match in re.finditer(pattern, text, re.IGNORECASE):
+                try:
+                    value = float(match.group(1))
+                    results.append({'value': value, 'confidence': confidence})
+                except (ValueError, IndexError):
+                    continue
+        return results
+
+    def test_spo2_standard(self, spo2_patterns):
+        """SpO2: 98% should match."""
+        results = self._extract_spo2("SpO2: 98%", spo2_patterns)
+        assert any(r['value'] == 98 for r in results)
+
+    def test_o2_sat(self, spo2_patterns):
+        """O2 Sat 95% should match."""
+        results = self._extract_spo2("O2 Sat 95%", spo2_patterns)
+        assert any(r['value'] == 95 for r in results)
+
+    def test_room_air_context(self, spo2_patterns):
+        """92% on room air should match."""
+        results = self._extract_spo2("92% on room air", spo2_patterns)
+        assert any(r['value'] == 92 for r in results)
+
+
+class TestTempPatterns:
+    """Test temperature pattern coverage."""
+
+    @pytest.fixture
+    def temp_patterns(self):
+        from extractors.unified_patterns import TEMP_PATTERNS
+        return TEMP_PATTERNS
+
+    def _extract_temp(self, text, patterns):
+        results = []
+        for pattern, confidence, tier in patterns:
+            for match in re.finditer(pattern, text, re.IGNORECASE):
+                try:
+                    value = float(match.group(1))
+                    unit = match.group(2).upper() if match.lastindex >= 2 and match.group(2) else None
+                    results.append({'value': value, 'unit': unit, 'confidence': confidence})
+                except (ValueError, IndexError, AttributeError):
+                    continue
+        return results
+
+    def test_temp_fahrenheit(self, temp_patterns):
+        """Temp: 98.6 F should match."""
+        results = self._extract_temp("Temp: 98.6 F", temp_patterns)
+        assert any(r['value'] == 98.6 and r['unit'] == 'F' for r in results)
+
+    def test_temp_celsius(self, temp_patterns):
+        """Temperature 37.2 C should match."""
+        results = self._extract_temp("Temperature 37.2 C", temp_patterns)
+        assert any(r['value'] == 37.2 and r['unit'] == 'C' for r in results)
+
+    def test_tmax(self, temp_patterns):
+        """Tmax 101.2 F should match."""
+        results = self._extract_temp("Tmax 101.2 F", temp_patterns)
+        assert any(r['value'] == 101.2 for r in results)

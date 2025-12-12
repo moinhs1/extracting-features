@@ -103,3 +103,63 @@ BP_PATTERNS = [
     (r'(?:admission|initial|presenting)[^0-9]*(?:bp|blood\s+pressure)[^0-9]*(\d{2,3})[/\\](\d{2,3})', 0.70, 'specialized'),
     (r'bp\s*=\s*(\d{2,3})[/\\](\d{2,3})', 0.68, 'specialized'),
 ]
+
+# Respiratory Rate patterns
+RR_PATTERNS = [
+    # Standard tier
+    (r'Respiratory\s*Rate\s*:?\s*(\d{1,2})\b', 0.95, 'standard'),
+    (r'(?:RR|Resp|TRR)\s*:?\s*(\d{1,2})\b', 0.92, 'standard'),
+    (r'\[\d{1,2}-\d{1,2}\]\s*(\d{1,2})\b', 0.90, 'standard'),
+
+    # Optimized tier
+    (r'(?:RR|Respiratory\s*Rate|Resp|respirations)[^0-9]*of[^0-9]*(\d{1,2})', 0.88, 'optimized'),
+    (r'respiratory\s+rate[^0-9]*(\d{1,2})', 0.88, 'optimized'),
+    (r'(?:breathing|respirations)[^0-9]*(?:at|with)[^0-9]*(\d{1,2})', 0.85, 'optimized'),
+    (r'(\d{1,2})\s*(?:breaths?[/\s]*min|breaths?\s*per\s*minute)', 0.85, 'optimized'),
+    (r'breath(?:ing|s)?\s*(?:at|of)\s*(\d{1,2})', 0.82, 'optimized'),
+
+    # Specialized tier
+    (r'vitals[^:]*:[^:]*(?:[^,]*,){2}[^,]*(?:RR)?\s*(\d{1,2})', 0.75, 'specialized'),
+    (r'VS[^\d\n]*[\d/,:.]+[^,\d\n]*,[^,\d\n]*,[^,\d\n]*(?:RR)?\s*(\d{1,2})', 0.72, 'specialized'),
+    (r'(?:ventilator|vent)[^0-9]*(?:rate|rr)[^0-9]*(\d{1,2})', 0.70, 'specialized'),
+    (r'(?<=\W)(?:RR)[\s:=]*(\d{1,2})[\s,]', 0.68, 'specialized'),
+]
+
+# SpO2 patterns
+SPO2_PATTERNS = [
+    # Standard tier
+    (r'(?:SpO2|SaO2|O2\s*Sat(?:uration)?)\s*:?\s*>?(\d{2,3})\s*%?', 0.95, 'standard'),
+    (r'(?:oxygen\s+saturation|pulse\s+ox|pulseox|pox)\s*:?\s*(\d{2,3})\s*%?', 0.92, 'standard'),
+
+    # Optimized tier
+    (r'(\d{2,3})\s*%\s*(?:on|RA|room\s+air|O2|oxygen)', 0.88, 'optimized'),
+    (r'(?:on\s+room\s+air|RA|ambient\s+air)[^0-9]*(?:SpO2|O2\s+Sat|saturation|sat)[^0-9]*(\d{2,3})\s*%?', 0.88, 'optimized'),
+    (r'(?:saturation|sat)[^0-9=]*(?:=|-|:|\s)[^0-9%]*(9[0-9]|100)\s*%?', 0.85, 'optimized'),
+    (r'(?:O2|oxygen)[^0-9]*(?:saturation|sat|level)[^0-9]*(\d{2,3})\s*%?', 0.85, 'optimized'),
+    (r'saturating[^0-9]*(?:at|to)?[^0-9]*(\d{2,3})\s*%?', 0.82, 'optimized'),
+
+    # Specialized tier
+    (r'(?:RA|room\s+air)[^0-9]*(\d{2,3})\s*%?', 0.75, 'specialized'),
+    (r'(?:pulse\s+ox|SpO2)[^0-9]*(\d{2,3})', 0.72, 'specialized'),
+    (r'(?:monitor|monitoring)[^0-9\n]*(?:O2|sat|SpO2|saturation)[^0-9\n]*(\d{2,3})', 0.70, 'specialized'),
+    (r'VS[^\d\n]*[\d/,:.]+(?:[^,\d\n]*,){4}[^,\d\n]*(?:O2)?\s*(9\d|100)', 0.68, 'specialized'),
+]
+
+# Temperature patterns - captures (value, unit)
+TEMP_PATTERNS = [
+    # Standard tier - with explicit unit
+    (r'(?:Temperature|Temp)\s*:?\s*(\d{2,3}\.?\d?)\s*[°]?\s*([CF])', 0.95, 'standard'),
+    (r'(?:Tmax|T-max|Tcurrent)\s*:?\s*(\d{2,3}\.?\d?)\s*[°]?\s*([CF])', 0.95, 'standard'),
+    (r'T\s+(\d{2,3}\.?\d?)\s*[°]?\s*([CF])', 0.92, 'standard'),
+
+    # Optimized tier
+    (r'(?:Temperature|Temp)\s*:?\s*(\d{2,3}\.?\d?)\s*(?:degrees)?\s*([CF])', 0.88, 'optimized'),
+    (r'temperature[^0-9]*(\d{2,3}\.?\d?)[^0-9]*([CF])', 0.88, 'optimized'),
+    (r'(?:afebrile|febrile)[^0-9]*(?:at|with)?[^0-9]*(\d{2,3}\.?\d?)\s*[°]?\s*([CF])?', 0.85, 'optimized'),
+    (r'(\d{2,3}\.\d)\s*[°]\s*([CF])', 0.82, 'optimized'),
+
+    # Specialized tier - may need unit inference
+    (r'(?:Temperature|Temp)\s*:?\s*(\d{2,3}\.?\d?)\b', 0.75, 'specialized'),
+    (r'(?:T|temp)[\s:=]+(\d{2,3}\.?\d?)(?!\d)', 0.70, 'specialized'),
+    (r'(?:afebrile|febrile)[^0-9]*(9\d\.?\d{0,2}|10[0-4]\.?\d{0,2}|3[5-9]\.?\d{0,2})', 0.68, 'specialized'),
+]
