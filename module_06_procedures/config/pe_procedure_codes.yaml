@@ -1,0 +1,158 @@
+# module_06_procedures/config/pe_procedure_codes.yaml
+# PE-relevant procedure CPT codes organized by clinical category
+
+diagnostic_imaging:
+  cta_chest:
+    description: "CT Angiography Chest"
+    cpt_codes: ["71275"]
+
+  vq_scan:
+    description: "Ventilation-Perfusion Scan"
+    cpt_codes: ["78582", "78585"]
+
+  pulmonary_angiography:
+    description: "Pulmonary Angiography"
+    cpt_codes: ["36014", "75741", "75743"]
+
+  le_duplex:
+    description: "Lower Extremity Venous Duplex"
+    cpt_codes: ["93970", "93971"]
+
+  echo_tte:
+    description: "Transthoracic Echocardiogram"
+    cpt_codes: ["93306", "93303", "93304", "93308"]
+
+  echo_tee:
+    description: "Transesophageal Echocardiogram"
+    cpt_codes: ["93312", "93313", "93314", "93315", "93316", "93317"]
+
+reperfusion_therapy:
+  catheter_directed_therapy:
+    description: "Catheter-Directed Thrombolysis"
+    cpt_codes: ["37211", "37212", "37213", "37214"]
+
+  mechanical_thrombectomy:
+    description: "Mechanical Thrombectomy"
+    cpt_codes: ["37184", "37185", "37186", "37187", "37188"]
+
+  surgical_embolectomy:
+    description: "Surgical Pulmonary Embolectomy"
+    cpt_codes: ["33910", "33915", "33916"]
+
+ivc_filter:
+  filter_placement:
+    description: "IVC Filter Placement"
+    cpt_codes: ["37191"]
+
+  filter_retrieval:
+    description: "IVC Filter Retrieval"
+    cpt_codes: ["37193"]
+
+  filter_repositioning:
+    description: "IVC Filter Repositioning"
+    cpt_codes: ["37192"]
+
+vascular_access:
+  central_line:
+    description: "Central Venous Catheter"
+    cpt_codes: ["36555", "36556", "36557", "36558", "36560", "36561", "36563", "36565", "36566", "36568", "36569", "36570", "36571"]
+
+  arterial_line:
+    description: "Arterial Line Placement"
+    cpt_codes: ["36620", "36625"]
+
+  pa_catheter:
+    description: "Pulmonary Artery Catheter"
+    cpt_codes: ["36013", "93503"]
+
+respiratory_support:
+  intubation:
+    description: "Endotracheal Intubation"
+    cpt_codes: ["31500"]
+
+  mechanical_ventilation:
+    description: "Mechanical Ventilation Management"
+    cpt_codes: ["94002", "94003", "94004", "94660"]
+
+  tracheostomy:
+    description: "Tracheostomy"
+    cpt_codes: ["31600", "31601", "31603", "31605"]
+
+  hfnc:
+    description: "High-Flow Nasal Cannula"
+    cpt_codes: ["94660"]
+
+  nippv:
+    description: "Non-invasive Positive Pressure Ventilation"
+    cpt_codes: ["94660"]
+
+circulatory_support:
+  ecmo_va:
+    description: "Veno-Arterial ECMO"
+    cpt_codes: ["33946", "33947"]
+
+  ecmo_vv:
+    description: "Veno-Venous ECMO"
+    cpt_codes: ["33946", "33947"]
+
+  ecmo_daily:
+    description: "ECMO Daily Management"
+    cpt_codes: ["33948", "33949"]
+
+  iabp:
+    description: "Intra-Aortic Balloon Pump"
+    cpt_codes: ["33967", "33968", "33970", "33971"]
+
+resuscitation:
+  cpr:
+    description: "Cardiopulmonary Resuscitation"
+    cpt_codes: ["92950"]
+
+transfusion:
+  rbc_transfusion:
+    description: "Red Blood Cell Transfusion"
+    cpt_codes: ["36430"]
+
+  platelet_transfusion:
+    description: "Platelet Transfusion"
+    cpt_codes: ["36430"]
+
+  plasma_transfusion:
+    description: "Fresh Frozen Plasma"
+    cpt_codes: ["36430"]
+
+dialysis:
+  hemodialysis:
+    description: "Hemodialysis"
+    cpt_codes: ["90935", "90937"]
+
+  crrt:
+    description: "Continuous Renal Replacement Therapy"
+    cpt_codes: ["90945", "90947"]
+
+thoracic_procedures:
+  thoracentesis:
+    description: "Thoracentesis"
+    cpt_codes: ["32554", "32555"]
+
+  chest_tube:
+    description: "Chest Tube Placement"
+    cpt_codes: ["32551", "32556", "32557"]
+
+cardiac_catheterization:
+  right_heart_cath:
+    description: "Right Heart Catheterization"
+    cpt_codes: ["93451", "93453", "93456", "93457", "93460", "93461"]
+
+  left_heart_cath:
+    description: "Left Heart Catheterization"
+    cpt_codes: ["93452", "93458", "93459", "93460", "93461"]
+
+gi_bleeding_workup:
+  egd:
+    description: "Esophagogastroduodenoscopy"
+    cpt_codes: ["43235", "43239", "43255"]
+
+  colonoscopy:
+    description: "Colonoscopy"
+    cpt_codes: ["45378", "45380", "45382", "45384", "45385"]
