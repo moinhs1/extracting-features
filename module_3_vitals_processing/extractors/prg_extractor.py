@@ -57,11 +57,17 @@ def load_checkpoint(output_dir: Path) -> Optional[ExtractionCheckpoint]:
     return None
 
 
-from .prg_patterns import PRG_SECTION_PATTERNS, PRG_SKIP_PATTERNS, PRG_TEMP_PATTERNS, TEMP_METHOD_MAP
-from .hnp_patterns import TEMP_PATTERNS, VALID_RANGES, NEGATION_PATTERNS
-from .hnp_extractor import (
+# Import from unified extractor (direct path for clarity)
+from .unified_extractor import (
     extract_heart_rate, extract_blood_pressure,
-    extract_respiratory_rate, extract_spo2, check_negation
+    extract_respiratory_rate, extract_spo2,
+    check_negation
+)
+from .unified_patterns import VALID_RANGES
+# Keep hnp_patterns TEMP_PATTERNS for extract_temperature_with_method (2-element tuples)
+from .hnp_patterns import TEMP_PATTERNS
+from .prg_patterns import (
+    PRG_SECTION_PATTERNS, PRG_SKIP_PATTERNS, PRG_TEMP_PATTERNS, TEMP_METHOD_MAP
 )
 
 
@@ -160,15 +166,22 @@ def extract_temperature_with_method(text: str) -> List[Dict]:
             if units is None:
                 units = 'F' if value > 50 else 'C'
 
-            # Validate range
-            range_key = 'TEMP_C' if units == 'C' else 'TEMP_F'
-            min_val, max_val = VALID_RANGES[range_key]
-            if not (min_val <= value <= max_val):
-                continue
+            # Validate range and convert to Celsius
+            if units == 'F':
+                min_val, max_val = VALID_RANGES['TEMP_F']
+                if not (min_val <= value <= max_val):
+                    continue
+                # Convert Fahrenheit to Celsius
+                value = (value - 32) * 5 / 9
+                units = 'C'
+            else:
+                min_val, max_val = VALID_RANGES['TEMP_C']
+                if not (min_val <= value <= max_val):
+                    continue
 
             results.append({
-                'value': value,
-                'units': units,
+                'value': round(value, 1),
+                'units': 'C',  # Always Celsius
                 'method': method,
                 'confidence': confidence,
                 'position': position,
@@ -193,10 +206,18 @@ def extract_temperature_with_method(text: str) -> List[Dict]:
                 if units is None:
                     units = 'F' if value > 50 else 'C'
 
-                range_key = 'TEMP_C' if units == 'C' else 'TEMP_F'
-                min_val, max_val = VALID_RANGES[range_key]
-                if not (min_val <= value <= max_val):
-                    continue
+                # Validate range and convert to Celsius
+                if units == 'F':
+                    min_val, max_val = VALID_RANGES['TEMP_F']
+                    if not (min_val <= value <= max_val):
+                        continue
+                    # Convert Fahrenheit to Celsius
+                    value = (value - 32) * 5 / 9
+                    units = 'C'
+                else:
+                    min_val, max_val = VALID_RANGES['TEMP_C']
+                    if not (min_val <= value <= max_val):
+                        continue
 
                 # Check for method in surrounding context
                 context_end = min(position + 50, len(text))
@@ -208,8 +229,8 @@ def extract_temperature_with_method(text: str) -> List[Dict]:
                         break
 
                 results.append({
-                    'value': value,
-                    'units': units,
+                    'value': round(value, 1),
+                    'units': 'C',  # Always Celsius
                     'method': method,
                     'confidence': confidence,
                     'position': position,
@@ -356,7 +377,10 @@ def process_prg_row(row: pd.Series) -> List[Dict]:
 
 
 from multiprocessing import Pool, cpu_count
-from .prg_patterns import PRG_COLUMNS
+try:
+    from .prg_patterns import PRG_COLUMNS
+except ImportError:
+    from prg_patterns import PRG_COLUMNS
 
 
 def _process_chunk(chunk: pd.DataFrame) -> List[Dict]:
