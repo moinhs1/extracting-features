@@ -14,8 +14,8 @@
 | Component | Status | Tests | Description |
 |-----------|--------|-------|-------------|
 | **3.1 Phy Extractor** | ✅ COMPLETE | 39 | Structured vitals from Phy.txt |
-| **3.2 Hnp Extractor** | ✅ COMPLETE | 70 | NLP extraction from H&P notes (unified) |
-| **3.3 Prg Extractor** | ✅ COMPLETE | 34 | NLP extraction from Progress notes (unified) |
+| **3.2 Hnp Extractor** | ✅ COMPLETE | 70 | NLP extraction from H&P notes (unified + supplemental) |
+| **3.3 Prg Extractor** | ✅ COMPLETE | 34 | NLP extraction from Progress notes (unified + supplemental) |
 | **Unified Extractor** | ✅ COMPLETE | 54 | Core patterns + extraction logic |
 | **3.4 Layer 1 Builder** | ✅ COMPLETE | 17 | Canonical records (PE-aligned, merged, validated) |
 | **3.5 Layer 2 Builder** | ✅ COMPLETE | 17 | Hourly grid + HDF5 tensors with imputation |
@@ -202,8 +202,10 @@ pytest module_3_vitals_processing/tests/ -v
 | Stage | Output | Size |
 |-------|--------|------|
 | Extraction | `outputs/discovery/phy_vitals_raw.parquet` | 67 MB |
-| Extraction | `outputs/discovery/hnp_vitals_raw.parquet` | 9.4 MB |
+| Extraction | `outputs/discovery/hnp_vitals_raw.parquet` | ~15 MB |
+| Extraction | `outputs/discovery/hnp_supplemental.parquet` | ~20 MB |
 | Extraction | `outputs/discovery/prg_vitals_raw.parquet` | 215 MB |
+| Extraction | `outputs/discovery/prg_supplemental.parquet` | ~50 MB |
 | Layer 1 | `outputs/layer1/canonical_vitals.parquet` | 30 MB |
 | Layer 2 | `outputs/layer2/hourly_grid.parquet` | 35 MB |
 | Layer 2 | `outputs/layer2/hourly_tensors.h5` | 24 MB |
@@ -535,7 +537,9 @@ module_3_vitals_processing/
 │   ├── discovery/                    # Raw extractions
 │   │   ├── phy_vitals_raw.parquet
 │   │   ├── hnp_vitals_raw.parquet
-│   │   └── prg_vitals_raw.parquet
+│   │   ├── hnp_supplemental.parquet  # O2 flow, O2 device, BMI
+│   │   ├── prg_vitals_raw.parquet
+│   │   └── prg_supplemental.parquet  # O2 flow, O2 device, BMI
 │   ├── layer1/                       # Canonical records
 │   │   └── canonical_vitals.parquet
 │   ├── layer2/                       # Hourly grid + tensors
@@ -655,6 +659,11 @@ State schema version will increment when treatment slots are populated.
   - New `unified_extractor.py`: Core extraction with validation, negation detection, skip sections
   - Pattern coverage: 16 HR, 16 BP, 12 RR, 11 SpO2, 10 Temp, 9 O2 flow, 10 O2 device, 7 BMI
   - `hnp_extractor.py` and `prg_extractor.py` refactored as thin wrappers
+- **Supplemental Vitals Extraction**: Both HNP and PRG extractors now extract:
+  - O2 Flow Rate (L/min)
+  - O2 Device (nasal cannula, HFNC, room air, etc.)
+  - BMI
+  - Output: `*_supplemental.parquet` files
 - **Updated Validation Ranges** (per clinical review):
   - HR: 25-220 (allows profound bradycardia in complete heart block/hypothermia)
   - SpO2: 55-100 (SpO2 < 55% extremely rare in documented vitals)
