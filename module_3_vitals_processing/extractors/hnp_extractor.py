@@ -334,6 +334,8 @@ def extract_hnp_vitals(
 
     if supplemental_path and all_supplemental:
         df_supp = pd.DataFrame(all_supplemental)
+        # Convert value to string to handle mixed types (O2_DEVICE is string, others are numeric)
+        df_supp['value'] = df_supp['value'].astype(str)
         df_supp.to_parquet(supplemental_path, index=False)
         print(f"Supplemental vitals saved to: {supplemental_path}")
 
