@@ -61,6 +61,7 @@ def load_checkpoint(output_dir: Path) -> Optional[ExtractionCheckpoint]:
 from .unified_extractor import (
     extract_heart_rate, extract_blood_pressure,
     extract_respiratory_rate, extract_spo2,
+    extract_supplemental_vitals,
     check_negation
 )
 from .unified_patterns import VALID_RANGES
@@ -332,11 +333,25 @@ def process_prg_row(row: pd.Series) -> List[Dict]:
         row: DataFrame row with EMPI, Report_Number, Report_Date_Time, Report_Text
 
     Returns:
-        List of vital sign records
+        List of vital sign records (backward compatible API)
+    """
+    core_results, _ = _process_prg_row_full(row)
+    return core_results
+
+
+def _process_prg_row_full(row: pd.Series) -> Tuple[List[Dict], List[Dict]]:
+    """
+    Process a single progress note row with supplemental extraction.
+
+    Args:
+        row: DataFrame row with EMPI, Report_Number, Report_Date_Time, Report_Text
+
+    Returns:
+        Tuple of (core_vitals, supplemental_vitals)
     """
     text = row.get('Report_Text')
     if not text or pd.isna(text):
-        return []
+        return [], []
 
     empi = str(row.get('EMPI', ''))
     report_number = str(row.get('Report_Number', ''))
@@ -351,12 +366,12 @@ def process_prg_row(row: pd.Series) -> List[Dict]:
         except (ValueError, TypeError):
             report_datetime = datetime.now()
 
-    # Extract vitals from text
+    # Extract core vitals from text
     extracted = extract_prg_vitals_from_text(text)
 
-    results = []
+    core_results = []
     for vital in extracted:
-        results.append({
+        core_results.append({
             'EMPI': empi,
             'timestamp': report_datetime,
             'timestamp_source': 'estimated',
@@ -373,7 +388,45 @@ def process_prg_row(row: pd.Series) -> List[Dict]:
             'temp_method': vital.get('temp_method'),
         })
 
-    return results
+    # Extract supplemental vitals
+    supplemental_results = []
+    supplemental = extract_supplemental_vitals(text)
+
+    base_supplemental = {
+        'EMPI': empi,
+        'timestamp': report_datetime,
+        'source': 'prg',
+        'report_number': report_number,
+    }
+
+    for o2_flow in supplemental['O2_FLOW']:
+        supplemental_results.append({
+            **base_supplemental,
+            'vital_type': 'O2_FLOW',
+            'value': o2_flow['value'],
+            'units': o2_flow['units'],
+            'confidence': o2_flow['confidence'],
+        })
+
+    for o2_device in supplemental['O2_DEVICE']:
+        supplemental_results.append({
+            **base_supplemental,
+            'vital_type': 'O2_DEVICE',
+            'value': o2_device['value'],
+            'units': None,
+            'confidence': o2_device['confidence'],
+        })
+
+    for bmi in supplemental['BMI']:
+        supplemental_results.append({
+            **base_supplemental,
+            'vital_type': 'BMI',
+            'value': bmi['value'],
+            'units': bmi['units'],
+            'confidence': bmi['confidence'],
+        })
+
+    return core_results, supplemental_results
 
 
 from multiprocessing import Pool, cpu_count
@@ -383,17 +436,21 @@ except ImportError:
     from prg_patterns import PRG_COLUMNS
 
 
-def _process_chunk(chunk: pd.DataFrame) -> List[Dict]:
+def _process_chunk(chunk: pd.DataFrame) -> Tuple[List[Dict], List[Dict]]:
     """Process a chunk of rows (for multiprocessing)."""
-    results = []
+    core_results = []
+    supplemental_results = []
     for _, row in chunk.iterrows():
-        results.extend(process_prg_row(row))
-    return results
+        core, supp = _process_prg_row_full(row)
+        core_results.extend(core)
+        supplemental_results.extend(supp)
+    return core_results, supplemental_results
 
 
 def extract_prg_vitals(
     input_path: str,
     output_path: str,
+    supplemental_path: Optional[str] = None,
     n_workers: Optional[int] = None,
     chunk_size: int = 10000,
     resume: bool = True
@@ -403,7 +460,8 @@ def extract_prg_vitals(
 
     Args:
         input_path: Path to Prg.txt file
-        output_path: Path for output parquet file
+        output_path: Path for core vitals parquet file
+        supplemental_path: Path for supplemental vitals parquet (optional)
         n_workers: Number of parallel workers (default: CPU count)
         chunk_size: Rows per chunk for processing
         resume: Whether to resume from checkpoint if available
@@ -416,6 +474,8 @@ def extract_prg_vitals(
 
     output_dir = Path(output_path).parent
     output_dir.mkdir(parents=True, exist_ok=True)
+    if supplemental_path:
+        Path(supplemental_path).parent.mkdir(parents=True, exist_ok=True)
 
     # Check for existing checkpoint
     checkpoint = load_checkpoint(output_dir) if resume else None
@@ -431,7 +491,8 @@ def extract_prg_vitals(
         chunks_completed = 0
         started_at = datetime.now()
 
-    all_results = []
+    all_core = []
+    all_supplemental = []
 
     # Read and process in chunks
     for chunk in pd.read_csv(
@@ -456,12 +517,15 @@ def extract_prg_vitals(
             with Pool(n_workers) as pool:
                 chunk_results = pool.map(_process_chunk, chunk_splits)
 
-            for result_list in chunk_results:
-                all_results.extend(result_list)
+            for core, supp in chunk_results:
+                all_core.extend(core)
+                all_supplemental.extend(supp)
         else:
-            all_results.extend(_process_chunk(chunk))
+            core, supp = _process_chunk(chunk)
+            all_core.extend(core)
+            all_supplemental.extend(supp)
 
-        all_results_count = len(all_results)
+        all_results_count = len(all_core)
         rows_processed = skip_rows + (chunks_completed * chunk_size)
 
         # Save checkpoint periodically
@@ -476,13 +540,13 @@ def extract_prg_vitals(
                 updated_at=datetime.now(),
             )
             save_checkpoint(checkpoint, output_dir)
-            print(f"Checkpoint saved at chunk {chunks_completed}, {all_results_count} records")
+            print(f"Checkpoint saved at chunk {chunks_completed}, core: {all_results_count}, supplemental: {len(all_supplemental)}")
 
-        print(f"Processed chunk {chunks_completed}, total records: {all_results_count}")
+        print(f"Processed chunk {chunks_completed}, core: {all_results_count}, supplemental: {len(all_supplemental)}")
 
-    # Create DataFrame
-    if all_results:
-        df = pd.DataFrame(all_results)
+    # Create and save core DataFrame
+    if all_core:
+        df = pd.DataFrame(all_core)
     else:
         df = pd.DataFrame(columns=[
             'EMPI', 'timestamp', 'timestamp_source', 'timestamp_offset_hours',
@@ -491,16 +555,24 @@ def extract_prg_vitals(
             'temp_method'
         ])
 
-    # Save to parquet
+    # Save core to parquet
     df.to_parquet(output_path, index=False)
+    print(f"Core vitals saved to: {output_path}")
+
+    # Save supplemental to parquet
+    if supplemental_path and all_supplemental:
+        df_supp = pd.DataFrame(all_supplemental)
+        # Convert value to string to handle mixed types (O2_DEVICE is string, others are numeric)
+        df_supp['value'] = df_supp['value'].astype(str)
+        df_supp.to_parquet(supplemental_path, index=False)
+        print(f"Supplemental vitals saved to: {supplemental_path}")
 
     # Remove checkpoint on successful completion
     checkpoint_path = output_dir / CHECKPOINT_FILE
     if checkpoint_path.exists():
         checkpoint_path.unlink()
 
-    print(f"Extraction complete. Total records: {len(df)}")
-    print(f"Output saved to: {output_path}")
+    print(f"Extraction complete. Core: {len(df)}, Supplemental: {len(all_supplemental)}")
 
     return df
 
@@ -512,7 +584,7 @@ def main():
 
     sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-    from module_3_vitals_processing.config.vitals_config import PRG_INPUT_PATH, PRG_OUTPUT_PATH
+    from module_3_vitals_processing.config.vitals_config import PRG_INPUT_PATH, PRG_OUTPUT_PATH, OUTPUT_DIR
 
     parser = argparse.ArgumentParser(
         description='Extract vital signs from Prg.txt (Progress Notes)'
@@ -525,7 +597,12 @@ def main():
     parser.add_argument(
         '-o', '--output',
         default=str(PRG_OUTPUT_PATH),
-        help='Output parquet file path'
+        help='Output parquet file path for core vitals'
+    )
+    parser.add_argument(
+        '-s', '--supplemental',
+        default=str(OUTPUT_DIR / 'discovery' / 'prg_supplemental.parquet'),
+        help='Output parquet file path for supplemental vitals'
     )
     parser.add_argument(
         '-w', '--workers',
@@ -548,7 +625,8 @@ def main():
     args = parser.parse_args()
 
     print(f"Extracting vitals from: {args.input}")
-    print(f"Output to: {args.output}")
+    print(f"Core output to: {args.output}")
+    print(f"Supplemental output to: {args.supplemental}")
     print(f"Workers: {args.workers or 'auto'}")
     print(f"Chunk size: {args.chunk_size}")
     print(f"Resume: {not args.no_resume}")
@@ -556,6 +634,7 @@ def main():
     extract_prg_vitals(
         args.input,
         args.output,
+        supplemental_path=args.supplemental,
         n_workers=args.workers,
         chunk_size=args.chunk_size,
         resume=not args.no_resume
