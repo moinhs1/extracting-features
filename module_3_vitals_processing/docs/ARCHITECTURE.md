@@ -2053,10 +2053,69 @@ delta_index = HR - RR
 
 ---
 
+## 13. Unified Extraction Architecture (v3.3 Update)
+
+As of version 3.3, the NLP extraction system has been refactored to use a **unified pattern library** with centralized extraction logic.
+
+### 13.1 Architecture Overview
+
+```
+unified_patterns.py          unified_extractor.py         Source Wrappers
+┌──────────────────┐        ┌────────────────────┐       ┌─────────────────┐
+│ HR_PATTERNS      │───────▶│ extract_heart_rate │◀──────│ hnp_extractor   │
+│ BP_PATTERNS      │───────▶│ extract_bp         │       │ (sections,      │
+│ RR_PATTERNS      │───────▶│ extract_rr         │       │  timestamps)    │
+│ SPO2_PATTERNS    │───────▶│ extract_spo2       │       ├─────────────────┤
+│ TEMP_PATTERNS    │───────▶│ extract_temp       │◀──────│ prg_extractor   │
+│ O2_FLOW_PATTERNS │───────▶│ extract_o2_flow    │       │ (checkpoints,   │
+│ O2_DEVICE_PTRNS  │───────▶│ extract_o2_device  │       │  temp methods)  │
+│ BMI_PATTERNS     │───────▶│ extract_bmi        │       └─────────────────┘
+│ VALID_RANGES     │        │                    │
+│ NEGATION_PTRNS   │        │ check_negation()   │
+│ SKIP_SECTION_PTR │        │ is_in_skip_sect()  │
+└──────────────────┘        └────────────────────┘
+```
+
+### 13.2 3-Tier Confidence Scoring
+
+Each pattern has an associated confidence score reflecting extraction reliability:
+
+| Tier | Confidence Range | Description | Example |
+|------|------------------|-------------|---------|
+| **Standard** | 0.90-1.0 | Explicit label + unit | `HR: 72 bpm` |
+| **Optimized** | 0.80-0.90 | Label or strong context | `tachycardic at 120` |
+| **Specialized** | 0.65-0.80 | Contextual/bare patterns | `VS... 120` |
+
+### 13.3 Key Features
+
+1. **Negation Detection**: 8 patterns (e.g., "not obtained", "refused", "unable to measure")
+2. **Skip Section Filtering**: Excludes allergies, medications, history sections
+3. **Temperature Normalization**: All values converted to Celsius
+4. **Position-Based Deduplication**: Prevents duplicate extractions from overlapping patterns
+5. **Physiological Validation**: Rejects implausible values (HR=500, SpO2=200)
+6. **Abnormal Flagging**: Marks values outside clinical norms
+
+### 13.4 Pattern Counts
+
+- **Core Vitals**: HR (16), BP (16), RR (12), SpO2 (11), Temp (10)
+- **Supplemental**: O2 Flow (9), O2 Device (10), BMI (7)
+- **Total**: 91 patterns
+
+### 13.5 Benefits of Unified Architecture
+
+1. **Single Source of Truth**: All patterns in one file, easier maintenance
+2. **Consistent Behavior**: Same validation logic across all extractors
+3. **Reduced Code Duplication**: ~340 lines removed from hnp_extractor
+4. **Easier Testing**: 54 dedicated tests for unified components
+5. **Extensibility**: Add new vitals by adding patterns + extraction function
+
+---
+
 ## Document Revision History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1 | 2025-12-13 | Claude (Opus 4.5) | Added Section 13: Unified Extraction Architecture |
 | 1.0 | 2025-11-09 | Claude (Sonnet 4.5) | Initial architecture design based on comprehensive requirements |
 
 ---
