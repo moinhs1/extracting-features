@@ -161,9 +161,9 @@ def extract_blood_pressure(text: str) -> List[Dict]:
             if not (pp_min <= pulse_pressure <= pp_max):
                 continue
 
-            # Abnormal flags
-            sbp_abnormal = sbp < 90 or sbp > 180
-            dbp_abnormal = dbp < 60 or dbp > 110
+            # Abnormal flags (inclusive boundaries)
+            sbp_abnormal = sbp < 90 or sbp >= 180
+            dbp_abnormal = dbp < 60 or dbp >= 110
 
             results.append({
                 'sbp': sbp,
@@ -390,7 +390,7 @@ def extract_o2_device(text: str) -> List[Dict]:
             if is_in_skip_section(text, position):
                 continue
 
-            device = match.group(1) if match.lastindex >= 1 else match.group(0)
+            device = match.group(1) if match.lastindex and match.lastindex >= 1 else match.group(0)
 
             results.append({
                 'value': device.strip(),

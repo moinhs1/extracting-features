@@ -12,15 +12,15 @@ import re
 
 # Validation ranges (tightened for clinical plausibility)
 VALID_RANGES = {
-    'HR': (30, 220),
+    'HR': (25, 220),        # Allow profound bradycardia (complete heart block, hypothermia)
     'SBP': (50, 260),
     'DBP': (25, 150),
     'PULSE_PRESSURE': (10, 120),
     'RR': (6, 50),
-    'SPO2': (50, 100),
+    'SPO2': (55, 100),      # SpO2 < 55% extremely rare in documented vitals
     'TEMP_C': (33.5, 42.5),
     'TEMP_F': (93, 108),
-    'O2_FLOW': (0.5, 60),
+    'O2_FLOW': (0.25, 80),  # Pediatric/neonatal 0.25L; Vapotherm up to 60-80L
     'BMI': (12, 70),
 }
 
