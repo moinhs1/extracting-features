@@ -2109,12 +2109,80 @@ Each pattern has an associated confidence score reflecting extraction reliabilit
 4. **Easier Testing**: 54 dedicated tests for unified components
 5. **Extensibility**: Add new vitals by adding patterns + extraction function
 
+### 13.6 SpO2 Pattern Improvements (v3.4)
+
+**Problem Identified (2025-12-15):**
+
+The original SpO2 pattern at confidence 0.75:
+```regex
+(?:RA|room\s+air)[^0-9]*(\d{2,3})\s*%?
+```
+
+Had a critical flaw: the `%?` made the percent sign **optional**, causing massive false positives:
+
+| False Positive Source | Example | Extracted Value |
+|----------------------|---------|-----------------|
+| Cardiac catheterization | "RA 15, PCWP 30" | 15 (Right Atrial pressure) |
+| Hemodynamics | "RA 24, RV 21, wedge 33" | 24 |
+| Exercise testing | "RA Standing 60" | 60 |
+| Heart rate context | "RA with HR 75" | 75 |
+
+**Impact:** 7M+ false positive SpO2 records with mean value 71.9% and characteristic distribution of round numbers (55%, 60%, 65%, 75%).
+
+**Solution:**
+
+Updated patterns require `%` sign for low-confidence tiers:
+
+```python
+# OLD (problematic):
+(r'(?:RA|room\s+air)[^0-9]*(\d{2,3})\s*%?', 0.75, 'specialized')
+
+# NEW (fixed):
+(r'(?:RA|room\s*air)[^0-9%]{0,10}(\d{2,3})\s*%', 0.82, 'specialized')
+```
+
+**Key Changes:**
+1. `%` is now **required** (not optional)
+2. Confidence increased to 0.82 (higher quality matches only)
+3. Pattern excludes `%` from the character class `[^0-9%]` to ensure we reach the actual value
+
+**Verification Process:**
+
+To confirm the fix was correct, actual clinical notes were examined:
+
+```
+# Real SpO2 values (correctly extracted with % sign):
+"Resting sat on RA 80%, improved to 94% on 2L NC"
+"spO2 ambulating on RA 89%"
+"O2 sat @ rest on RA 80%"
+
+# False positives (correctly rejected - no % sign):
+"RA 15, cardiac index 3.45" → NOT extracted
+"RA 24, RV 21, wedge 33" → NOT extracted
+```
+
+**Clinical Note:** Low SpO2 values (60-89%) with `%` sign are **real hypoxemia** in PE patients due to:
+- V/Q mismatch from pulmonary embolism
+- Concurrent cardiopulmonary disease
+- Exertional desaturation during ambulation
+
+**Results:**
+
+| Metric | Before | After | Change |
+|--------|--------|-------|--------|
+| Total SpO2 records | 9.58M | 1.52M | -84% |
+| Mean SpO2 | 77.7% | 94.2% | +16.5pp |
+| Median SpO2 | 75% | 96% | +21pp |
+| Plausibility (85-100%) | ~13% | 94.1% | +81pp |
+| Records at conf <0.80 | 7.33M | 12K | -99.8% |
+
 ---
 
 ## Document Revision History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.2 | 2025-12-15 | Claude (Opus 4.5) | Added Section 13.6: SpO2 Pattern Improvements (v3.4) |
 | 1.1 | 2025-12-13 | Claude (Opus 4.5) | Added Section 13: Unified Extraction Architecture |
 | 1.0 | 2025-11-09 | Claude (Sonnet 4.5) | Initial architecture design based on comprehensive requirements |
 

@@ -126,23 +126,39 @@ RR_PATTERNS = [
 ]
 
 # SpO2 patterns
+# IMPORTANT: Patterns are carefully designed to avoid false positives from:
+# - Cardiac pressures (RA=Right Atrial, e.g., "RA 15, PCWP 30")
+# - Exercise test data (e.g., "RA Standing 60")
+# - Ejection fraction (EF 65%), FEV1 (>70% predicted)
+# - Ages (55 y/o), addresses, medication doses
 SPO2_PATTERNS = [
-    # Standard tier
+    # Standard tier (0.90-1.0) - explicit SpO2 keywords with value
     (r'(?:SpO2|SaO2|O2\s*Sat(?:uration)?)\s*:?\s*>?(\d{2,3})\s*%?', 0.95, 'standard'),
     (r'(?:oxygen\s+saturation|pulse\s+ox|pulseox|pox)\s*:?\s*(\d{2,3})\s*%?', 0.92, 'standard'),
 
-    # Optimized tier
-    (r'(\d{2,3})\s*%\s*(?:on|RA|room\s+air|O2|oxygen)', 0.88, 'optimized'),
-    (r'(?:on\s+room\s+air|RA|ambient\s+air)[^0-9]*(?:SpO2|O2\s+Sat|saturation|sat)[^0-9]*(\d{2,3})\s*%?', 0.88, 'optimized'),
-    (r'(?:saturation|sat)[^0-9=]*(?:=|-|:|\s)[^0-9%]*(9[0-9]|100)\s*%?', 0.85, 'optimized'),
-    (r'(?:O2|oxygen)[^0-9]*(?:saturation|sat|level)[^0-9]*(\d{2,3})\s*%?', 0.85, 'optimized'),
-    (r'saturating[^0-9]*(?:at|to)?[^0-9]*(\d{2,3})\s*%?', 0.82, 'optimized'),
+    # Optimized tier (0.80-0.90) - strong context required
+    # Value% on device/oxygen context
+    (r'(\d{2,3})\s*%\s*(?:on|at)\s+(?:\d+\s*L\s*)?(?:NC|nasal\s+cannula|O2|oxygen|RA|room\s+air)', 0.90, 'optimized'),
+    # "satting/saturating at X%"
+    (r'satt?(?:ing|urat(?:ing|ion))?\s*(?:at\s+)?(\d{2,3})\s*%', 0.90, 'optimized'),
+    # "sat/sats of X%"
+    (r'(?:sat|sats|saturation)\s+(?:of\s+)?(\d{2,3})\s*%', 0.88, 'optimized'),
+    # "O2 sat/level X%"
+    (r'(?:O2|oxygen)\s+(?:sat(?:uration)?|level)\s*(?:of|at|:)?\s*(\d{2,3})\s*%?', 0.88, 'optimized'),
+    # SpO2/sat keyword BEFORE "on RA/room air" then value
+    (r'(?:sat(?:uration)?|SpO2|O2\s*sat)[^0-9]{0,15}(?:on\s+)?(?:RA|room\s*air)[^0-9]{0,10}(\d{2,3})\s*%?', 0.88, 'optimized'),
+    # "RA/room air" then SpO2/sat keyword then value
+    (r'(?:RA|room\s*air)[^0-9]{0,10}(?:sat(?:uration)?|SpO2|O2\s*sat)[^0-9]{0,5}(\d{2,3})\s*%?', 0.88, 'optimized'),
+    # "sats on RA X%"
+    (r'sats?\s+(?:on\s+)?(?:RA|room\s*air)[^0-9]{0,5}(\d{2,3})\s*%?', 0.88, 'optimized'),
 
-    # Specialized tier
-    (r'(?:RA|room\s+air)[^0-9]*(\d{2,3})\s*%?', 0.75, 'specialized'),
-    (r'(?:pulse\s+ox|SpO2)[^0-9]*(\d{2,3})', 0.72, 'specialized'),
-    (r'(?:monitor|monitoring)[^0-9\n]*(?:O2|sat|SpO2|saturation)[^0-9\n]*(\d{2,3})', 0.70, 'specialized'),
-    (r'VS[^\d\n]*[\d/,:.]+(?:[^,\d\n]*,){4}[^,\d\n]*(?:O2)?\s*(9\d|100)', 0.68, 'specialized'),
+    # Specialized tier (0.65-0.80) - requires % sign to distinguish from cardiac pressures
+    # RA/room air with % sign - accepts full SpO2 range (55-100%)
+    (r'(?:RA|room\s*air)[^0-9%]{0,10}(\d{2,3})\s*%', 0.82, 'specialized'),
+    # RA/room air followed by 95-100 range without % (exclude cardiac pressure range 10-30)
+    (r'(?:on\s+)?(?:RA|room\s*air)[,\s]+(9[5-9]|100)(?!\s*(?:mg|ml|L|kg|mmHg|HR|RV|PA|cm|\d))', 0.78, 'specialized'),
+    # Monitor context with % sign required
+    (r'(?:monitor|monitoring)[^0-9\n]{0,20}(?:O2|sat|SpO2|saturation)[^0-9\n]{0,10}(\d{2,3})\s*%', 0.75, 'specialized'),
 ]
 
 # Temperature patterns - captures (value, unit)

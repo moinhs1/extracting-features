@@ -25,11 +25,17 @@ HR_PATTERNS = [
 ]
 
 # Blood Pressure patterns: (regex, confidence) - captures (SBP, DBP)
+# IMPORTANT: Patterns ordered by specificity. Loose patterns removed to avoid date matching.
 BP_PATTERNS = [
+    # High confidence: explicit BP label
     (r'(?:Blood\s*[Pp]ressure|BP)\s*:?\s*\(?\!?\)?\s*(\d{2,3})/(\d{2,3})', 1.0),
+    # Reference range format: (110-130)/(60-80) 120/75
     (r'\(\d+-\d+\)/\(\d+-\d+\)\s*(\d{2,3})/(\d{2,3})', 0.9),
-    (r'(\d{2,3})/(\d{2,3})\s*(?:mmHg)', 0.8),
-    (r'(\d{2,3})/(\d{2,3})', 0.7),
+    # With mmHg unit (requires unit to avoid date matching)
+    (r'(\d{2,3})/(\d{2,3})\s*(?:mmHg|mm\s*Hg)', 0.85),
+    # Vitals section context: require "vital" nearby
+    (r'(?:vitals?|v/?s)[:\s].{0,30}?(\d{2,3})/(\d{2,3})', 0.8),
+    # REMOVED: Bare pattern (\d{2,3})/(\d{2,3}) - matches dates like 12/25!
 ]
 
 # Respiratory Rate patterns: (regex, confidence)
@@ -40,9 +46,11 @@ RR_PATTERNS = [
 ]
 
 # SpO2 patterns: (regex, confidence)
+# NOTE: These patterns are NOT used directly - extraction uses unified_extractor.py
+# which has improved patterns in unified_patterns.py. Kept here for reference only.
 SPO2_PATTERNS = [
     (r'(?:SpO2|SaO2|O2\s*Sat(?:uration)?)\s*:?\s*>?(\d{2,3})\s*%?', 1.0),
-    (r'(\d{2,3})\s*%\s*(?:on|RA|room)', 0.8),
+    # Removed loose RA pattern - see unified_patterns.py for improved version
 ]
 
 # Temperature patterns: (regex, confidence) - captures (value, unit)

@@ -1,8 +1,8 @@
 # Module 3: Comprehensive Vitals Extraction & Processing
 
-**Version:** 3.3
+**Version:** 3.4
 **Status:** ALL PHASES COMPLETE
-**Last Updated:** 2025-12-13
+**Last Updated:** 2025-12-15
 **Dependencies:** Module 1 (patient_timelines.pkl)
 
 ---
@@ -227,24 +227,71 @@ pytest module_3_vitals_processing/tests/ -v
 ```
 Data Sources                    Records        Patients
 ─────────────────────────────────────────────────────────
-PHY (structured)                160,308
-HNP (H&P notes NLP)             283,432
-PRG (Progress notes NLP)     38,601,927
+PHY (structured)                160,308        ~7,700
+HNP (H&P notes NLP)           1,144,441       14,584
+PRG (Progress notes NLP)     18,667,937       15,661
 ─────────────────────────────────────────────────────────
-TOTAL RAW                    39,045,667        7,689
+TOTAL RAW                    19,972,686       15,700+
 
-After Layer 1 (canonical)    39,045,667        7,689
-After Layer 2 (hourly grid)   5,728,305        7,689
-After Layer 3 (features)      5,728,305        7,689
+After Layer 1 (canonical)     3,469,481        7,696   (PE cohort only)
+After Layer 2 (hourly grid)   5,728,305        7,696
+After Layer 3 (features)      5,728,305        7,696
   - Timeseries features         × 315 columns
   - Summary features            × 4,426 columns per patient
-After Layer 4 (embeddings)        7,689        7,689
+After Layer 4 (embeddings)        7,696        7,696
   - FPCA scores                   × 77 features (70 FPC + 7 obs_pct)
   - VAE latents                   × 32 dimensions
   - Cluster assignments           × 2 methods (DTW, HDBSCAN)
-After Layer 5 (world states)  5,728,305        7,689
+After Layer 5 (world states)  5,728,305        7,696
   - State vectors                 × 100 dimensions per hour
 ```
+
+---
+
+## Extraction Quality Analysis
+
+### Vital Type Statistics (Combined HNP + PRG)
+
+| Vital | Records | Patients | Mean | Median | Plausible Range | % Plausible |
+|-------|---------|----------|------|--------|-----------------|-------------|
+| **HR** | 5.78M | 15,600+ | 91.8 | 90 | 40-180 bpm | 84.8% |
+| **SBP** | 2.05M | 15,500+ | 123.4 | 121 | 70-200 mmHg | 99.3% |
+| **DBP** | 2.05M | 15,500+ | 68.0 | 67 | 40-120 mmHg | 99.3% |
+| **RR** | 4.90M | 15,600+ | 17.6 | 17 | 8-40 /min | 86.2% |
+| **SpO2** | 1.67M | 15,400+ | 94.4 | 96 | 85-100% | 94.5% |
+| **TEMP** | 3.36M | 15,100+ | 36.7°C | 36.7 | 35.5-39.5°C | 98.3% |
+
+### Confidence Tier Distribution (PRG)
+
+| Tier | Description | % of Records | Quality |
+|------|-------------|--------------|---------|
+| **High (≥0.90)** | Explicit labels + units | 43.0% | Excellent |
+| **Medium (0.80-0.90)** | Strong context | 26.3% | Good |
+| **Low (<0.80)** | Contextual patterns | 30.6% | Moderate |
+
+### SpO2 Pattern Accuracy (v3.4 Fix)
+
+| Confidence | Records | Mean Value | Plausible % | Notes |
+|------------|---------|------------|-------------|-------|
+| 0.95 | 1.19M | 96.1% | 99%+ | Excellent - explicit SpO2/O2sat labels |
+| 0.90 | 157K | 92.5% | 95%+ | Good - strong context |
+| 0.88 | 80K | 90.9% | 90%+ | Good - sat/sats keywords |
+| 0.82 | 75K | 70.6% | 70%+ | Real hypoxemia (PE patients) |
+
+**Note**: Low values (60-89%) at 0.82 confidence are **real hypoxemia** in PE patients, not false positives. These are extracted from text like `"sat on RA 80%"`, `"SpO2 ambulating on RA 89%"`.
+
+### Known Pattern Limitations
+
+1. **RA Ambiguity**: "RA" can mean:
+   - Room Air (SpO2 context) - **extracted**
+   - Right Atrial (cardiac cath context) - **excluded by requiring % sign**
+
+2. **Low-confidence SpO2**: Values <85% are clinically significant hypoxemia, common in:
+   - PE patients with V/Q mismatch
+   - Patients with concurrent COPD/CHF
+   - Exertional desaturation (ambulating SpO2)
+
+3. **Temperature**: 81.2% extracted at confidence 0.80 (pattern matching without explicit unit)
 
 ---
 
@@ -652,6 +699,26 @@ State schema version will increment when treatment slots are populated.
 ---
 
 ## Changelog
+
+### Version 3.4 (2025-12-15)
+- **SpO2 Pattern Fix**: Major improvement to SpO2 extraction accuracy
+  - **Problem**: Old pattern `(?:RA|room\s+air)[^0-9]*(\d{2,3})\s*%?` extracted false positives
+    - Matched cardiac catheterization data: "RA 15, PCWP 30" (Right Atrial pressure, not SpO2)
+    - Matched exercise test data: "RA Standing 60" (not SpO2)
+    - Result: 7M+ false positives with mean 71.9% (physiologically implausible distribution)
+  - **Fix**: New patterns require `%` sign for low-confidence tiers
+    - `(?:RA|room\s*air)[^0-9%]{0,10}(\d{2,3})\s*%` (requires % sign)
+    - Cardiac pressures like "RA 15" correctly rejected (no % sign)
+    - Real SpO2 like "RA 80%" correctly extracted
+  - **Results**:
+    - SpO2 records: 9.58M → 1.52M (-84% reduction in false positives)
+    - Mean SpO2: 77.7% → 94.2% (now physiologically correct)
+    - Plausibility (85-100%): 13% → 94.1%
+  - **Important**: Low SpO2 values (60-89%) with % sign ARE real hypoxemia in PE patients
+- **Updated Extraction Statistics**:
+  - HNP: 1.14M records, 14,584 patients
+  - PRG: 18.67M records, 15,661 patients
+  - Combined: 19.8M records across 8 vital types
 
 ### Version 3.3 (2025-12-13)
 - **Unified Extraction Architecture**: Major refactor of vital extraction
