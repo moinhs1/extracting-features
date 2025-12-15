@@ -1,5 +1,5 @@
 # Session Brief: TDA Project - PE Trajectory Pipeline
-*Last Updated: 2025-12-10*
+*Last Updated: 2025-12-15*
 
 ---
 
@@ -9,7 +9,7 @@
 - [x] Submodules 3.1-3.3: Extractors COMPLETE (Phy, Hnp, Prg)
 - [x] Submodule 3.4: Layer 1 Builder - Canonical Records COMPLETE
 - [x] Submodule 3.5: Layer 2 Builder - Hourly Grid & Tensors COMPLETE
-- [ ] Run Layer 1 + Layer 2 builders on real data
+- [x] Run Layer 1 + Layer 2 builders on real data COMPLETE
 - [ ] Phase 2: Submodule 3.6 - Layer 3 Feature Engineering
 - [ ] Phase 3: Submodules 3.7-3.8 - Layers 4-5 (Embeddings, World Models)
 
@@ -30,15 +30,86 @@
 - [ ] Phase 5: Layer 3 Individual Medications
 - [ ] Phases 6-8: Layers 4-5, Exporters & validation
 
+**Module 5 Diagnoses Processing - Phase 1 COMPLETE ✅:**
+- [x] Design complete - 5-layer architecture (separate from Module XX Risk Scores)
+- [x] **Phase 1 COMPLETE:** Layers 1-2 (Core + Comorbidity)
+  - [x] ICD parser (12 tests) - version detection, PE diagnosis check
+  - [x] Temporal classifier (14 tests) - 7 categories, boolean flags
+  - [x] Diagnosis extractor (6 tests) - RPDR Dia.txt parsing
+  - [x] Layer 1 builder (6 tests) - canonical records with PE timing
+  - [x] Charlson calculator (11 tests) - CCI with hierarchy rules
+  - [x] Layer 2 builder (3 tests) - comorbidity scores
+  - [x] Integration pipeline (3 tests) - build_layers.py CLI
+  - [x] **55 tests total, 9 commits**
+  - [x] Output: `layer1/canonical_diagnoses.parquet`, `layer2/comorbidity_scores.parquet`
+- [ ] Phase 2: Layer 3 PE-Specific Features
+- [ ] Phase 3: Layers 4-5 (Embeddings, World Models)
+
+**Module XX Clinical Risk Scores (Planned):**
+- [ ] Design complete - PESI, sPESI, Bova, Hestia, ESC, FAST, Vienna, DASH, VTE-BLEED, etc.
+- [ ] Cross-module integration (Modules 2-5)
+
 **Future Modules:**
-- [ ] Module 5: Diagnoses/Procedures Processing
 - [ ] Module 6: Temporal Alignment
 - [ ] Module 7: Trajectory Feature Engineering
 - [ ] Module 8: Format Conversion (GRU-D, GBTM, XGBoost)
 
 ---
 
-## Current Session Progress (Dec 10, 2025)
+## Current Session Progress (Dec 15, 2025)
+
+### Module 5: Phase 1 Diagnosis Encoding - COMPLETE ✅
+
+**Goal:** Build Layers 1-2 for diagnosis processing (canonical records + Charlson CCI).
+
+**Implementation Summary:**
+- **9 tasks completed** via Subagent-Driven Development with TDD
+- **55 tests passing**
+- **9 commits** for Phase 1
+- **14 source files** created
+
+**Components Implemented:**
+
+| File | Description | Tests |
+|------|-------------|-------|
+| `config/diagnosis_config.py` | Paths, temporal categories, PE codes | - |
+| `config/comorbidity_codes.py` | 17 Charlson components with ICD codes | - |
+| `processing/icd_parser.py` | ICD-9/10 version detection | 12 |
+| `processing/temporal_classifier.py` | 7 temporal categories | 14 |
+| `extractors/diagnosis_extractor.py` | RPDR Dia.txt extraction | 6 |
+| `processing/layer1_builder.py` | Canonical diagnosis records | 6 |
+| `processing/charlson_calculator.py` | CCI with hierarchy rules | 11 |
+| `processing/layer2_builder.py` | Comorbidity scores | 3 |
+| `build_layers.py` | CLI integration pipeline | 3 |
+
+**Phase 1 Results (100 patient test):**
+```
+Layer 1: 106,624 diagnosis records
+  - preexisting_remote:  51,519 (48%)
+  - follow_up:           27,535 (26%)
+  - late_complication:    8,154 (8%)
+  - antecedent:           6,658 (6%)
+  - preexisting_recent:   6,378 (6%)
+  - early_complication:   3,977 (4%)
+  - index_concurrent:     2,403 (2%)
+
+Layer 2: 100 patients
+  - CCI Mean: 4.4
+  - CCI Range: 0-23
+```
+
+**Outputs:**
+- `layer1/canonical_diagnoses.parquet` - All diagnoses with PE timing
+- `layer2/comorbidity_scores.parquet` - CCI per patient
+
+**Reference Documents:**
+- Design: `module_05_diagnoses/docs/plans/2025-12-13-diagnosis-encoding-design.md`
+- Plan: `module_05_diagnoses/docs/plans/2025-12-13-module-05-implementation-plan.md`
+- Update: `module_05_diagnoses/docs/SESSION_UPDATE.md`
+
+---
+
+## Previous Session Progress (Dec 10, 2025)
 
 ### Module 4: Phase 4 Therapeutic Classes - COMPLETE ✅
 
