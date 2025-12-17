@@ -75,3 +75,72 @@ class TestAlcoholEverFlag:
         builder = AlcoholBuilder(data, index_dates)
         features = builder.build_status_features('100001')
         assert features['alcohol_ever'] == False
+
+
+class TestDrinksPerWeek:
+    def test_extracts_drinks_per_week(self):
+        from transformers.alcohol_builder import AlcoholBuilder
+        data = pd.DataFrame({
+            'EMPI': ['100001'],
+            'Date': ['1/1/2020'],
+            'Concept_Name': ['Alcohol Drinks Per Week'],
+            'Result': ['14'],
+        })
+        index_dates = {'100001': datetime(2020, 3, 15)}
+        builder = AlcoholBuilder(data, index_dates)
+        features = builder.build_quantitative_features('100001')
+        assert features['alcohol_drinks_per_week_at_index'] == 14.0
+
+    def test_extracts_oz_per_week(self):
+        from transformers.alcohol_builder import AlcoholBuilder
+        data = pd.DataFrame({
+            'EMPI': ['100001'],
+            'Date': ['1/1/2020'],
+            'Concept_Name': ['Alcohol Oz Per Week'],
+            'Result': ['8'],
+        })
+        index_dates = {'100001': datetime(2020, 3, 15)}
+        builder = AlcoholBuilder(data, index_dates)
+        features = builder.build_quantitative_features('100001')
+        assert features['alcohol_oz_per_week_at_index'] == 8.0
+
+
+class TestHeavyDrinkingClassification:
+    def test_heavy_male_over_14(self):
+        from transformers.alcohol_builder import AlcoholBuilder
+        data = pd.DataFrame({
+            'EMPI': ['100001'],
+            'Date': ['1/1/2020'],
+            'Concept_Name': ['Alcohol Drinks Per Week'],
+            'Result': ['18'],
+        })
+        index_dates = {'100001': datetime(2020, 3, 15)}
+        builder = AlcoholBuilder(data, index_dates)
+        features = builder.build_quantitative_features('100001', sex='M')
+        assert features['alcohol_heavy_use'] == True
+
+    def test_not_heavy_male_under_14(self):
+        from transformers.alcohol_builder import AlcoholBuilder
+        data = pd.DataFrame({
+            'EMPI': ['100001'],
+            'Date': ['1/1/2020'],
+            'Concept_Name': ['Alcohol Drinks Per Week'],
+            'Result': ['10'],
+        })
+        index_dates = {'100001': datetime(2020, 3, 15)}
+        builder = AlcoholBuilder(data, index_dates)
+        features = builder.build_quantitative_features('100001', sex='M')
+        assert features['alcohol_heavy_use'] == False
+
+    def test_heavy_female_over_7(self):
+        from transformers.alcohol_builder import AlcoholBuilder
+        data = pd.DataFrame({
+            'EMPI': ['100001'],
+            'Date': ['1/1/2020'],
+            'Concept_Name': ['Alcohol Drinks Per Week'],
+            'Result': ['10'],
+        })
+        index_dates = {'100001': datetime(2020, 3, 15)}
+        builder = AlcoholBuilder(data, index_dates)
+        features = builder.build_quantitative_features('100001', sex='F')
+        assert features['alcohol_heavy_use'] == True

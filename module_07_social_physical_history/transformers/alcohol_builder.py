@@ -85,3 +85,68 @@ class AlcoholBuilder:
             'alcohol_ever': alcohol_ever,
             'alcohol_current_at_index': status in self.CURRENT_STATUSES,
         }
+
+    def _get_numeric_value(self, empi: str, concept: str, index_date: datetime) -> Optional[float]:
+        """Get most recent numeric value for a concept."""
+        if self.phy_data.empty:
+            return None
+        mask = (
+            (self.phy_data['EMPI'] == empi) &
+            (self.phy_data['Concept_Name'] == concept) &
+            (self.phy_data['Date'] <= pd.Timestamp(index_date))
+        )
+        records = self.phy_data[mask].sort_values('Date')
+        if records.empty:
+            return None
+        value = pd.to_numeric(records.iloc[-1]['Result'], errors='coerce')
+        return value if pd.notna(value) else None
+
+    def classify_drinking_level(self, drinks_per_week: Optional[float], sex: str = None) -> str:
+        """
+        Classify alcohol use level using CDC/NIAAA thresholds.
+
+        Heavy drinking:
+        - Men: >14 drinks/week
+        - Women: >7 drinks/week
+        """
+        if drinks_per_week is None:
+            return 'unknown'
+
+        # Use female thresholds if sex unknown (more conservative)
+        if sex == 'M':
+            if drinks_per_week == 0:
+                return 'none'
+            if drinks_per_week <= 7:
+                return 'light'
+            if drinks_per_week <= 14:
+                return 'moderate'
+            return 'heavy'
+        else:  # Female or unknown
+            if drinks_per_week == 0:
+                return 'none'
+            if drinks_per_week <= 3:
+                return 'light'
+            if drinks_per_week <= 7:
+                return 'moderate'
+            return 'heavy'
+
+    def build_quantitative_features(self, empi: str, sex: str = None) -> Dict:
+        """Build quantitative alcohol features for a patient."""
+        index_date = self.index_dates.get(empi)
+        if index_date is None:
+            return {'alcohol_drinks_per_week_at_index': None}
+
+        drinks_per_week = self._get_numeric_value(empi, 'Alcohol Drinks Per Week', index_date)
+        oz_per_week = self._get_numeric_value(empi, 'Alcohol Oz Per Week', index_date)
+
+        drinking_level = self.classify_drinking_level(drinks_per_week, sex)
+
+        return {
+            'alcohol_drinks_per_week_at_index': drinks_per_week,
+            'alcohol_oz_per_week_at_index': oz_per_week,
+            'alcohol_drinks_per_day': drinks_per_week / 7 if drinks_per_week else None,
+            'alcohol_drinking_level': drinking_level,
+            'alcohol_heavy_use': drinking_level == 'heavy',
+            'alcohol_moderate_use': drinking_level == 'moderate',
+            'alcohol_light_use': drinking_level == 'light',
+        }
