@@ -98,3 +98,50 @@ class SmokingBuilder:
             'smoking_current_at_index': status in self.CURRENT_STATUSES,
             'smoking_former_at_index': status == 'former',
         }
+
+    def _get_numeric_value(self, empi: str, concept: str, index_date: datetime) -> Optional[float]:
+        """Get most recent numeric value for a concept."""
+        if self.phy_data.empty:
+            return None
+        mask = (
+            (self.phy_data['EMPI'] == empi) &
+            (self.phy_data['Concept_Name'] == concept) &
+            (self.phy_data['Date'] <= pd.Timestamp(index_date))
+        )
+        records = self.phy_data[mask].sort_values('Date')
+        if records.empty:
+            return None
+        value = pd.to_numeric(records.iloc[-1]['Result'], errors='coerce')
+        return value if pd.notna(value) else None
+
+    def _categorize_pack_years(self, pack_years: Optional[float]) -> str:
+        """Categorize pack-years."""
+        if pack_years is None:
+            return 'unknown'
+        if pack_years < 10:
+            return '<10'
+        if pack_years < 20:
+            return '10-20'
+        if pack_years < 40:
+            return '20-40'
+        return '>40'
+
+    def build_quantitative_features(self, empi: str) -> Dict:
+        """Build quantitative smoking features (pack-years) for a patient."""
+        index_date = self.index_dates.get(empi)
+        if index_date is None:
+            return {'smoking_pack_years': None}
+
+        pack_per_day = self._get_numeric_value(empi, 'Tobacco Pack Per Day', index_date)
+        years_smoked = self._get_numeric_value(empi, 'Tobacco Used Years', index_date)
+
+        pack_years = None
+        if pack_per_day is not None and years_smoked is not None:
+            pack_years = pack_per_day * years_smoked
+
+        return {
+            'smoking_pack_per_day_at_index': pack_per_day,
+            'smoking_years_at_index': years_smoked,
+            'smoking_pack_years': pack_years,
+            'smoking_pack_years_category': self._categorize_pack_years(pack_years),
+        }

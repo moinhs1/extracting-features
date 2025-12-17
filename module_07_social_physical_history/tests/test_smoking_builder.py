@@ -91,3 +91,45 @@ class TestSmokingEverFlag:
         builder = SmokingBuilder(data, index_dates)
         features = builder.build_status_features('100001')
         assert features['smoking_ever'] == False
+
+
+class TestPackYears:
+    def test_calculates_pack_years(self):
+        from transformers.smoking_builder import SmokingBuilder
+        data = pd.DataFrame({
+            'EMPI': ['100001', '100001'],
+            'Date': ['1/1/2020', '1/1/2020'],
+            'Concept_Name': ['Tobacco Pack Per Day', 'Tobacco Used Years'],
+            'Result': ['1.5', '20'],
+        })
+        index_dates = {'100001': datetime(2020, 3, 15)}
+        builder = SmokingBuilder(data, index_dates)
+        features = builder.build_quantitative_features('100001')
+        # 1.5 packs/day * 20 years = 30 pack-years
+        assert features['smoking_pack_years'] == 30.0
+
+    def test_categorizes_pack_years(self):
+        from transformers.smoking_builder import SmokingBuilder
+        data = pd.DataFrame({
+            'EMPI': ['100001', '100001'],
+            'Date': ['1/1/2020', '1/1/2020'],
+            'Concept_Name': ['Tobacco Pack Per Day', 'Tobacco Used Years'],
+            'Result': ['1', '25'],  # 25 pack-years
+        })
+        index_dates = {'100001': datetime(2020, 3, 15)}
+        builder = SmokingBuilder(data, index_dates)
+        features = builder.build_quantitative_features('100001')
+        assert features['smoking_pack_years_category'] == '20-40'
+
+    def test_returns_none_when_missing(self):
+        from transformers.smoking_builder import SmokingBuilder
+        data = pd.DataFrame({
+            'EMPI': ['100001'],
+            'Date': ['1/1/2020'],
+            'Concept_Name': ['Tobacco Pack Per Day'],
+            'Result': ['1.5'],  # Missing years
+        })
+        index_dates = {'100001': datetime(2020, 3, 15)}
+        builder = SmokingBuilder(data, index_dates)
+        features = builder.build_quantitative_features('100001')
+        assert features['smoking_pack_years'] is None
