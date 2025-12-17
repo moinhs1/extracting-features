@@ -1,7 +1,7 @@
 # Module 05 Session Update
 
-**Date:** 2025-12-15
-**Status:** Phase 1 COMPLETE
+**Date:** 2025-12-17
+**Status:** Phase 2 COMPLETE
 
 ---
 
@@ -21,7 +21,20 @@
 | Layer 2 Builder | `processing/layer2_builder.py` | 3 | Comorbidity scores |
 | Pipeline | `build_layers.py` | 3 | CLI integration |
 
-**Total: 55 tests, 9 commits, 14 files**
+**Phase 1 Total: 55 tests**
+
+### Phase 2: Layer 3 (PE-Specific Features)
+
+| Component | File | Tests | Description |
+|-----------|------|-------|-------------|
+| ICD Code Lists | `config/icd_code_lists.py` | 28 | VTE, cancer, CV, pulmonary, bleeding, renal codes |
+| PE Feature Builder | `processing/pe_feature_builder.py` | 72 | 9 feature groups, 53+ features |
+| Layer 3 Builder | `processing/layer3_builder.py` | — | Patient-level feature aggregation |
+| Clinical Tests | `tests/test_pe_feature_builder.py` | 96 | Unit + clinical plausibility tests |
+| Integration Tests | `tests/test_integration.py` | 3 | Layer 3 validation tests |
+
+**Phase 2 Total: 100 tests**
+**Combined Total: 155 tests**
 
 ---
 
@@ -30,9 +43,11 @@
 ```
 outputs/
 ├── layer1/
-│   └── canonical_diagnoses.parquet   # 106,624 records (100 patients)
-└── layer2/
-    └── comorbidity_scores.parquet    # 100 patients, CCI mean 4.4
+│   └── canonical_diagnoses.parquet      # 106,624 records (100 patients)
+├── layer2/
+│   └── comorbidity_scores.parquet       # 100 patients, CCI mean 4.4
+└── layer3/
+    └── pe_diagnosis_features.parquet    # 100 patients, 53 features
 ```
 
 ---
@@ -59,76 +74,72 @@ python build_layers.py
 
 ---
 
-## Next Steps: Phase 2 (Layer 3)
+## Phase 2 Accomplishments
 
-### PE-Specific Diagnosis Features
+### Features Implemented (53 total)
 
-Create `processing/pe_feature_builder.py` with these feature groups:
+**1. VTE History (7 features)**
+- Prior PE detection with time-to-event and counts
+- Prior DVT detection with time-to-event
+- Recurrent VTE classification
 
-**1. VTE History**
-```python
-prior_pe_ever, prior_pe_months, prior_pe_count
-prior_dvt_ever, prior_dvt_months, prior_vte_count
-is_recurrent_vte, prior_vte_provoked
-```
+**2. PE Characterization (4 features)**
+- PE subtype (saddle/subsegmental/other/unspecified)
+- High-risk code detection
+- Bilateral involvement, cor pulmonale
 
-**2. PE Index Characterization**
-```python
-pe_subtype  # 'saddle', 'lobar', 'segmental', 'subsegmental', 'unspecified'
-pe_bilateral, pe_with_cor_pulmonale, pe_high_risk_code
-```
+**3. Cancer (5 features)**
+- Active cancer detection with site classification
+- Metastatic disease, recent diagnosis
+- Chemotherapy status
 
-**3. Cancer Features**
-```python
-cancer_active, cancer_site, cancer_metastatic
-cancer_recent_diagnosis, cancer_on_chemotherapy
-```
+**4. Cardiovascular (6 features)**
+- Heart failure with type (HFrEF/HFpEF)
+- CAD, atrial fibrillation, pulmonary hypertension
+- Valvular heart disease
 
-**4. Cardiovascular**
-```python
-heart_failure, heart_failure_type
-coronary_artery_disease, atrial_fibrillation
-pulmonary_hypertension, valvular_heart_disease
-```
+**5. Pulmonary (5 features)**
+- COPD, asthma, ILD
+- Home oxygen, prior respiratory failure
 
-**5. Pulmonary**
-```python
-copd, asthma, interstitial_lung_disease
-home_oxygen, prior_respiratory_failure
-```
+**6. Bleeding Risk (6 features)**
+- Prior major bleeding history (GI, ICH)
+- Peptic ulcer, thrombocytopenia, coagulopathy
 
-**6. Bleeding Risk**
-```python
-prior_major_bleeding, prior_gi_bleeding, prior_intracranial_hemorrhage
-active_peptic_ulcer, thrombocytopenia, coagulopathy
-```
+**7. Renal (3 features)**
+- CKD staging (0-5)
+- Dialysis status, AKI at presentation
 
-**7. Renal**
-```python
-ckd_stage, ckd_dialysis, aki_at_presentation
-```
+**8. Provoking Factors (7 features)**
+- Recent surgery, trauma, immobilization
+- Pregnancy, hormonal therapy, CVC
+- Composite provoked VTE flag
 
-**8. Provoking Factors**
-```python
-recent_surgery, recent_trauma, immobilization
-pregnancy_related, hormonal_therapy, central_venous_catheter
-is_provoked_vte
-```
+**9. Complications (9 features)**
+- Post-PE AKI, bleeding (any/major/ICH)
+- Respiratory failure, shock, cardiac arrest
+- Recurrent VTE, CTEPH
 
-**9. Complications**
-```python
-complication_aki, complication_bleeding_any, complication_bleeding_major
-complication_ich, complication_respiratory_failure
-complication_cardiogenic_shock, complication_cardiac_arrest
-complication_recurrent_vte, complication_cteph
-```
+### Validation Testing
 
-### Implementation Approach
+- **Clinical plausibility tests:** Realistic synthetic patient scenarios
+- **Integration tests:** Layer 3 builds from Layer 1
+- **Output validation:** No duplicates, all features present
+- **155 total tests passing**
 
-1. Create `config/icd_code_lists.yaml` with curated ICD codes per feature
-2. Create `processing/pe_feature_builder.py` with feature extraction logic
-3. Create `tests/test_pe_feature_builder.py` with comprehensive tests
-4. Update `build_layers.py` to include Layer 3
+## Next Steps: Phase 3 (Layers 4-5)
+
+### Diagnosis Embeddings and World Model States
+
+**Layer 4: Embeddings**
+- Ontological embeddings from SNOMED-CT hierarchy
+- Co-occurrence embeddings from patient patterns
+- Output: `layer4/diagnosis_embeddings.h5`
+
+**Layer 5: World Model States**
+- Static diagnosis state (~30 dims)
+- Dynamic complication state (~10 dims)
+- Output: `layer5/diagnosis_state.h5`
 
 ---
 
@@ -163,9 +174,9 @@ ee3036b feat(module05): add Layer 1 canonical diagnosis builder
 
 ```bash
 cd module_05_diagnoses && PYTHONPATH=. pytest tests/ -v
-# 55 passed in 0.51s
+# 155 passed in 1.19s
 ```
 
 ---
 
-**To Continue:** Start Phase 2 by creating ICD code lists for PE-specific features, then implement `pe_feature_builder.py` using TDD.
+**Phase 2 Status:** COMPLETE - All validation tests passing, documentation updated, ready for Phase 3.

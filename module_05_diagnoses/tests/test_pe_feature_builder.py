@@ -995,3 +995,72 @@ class TestPatientLevelBuilder:
         df = pd.DataFrame(columns=["EMPI", "icd_code", "icd_version", "days_from_pe"])
         result = build_pe_features_batch(df)
         assert len(result) == 0
+
+
+class TestClinicalPlausibility:
+    """Tests for clinical plausibility of feature extraction on real data."""
+
+    @pytest.fixture
+    def sample_layer1_data(self):
+        """Create synthetic Layer 1 data mimicking real PE cohort."""
+        # Create ~10 patients with realistic diagnosis patterns
+        data = []
+
+        # Patient 1: Prior VTE, no cancer
+        for _ in range(5):
+            data.append({"EMPI": "P1", "icd_code": "I26.99", "icd_version": "10",
+                        "days_from_pe": -365, "is_pe_diagnosis": True,
+                        "is_preexisting": True, "is_recent_antecedent": False,
+                        "is_index_concurrent": False, "is_complication": False})
+
+        # Patient 2: Active lung cancer
+        data.append({"EMPI": "P2", "icd_code": "C34.1", "icd_version": "10",
+                    "days_from_pe": -60, "is_pe_diagnosis": False,
+                    "is_preexisting": True, "is_recent_antecedent": False,
+                    "is_index_concurrent": False, "is_complication": False})
+
+        # Patient 3: Heart failure
+        data.append({"EMPI": "P3", "icd_code": "I50.9", "icd_version": "10",
+                    "days_from_pe": -90, "is_pe_diagnosis": False,
+                    "is_preexisting": True, "is_recent_antecedent": False,
+                    "is_index_concurrent": False, "is_complication": False})
+
+        # Patient 4: Recent surgery (provoked)
+        data.append({"EMPI": "P4", "icd_code": "Z98.89", "icd_version": "10",
+                    "days_from_pe": -7, "is_pe_diagnosis": False,
+                    "is_preexisting": False, "is_recent_antecedent": True,
+                    "is_index_concurrent": False, "is_complication": False})
+
+        # Patient 5: Unprovoked, healthy
+        data.append({"EMPI": "P5", "icd_code": "I26.90", "icd_version": "10",
+                    "days_from_pe": 0, "is_pe_diagnosis": True,
+                    "is_preexisting": False, "is_recent_antecedent": False,
+                    "is_index_concurrent": True, "is_complication": False})
+
+        return pd.DataFrame(data)
+
+    def test_feature_extraction_runs(self, sample_layer1_data):
+        """All feature extractors run without error on realistic data."""
+        result = build_pe_features_batch(sample_layer1_data)
+        assert len(result) == 5  # 5 patients
+
+    def test_recurrent_vte_detected(self, sample_layer1_data):
+        """Prior VTE correctly detected."""
+        result = build_pe_features_batch(sample_layer1_data)
+        p1 = result[result["EMPI"] == "P1"].iloc[0]
+        assert p1["is_recurrent_vte"] == True
+        assert p1["prior_pe_ever"] == True
+
+    def test_cancer_detected(self, sample_layer1_data):
+        """Active cancer correctly detected."""
+        result = build_pe_features_batch(sample_layer1_data)
+        p2 = result[result["EMPI"] == "P2"].iloc[0]
+        assert p2["cancer_active"] == True
+        assert p2["cancer_site"] == "lung"
+
+    def test_provoked_vte_detected(self, sample_layer1_data):
+        """Provoking factors correctly detected."""
+        result = build_pe_features_batch(sample_layer1_data)
+        p4 = result[result["EMPI"] == "P4"].iloc[0]
+        assert p4["is_provoked_vte"] == True
+        assert p4["recent_surgery"] == True

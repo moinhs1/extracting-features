@@ -97,3 +97,70 @@ class TestIntegration:
             aki = df[df["icd_code"] == "N17.9"].iloc[0]
             assert aki["days_from_pe"] == 5
             assert aki["is_complication"] == True
+
+
+def test_layer3_builds_successfully():
+    """Layer 3 builds from Layer 1 output."""
+    # Create minimal Layer 1 output
+    layer1_df = pd.DataFrame({
+        "EMPI": ["TEST1", "TEST1", "TEST2"],
+        "icd_code": ["I26.99", "I50.9", "I26.0"],
+        "icd_version": ["10", "10", "10"],
+        "days_from_pe": [0, -60, 0],
+        "is_pe_diagnosis": [True, False, True],
+        "is_preexisting": [False, True, False],
+        "is_recent_antecedent": [False, False, False],
+        "is_index_concurrent": [True, False, True],
+        "is_complication": [False, False, False],
+    })
+
+    from processing.layer3_builder import build_layer3
+    result = build_layer3(layer1_df)
+
+    assert len(result) == 2  # 2 unique patients
+    assert "EMPI" in result.columns
+    assert "prior_pe_ever" in result.columns
+    assert "cancer_active" in result.columns
+    assert "is_provoked_vte" in result.columns
+
+
+def test_layer3_output_no_duplicates():
+    """Layer 3 output has no duplicate EMPIs."""
+    layer1_df = pd.DataFrame({
+        "EMPI": ["P1", "P1", "P2", "P2"],
+        "icd_code": ["I26.99", "I50.9", "I26.0", "C34.1"],
+        "icd_version": ["10", "10", "10", "10"],
+        "days_from_pe": [0, -60, 0, -90],
+        "is_pe_diagnosis": [True, False, True, False],
+        "is_preexisting": [False, True, False, True],
+        "is_recent_antecedent": [False, False, False, False],
+        "is_index_concurrent": [True, False, True, False],
+        "is_complication": [False, False, False, False],
+    })
+
+    from processing.layer3_builder import build_layer3
+    result = build_layer3(layer1_df)
+
+    assert len(result) == result["EMPI"].nunique()  # No duplicates
+
+
+def test_layer3_all_features_present():
+    """Layer 3 output has all expected feature columns."""
+    from processing.layer3_builder import LAYER3_SCHEMA, build_layer3
+
+    layer1_df = pd.DataFrame({
+        "EMPI": ["P1"],
+        "icd_code": ["I26.99"],
+        "icd_version": ["10"],
+        "days_from_pe": [0],
+        "is_pe_diagnosis": [True],
+        "is_preexisting": [False],
+        "is_recent_antecedent": [False],
+        "is_index_concurrent": [True],
+        "is_complication": [False],
+    })
+
+    result = build_layer3(layer1_df)
+
+    for col in LAYER3_SCHEMA.keys():
+        assert col in result.columns, f"Missing column: {col}"

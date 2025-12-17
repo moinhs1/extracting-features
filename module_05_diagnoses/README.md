@@ -7,13 +7,13 @@ Diagnosis encoding pipeline for PE trajectory analysis. Transforms raw ICD codes
 | Phase | Description | Status |
 |-------|-------------|--------|
 | **Phase 1** | Layers 1-2 (Core + Comorbidity) | **COMPLETE** |
-| Phase 2 | Layer 3 (PE-Specific Features) | Planned |
+| **Phase 2** | Layer 3 (PE-Specific Features) | **COMPLETE** |
 | Phase 3 | Layers 4-5 (Embeddings, World Models) | Planned |
 
 **Current Stats:**
-- 55 tests passing
-- 9 commits
-- 14 source files
+- 155 tests passing
+- Phase 2 complete with validation tests
+- 3 layers operational
 
 ---
 
@@ -182,6 +182,75 @@ Diagnoses are classified by their relationship to PE index:
 
 ---
 
+## Layer 3 Schema
+
+| Column | Type | Description |
+|--------|------|-------------|
+| EMPI | str | Patient identifier |
+| **VTE History** | | |
+| prior_pe_ever | bool | Any PE before index |
+| prior_pe_months | float | Months since last PE |
+| prior_pe_count | int | Number of prior PEs |
+| prior_dvt_ever | bool | Any DVT before index |
+| prior_dvt_months | float | Months since last DVT |
+| prior_vte_count | int | Total prior VTE events |
+| is_recurrent_vte | bool | Any prior VTE |
+| **PE Characterization** | | |
+| pe_subtype | str | saddle/subsegmental/other/unspecified |
+| pe_bilateral | bool | Bilateral involvement |
+| pe_with_cor_pulmonale | bool | Acute cor pulmonale |
+| pe_high_risk_code | bool | High-risk ICD pattern |
+| **Cancer** | | |
+| cancer_active | bool | Active malignancy |
+| cancer_site | str | Primary site category |
+| cancer_metastatic | bool | Metastatic disease |
+| cancer_recent_diagnosis | bool | Dx within 6 months |
+| cancer_on_chemotherapy | bool | Chemotherapy codes |
+| **Cardiovascular** | | |
+| heart_failure | bool | Any HF |
+| heart_failure_type | str | HFrEF/HFpEF/unspecified |
+| coronary_artery_disease | bool | CAD/MI |
+| atrial_fibrillation | bool | AF/AFL |
+| pulmonary_hypertension | bool | Pre-existing PH |
+| valvular_heart_disease | bool | Valve disease |
+| **Pulmonary** | | |
+| copd | bool | COPD |
+| asthma | bool | Asthma |
+| interstitial_lung_disease | bool | ILD |
+| home_oxygen | bool | Chronic O2 |
+| prior_respiratory_failure | bool | Prior resp failure |
+| **Bleeding Risk** | | |
+| prior_major_bleeding | bool | Major bleed history |
+| prior_gi_bleeding | bool | GI bleed history |
+| prior_intracranial_hemorrhage | bool | ICH history |
+| active_peptic_ulcer | bool | Active PUD |
+| thrombocytopenia | bool | Low platelets |
+| coagulopathy | bool | Coagulation disorder |
+| **Renal** | | |
+| ckd_stage | int | 0-5 |
+| ckd_dialysis | bool | On dialysis |
+| aki_at_presentation | bool | AKI at PE index |
+| **Provoking Factors** | | |
+| recent_surgery | bool | Surgery within 30d |
+| recent_trauma | bool | Major trauma |
+| immobilization | bool | Immobility codes |
+| pregnancy_related | bool | Pregnancy/postpartum |
+| hormonal_therapy | bool | OCP/HRT |
+| central_venous_catheter | bool | CVC |
+| is_provoked_vte | bool | Any provoking factor |
+| **Complications** | | |
+| complication_aki | bool | Post-PE AKI |
+| complication_bleeding_any | bool | Any bleeding |
+| complication_bleeding_major | bool | Major bleeding |
+| complication_ich | bool | Post-PE ICH |
+| complication_respiratory_failure | bool | Resp failure |
+| complication_cardiogenic_shock | bool | Cardiogenic shock |
+| complication_cardiac_arrest | bool | Cardiac arrest |
+| complication_recurrent_vte | bool | Recurrent VTE |
+| complication_cteph | bool | CTEPH |
+
+---
+
 ## Test Results (100 patients)
 
 ```
@@ -208,16 +277,13 @@ Layer 2: 100 patients
 
 ---
 
-## Next Steps (Phase 2)
+## Next Steps (Phase 3)
 
-Layer 3: PE-Specific Diagnosis Features
-- VTE history (prior PE, prior DVT, recurrence)
-- Cancer features (site, metastatic, active)
-- Cardiovascular (HF, CAD, AF, PH)
-- Pulmonary (COPD, asthma, ILD)
-- Bleeding risk (prior bleeding, coagulopathy)
-- Provoking factors (surgery, trauma, immobility)
-- Complications (AKI, bleeding, shock, arrest)
+Layers 4-5: Embeddings and World Model States
+- Layer 4: Diagnosis embeddings (ontological + co-occurrence)
+- Layer 5: World model states (static + dynamic)
+- Integration with trajectory analysis
+- Outcome prediction models
 
 ---
 
