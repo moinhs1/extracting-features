@@ -36,3 +36,40 @@ class TestMultiScaleEncoder:
         assert hasattr(encoder, 'branch_hourly')
         assert hasattr(encoder, 'branch_daily')
         assert hasattr(encoder, 'branch_multiday')
+
+
+class TestMultiScaleDecoder:
+    """Test decoder reconstructs correct shapes."""
+
+    def test_decoder_output_shape(self):
+        from processing.layer4.vae_multiscale import MultiScaleDecoder
+
+        decoder = MultiScaleDecoder(
+            output_dim=7,
+            seq_len=745,
+            latent_dim=32,
+            base_channels=64
+        )
+
+        z = torch.randn(4, 32)  # batch=4
+        recon = decoder(z)
+
+        assert recon.shape == (4, 745, 7), f"Expected (4, 745, 7), got {recon.shape}"
+
+    def test_decoder_branch_outputs(self):
+        from processing.layer4.vae_multiscale import MultiScaleDecoder
+
+        decoder = MultiScaleDecoder(
+            output_dim=7,
+            seq_len=745,
+            latent_dim=32,
+            base_channels=64
+        )
+
+        z = torch.randn(4, 32)
+        recon, branch_outputs = decoder(z, return_branches=True)
+
+        assert len(branch_outputs) == 4
+        for bo in branch_outputs:
+            assert bo.shape[0] == 4  # batch
+            assert bo.shape[2] == 7  # output_dim

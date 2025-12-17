@@ -121,3 +121,153 @@ class MultiScaleEncoder(nn.Module):
         logvar = self.fc_logvar(h)
 
         return mu, logvar
+
+
+class TransposeConvBlock(nn.Module):
+    """ConvTranspose1D + BatchNorm + LeakyReLU + Dropout."""
+
+    def __init__(
+        self,
+        in_channels: int,
+        out_channels: int,
+        kernel_size: int,
+        stride: int = 2,
+        dropout: float = 0.2
+    ):
+        super().__init__()
+        padding = kernel_size // 2
+        output_padding = stride - 1
+        self.conv = nn.ConvTranspose1d(
+            in_channels, out_channels, kernel_size,
+            stride=stride, padding=padding, output_padding=output_padding
+        )
+        self.bn = nn.BatchNorm1d(out_channels)
+        self.act = nn.LeakyReLU(0.2)
+        self.dropout = nn.Dropout(dropout)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.dropout(self.act(self.bn(self.conv(x))))
+
+
+class MultiScaleDecoder(nn.Module):
+    """Multi-scale convolutional decoder with 4 parallel branches."""
+
+    def __init__(
+        self,
+        output_dim: int = 7,
+        seq_len: int = 745,
+        latent_dim: int = 32,
+        base_channels: int = 64,
+        dropout: float = 0.2
+    ):
+        super().__init__()
+
+        self.output_dim = output_dim
+        self.seq_len = seq_len
+        c = base_channels
+        self.c = c
+
+        # Project latent to initial representation
+        self.fc = nn.Linear(latent_dim, c * 4 * 8)  # 4 branches, 8 initial length
+
+        # Branch 1: Local reconstruction
+        self.branch_local = nn.Sequential(
+            TransposeConvBlock(c, c, kernel_size=5, stride=2, dropout=dropout),
+            TransposeConvBlock(c, c // 2, kernel_size=5, stride=2, dropout=dropout),
+            TransposeConvBlock(c // 2, c // 2, kernel_size=5, stride=2, dropout=dropout),
+            TransposeConvBlock(c // 2, c // 4, kernel_size=5, stride=2, dropout=dropout),
+            TransposeConvBlock(c // 4, c // 4, kernel_size=5, stride=2, dropout=dropout),
+            TransposeConvBlock(c // 4, c // 4, kernel_size=5, stride=2, dropout=dropout),
+        )
+        self.out_local = nn.Conv1d(c // 4, output_dim, kernel_size=3, padding=1)
+
+        # Branch 2: Hourly reconstruction
+        self.branch_hourly = nn.Sequential(
+            TransposeConvBlock(c, c, kernel_size=15, stride=4, dropout=dropout),
+            TransposeConvBlock(c, c // 2, kernel_size=15, stride=4, dropout=dropout),
+            TransposeConvBlock(c // 2, c // 4, kernel_size=15, stride=4, dropout=dropout),
+        )
+        self.out_hourly = nn.Conv1d(c // 4, output_dim, kernel_size=3, padding=1)
+
+        # Branch 3: Daily reconstruction
+        self.branch_daily = nn.Sequential(
+            TransposeConvBlock(c, c, kernel_size=31, stride=8, dropout=dropout),
+            TransposeConvBlock(c, c // 2, kernel_size=31, stride=8, dropout=dropout),
+        )
+        self.out_daily = nn.Conv1d(c // 2, output_dim, kernel_size=3, padding=1)
+
+        # Branch 4: Multi-day reconstruction
+        self.branch_multiday = nn.Sequential(
+            TransposeConvBlock(c, c // 2, kernel_size=63, stride=16, dropout=dropout),
+            TransposeConvBlock(c // 2, c // 4, kernel_size=63, stride=8, dropout=dropout),
+        )
+        self.out_multiday = nn.Conv1d(c // 4, output_dim, kernel_size=3, padding=1)
+
+        # Final merge
+        self.merge = nn.Conv1d(output_dim * 4, output_dim, kernel_size=1)
+
+    def _adjust_length(self, x: torch.Tensor, target_len: int) -> torch.Tensor:
+        """Adjust tensor length to target via trimming or padding."""
+        current_len = x.shape[2]
+        if current_len > target_len:
+            return x[:, :, :target_len]
+        elif current_len < target_len:
+            return F.pad(x, (0, target_len - current_len), mode='replicate')
+        return x
+
+    def forward(
+        self,
+        z: torch.Tensor,
+        return_branches: bool = False
+    ) -> torch.Tensor:
+        """Decode latent to reconstruction.
+
+        Args:
+            z: (batch, latent_dim)
+            return_branches: If True, also return per-branch outputs
+
+        Returns:
+            recon: (batch, seq_len, output_dim)
+            branch_outputs: Optional list of per-branch reconstructions
+        """
+        batch_size = z.shape[0]
+
+        # Project to initial representation
+        h = self.fc(z)
+        h = h.view(batch_size, self.c * 4, 8)  # (batch, c*4, 8)
+
+        # Split for branches
+        h_local = h[:, :self.c, :]
+        h_hourly = h[:, self.c:self.c*2, :]
+        h_daily = h[:, self.c*2:self.c*3, :]
+        h_multiday = h[:, self.c*3:, :]
+
+        # Decode each branch
+        out_local = self.out_local(self.branch_local(h_local))
+        out_hourly = self.out_hourly(self.branch_hourly(h_hourly))
+        out_daily = self.out_daily(self.branch_daily(h_daily))
+        out_multiday = self.out_multiday(self.branch_multiday(h_multiday))
+
+        # Adjust lengths
+        out_local = self._adjust_length(out_local, self.seq_len)
+        out_hourly = self._adjust_length(out_hourly, self.seq_len)
+        out_daily = self._adjust_length(out_daily, self.seq_len)
+        out_multiday = self._adjust_length(out_multiday, self.seq_len)
+
+        # Merge
+        merged = torch.cat([out_local, out_hourly, out_daily, out_multiday], dim=1)
+        recon = self.merge(merged)  # (batch, output_dim, seq_len)
+
+        # Transpose to (batch, seq_len, output_dim)
+        recon = recon.transpose(1, 2)
+
+        if return_branches:
+            branches = [
+                out_local.transpose(1, 2),
+                out_hourly.transpose(1, 2),
+                out_daily.transpose(1, 2),
+                out_multiday.transpose(1, 2)
+            ]
+            return recon, branches
+
+        return recon
