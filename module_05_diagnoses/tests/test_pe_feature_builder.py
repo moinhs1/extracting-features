@@ -1,6 +1,7 @@
 """Tests for PE feature builder - starting with generic code matcher."""
 import pytest
 from processing.pe_feature_builder import code_matches_category
+from config.icd_code_lists import VTE_CODES
 
 
 class TestCodeMatcher:
@@ -37,3 +38,27 @@ class TestCodeMatcher:
             "icd9": ["415"]
         }
         assert code_matches_category("415.19", category_codes, "9") is True
+
+
+class TestVTECodes:
+    """Tests for VTE ICD code lists."""
+
+    def test_pe_icd10_codes_exist(self):
+        """Verify PE ICD-10 codes are defined."""
+        assert "pe" in VTE_CODES
+        assert "icd10" in VTE_CODES["pe"]
+        assert len(VTE_CODES["pe"]["icd10"]) > 0
+
+    def test_pe_code_matches(self):
+        """Test that I26.99 matches PE category."""
+        assert code_matches_category("I26.99", VTE_CODES["pe"], "10") is True
+
+    def test_dvt_lower_matches(self):
+        """Test that I82.401 matches lower DVT category."""
+        assert code_matches_category("I82.401", VTE_CODES["dvt_lower"], "10") is True
+
+    def test_non_vte_no_match(self):
+        """Test that I50.9 (heart failure) does NOT match any VTE codes."""
+        assert code_matches_category("I50.9", VTE_CODES["pe"], "10") is False
+        assert code_matches_category("I50.9", VTE_CODES["dvt_lower"], "10") is False
+        assert code_matches_category("I50.9", VTE_CODES["dvt_upper"], "10") is False
