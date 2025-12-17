@@ -7,6 +7,7 @@ import pandas as pd
 from extractors.diagnosis_extractor import extract_diagnoses_for_patients, filter_excluded_codes
 from processing.layer1_builder import build_layer1
 from processing.layer2_builder import build_layer2_comorbidity_scores, save_layer2
+from processing.layer3_builder import build_layer3
 
 
 def load_pe_times(timelines_path: Path) -> Dict[str, datetime]:
@@ -51,6 +52,7 @@ def run_pipeline(
     output_path: Path,
     min_days: int = -365 * 5,
     max_days: int = 365,
+    layers: list = None,
 ) -> None:
     """Run the full diagnosis processing pipeline.
 
@@ -61,7 +63,11 @@ def run_pipeline(
         output_path: Output directory
         min_days: Minimum days from PE to include
         max_days: Maximum days from PE to include
+        layers: List of layer numbers to build (default: [1, 2, 3])
     """
+    if layers is None:
+        layers = [1, 2, 3]
+
     print(f"Extracting diagnoses for {len(patient_ids)} patients...")
 
     # Extract raw diagnoses
@@ -73,24 +79,44 @@ def run_pipeline(
     print(f"  After filtering: {len(filtered_df)} records")
 
     # Build Layer 1
-    print("Building Layer 1 (canonical records)...")
-    layer1_df = build_layer1(filtered_df, pe_times, min_days, max_days)
-    print(f"  Layer 1: {len(layer1_df)} records")
+    layer1_df = None
+    if 1 in layers:
+        print("Building Layer 1 (canonical records)...")
+        layer1_df = build_layer1(filtered_df, pe_times, min_days, max_days)
+        print(f"  Layer 1: {len(layer1_df)} records")
 
-    # Save Layer 1
-    layer1_path = output_path / "layer1"
-    layer1_path.mkdir(parents=True, exist_ok=True)
-    layer1_df.to_parquet(layer1_path / "canonical_diagnoses.parquet", index=False)
-    print(f"  Saved to {layer1_path / 'canonical_diagnoses.parquet'}")
+        # Save Layer 1
+        layer1_path = output_path / "layer1"
+        layer1_path.mkdir(parents=True, exist_ok=True)
+        layer1_df.to_parquet(layer1_path / "canonical_diagnoses.parquet", index=False)
+        print(f"  Saved to {layer1_path / 'canonical_diagnoses.parquet'}")
 
     # Build Layer 2
-    print("Building Layer 2 (comorbidity scores)...")
-    layer2_df = build_layer2_comorbidity_scores(layer1_df)
-    print(f"  Layer 2: {len(layer2_df)} patients with scores")
+    if 2 in layers:
+        if layer1_df is None:
+            # Load Layer 1 if not built in this run
+            layer1_path = output_path / "layer1" / "canonical_diagnoses.parquet"
+            layer1_df = pd.read_parquet(layer1_path)
 
-    # Save Layer 2
-    save_layer2(layer2_df, output_path / "layer2")
-    print(f"  Saved to {output_path / 'layer2' / 'comorbidity_scores.parquet'}")
+        print("Building Layer 2 (comorbidity scores)...")
+        layer2_df = build_layer2_comorbidity_scores(layer1_df)
+        print(f"  Layer 2: {len(layer2_df)} patients with scores")
+
+        # Save Layer 2
+        save_layer2(layer2_df, output_path / "layer2")
+        print(f"  Saved to {output_path / 'layer2' / 'comorbidity_scores.parquet'}")
+
+    # Build Layer 3
+    if 3 in layers:
+        if layer1_df is None:
+            # Load Layer 1 if not built in this run
+            layer1_path = output_path / "layer1" / "canonical_diagnoses.parquet"
+            layer1_df = pd.read_parquet(layer1_path)
+
+        print("Building Layer 3 (PE-specific features)...")
+        layer3_output_dir = output_path / "layer3"
+        layer3_df = build_layer3(layer1_df, output_dir=layer3_output_dir)
+        print(f"  Layer 3: {len(layer3_df)} patients with PE-specific features")
 
     print("Pipeline complete!")
 
@@ -103,7 +129,11 @@ def main():
     parser = argparse.ArgumentParser(description="Build diagnosis layers")
     parser.add_argument("--test", action="store_true", help="Test mode (10 patients)")
     parser.add_argument("--n", type=int, default=10, help="Number of patients for test mode")
+    parser.add_argument("--layers", type=str, default="1,2,3", help="Comma-separated layer numbers to build (e.g., '1,2,3')")
     args = parser.parse_args()
+
+    # Parse layers
+    layers = [int(x) for x in args.layers.split(",")]
 
     # Load PE times
     print(f"Loading PE times from {PATIENT_TIMELINES_PATH}...")
@@ -123,6 +153,7 @@ def main():
         patient_ids=patient_ids,
         pe_times=pe_times,
         output_path=OUTPUT_PATH,
+        layers=layers,
     )
 
 

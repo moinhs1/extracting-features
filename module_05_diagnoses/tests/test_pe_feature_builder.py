@@ -19,6 +19,8 @@ from processing.pe_feature_builder import (
     extract_renal_features,
     extract_provoking_factors,
     extract_complication_features,
+    build_pe_features_for_patient,
+    build_pe_features_batch,
 )
 from config.icd_code_lists import (
     VTE_CODES,
@@ -938,3 +940,58 @@ class TestComplicationFeatures:
         assert result["complication_aki"] == False
         assert result["complication_bleeding_any"] == False
         assert result["complication_respiratory_failure"] == False
+
+
+class TestPatientLevelBuilder:
+    """Tests for patient-level feature builders."""
+
+    def test_build_pe_features_for_patient(self):
+        """Single patient feature builder returns all features."""
+        df = pd.DataFrame({
+            "EMPI": ["P1", "P1", "P1"],
+            "icd_code": ["I26.99", "I50.9", "C34.1"],
+            "icd_version": ["10", "10", "10"],
+            "days_from_pe": [0, -60, -90],
+            "is_pe_diagnosis": [True, False, False],
+            "is_preexisting": [False, True, True],
+            "is_recent_antecedent": [False, False, False],
+            "is_index_concurrent": [True, False, False],
+            "is_complication": [False, False, False],
+        })
+        result = build_pe_features_for_patient(df)
+
+        # Check VTE features
+        assert "prior_pe_ever" in result
+        assert "is_recurrent_vte" in result
+
+        # Check cancer features
+        assert result["cancer_active"] == True
+        assert result["cancer_site"] == "lung"
+
+        # Check CV features
+        assert result["heart_failure"] == True
+
+    def test_build_pe_features_batch(self):
+        """Batch builder processes multiple patients."""
+        df = pd.DataFrame({
+            "EMPI": ["P1", "P1", "P2", "P2"],
+            "icd_code": ["I26.99", "I50.9", "I26.0", "J44.1"],
+            "icd_version": ["10", "10", "10", "10"],
+            "days_from_pe": [0, -60, 0, -90],
+            "is_pe_diagnosis": [True, False, True, False],
+            "is_preexisting": [False, True, False, True],
+            "is_recent_antecedent": [False, False, False, False],
+            "is_index_concurrent": [True, False, True, False],
+            "is_complication": [False, False, False, False],
+        })
+        result = build_pe_features_batch(df)
+
+        assert len(result) == 2  # Two patients
+        assert "EMPI" in result.columns
+        assert result.iloc[0]["EMPI"] in ["P1", "P2"]
+
+    def test_build_pe_features_empty(self):
+        """Batch builder handles empty input."""
+        df = pd.DataFrame(columns=["EMPI", "icd_code", "icd_version", "days_from_pe"])
+        result = build_pe_features_batch(df)
+        assert len(result) == 0

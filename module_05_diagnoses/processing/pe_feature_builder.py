@@ -687,3 +687,52 @@ def extract_complication_features(diagnoses: pd.DataFrame) -> dict:
         "complication_recurrent_vte": has_category("recurrent_vte"),
         "complication_cteph": has_category("cteph"),
     }
+
+
+# Patient-Level Feature Builder
+
+def build_pe_features_for_patient(diagnoses: pd.DataFrame) -> dict:
+    """Build all PE-specific features for a single patient.
+
+    Args:
+        diagnoses: Layer 1 DataFrame for one patient (all temporal categories)
+
+    Returns:
+        Dict with all ~53 features
+    """
+    features = {}
+    features.update(extract_vte_history_features(diagnoses))
+    features.update(extract_pe_characterization(diagnoses))
+    features.update(extract_cancer_features(diagnoses))
+    features.update(extract_cardiovascular_features(diagnoses))
+    features.update(extract_pulmonary_features(diagnoses))
+    features.update(extract_bleeding_risk_features(diagnoses))
+    features.update(extract_renal_features(diagnoses))
+    features.update(extract_provoking_factors(diagnoses))
+    features.update(extract_complication_features(diagnoses))
+    return features
+
+
+def build_pe_features_batch(diagnoses: pd.DataFrame) -> pd.DataFrame:
+    """Build PE features for multiple patients.
+
+    Args:
+        diagnoses: Layer 1 DataFrame with EMPI column
+
+    Returns:
+        DataFrame with EMPI + all feature columns
+    """
+    results = []
+
+    for empi, group in diagnoses.groupby("EMPI"):
+        features = build_pe_features_for_patient(group)
+        features["EMPI"] = empi
+        results.append(features)
+
+    if not results:
+        return pd.DataFrame()
+
+    df = pd.DataFrame(results)
+    # Move EMPI to first column
+    cols = ["EMPI"] + [c for c in df.columns if c != "EMPI"]
+    return df[cols]
