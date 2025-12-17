@@ -137,3 +137,187 @@ def get_most_recent_prior(diagnoses: pd.DataFrame, category_codes: dict) -> Opti
 
     # Most recent = closest to 0 (max of negative numbers)
     return int(matches["days_from_pe"].max())
+
+
+# VTE History Feature Extraction
+
+def extract_prior_pe_features(diagnoses: pd.DataFrame) -> dict:
+    """Extract prior PE features from diagnoses before index PE.
+
+    Args:
+        diagnoses: Layer 1 DataFrame with icd_code, icd_version, days_from_pe
+
+    Returns:
+        {
+            "prior_pe_ever": bool,
+            "prior_pe_months": float or None,
+            "prior_pe_count": int,
+        }
+    """
+    from config.icd_code_lists import VTE_CODES
+
+    # Filter to prior diagnoses only (before index PE)
+    prior = diagnoses[diagnoses["days_from_pe"] < 0].copy()
+
+    # Find PE diagnoses
+    pe_matches = prior[prior.apply(
+        lambda row: code_matches_category(row["icd_code"], VTE_CODES["pe"], row["icd_version"]),
+        axis=1
+    )]
+
+    prior_pe_ever = len(pe_matches) > 0
+    prior_pe_count = len(pe_matches)
+
+    prior_pe_months = None
+    if prior_pe_ever:
+        most_recent_days = pe_matches["days_from_pe"].max()  # max of negatives = most recent
+        prior_pe_months = days_to_months(most_recent_days)
+
+    return {
+        "prior_pe_ever": prior_pe_ever,
+        "prior_pe_months": prior_pe_months,
+        "prior_pe_count": prior_pe_count,
+    }
+
+
+def extract_prior_dvt_features(diagnoses: pd.DataFrame) -> dict:
+    """Extract prior DVT features from diagnoses before index PE.
+
+    Args:
+        diagnoses: Layer 1 DataFrame with icd_code, icd_version, days_from_pe
+
+    Returns:
+        {
+            "prior_dvt_ever": bool,
+            "prior_dvt_months": float or None,
+        }
+    """
+    from config.icd_code_lists import VTE_CODES
+
+    prior = diagnoses[diagnoses["days_from_pe"] < 0].copy()
+
+    # Combine DVT lower and upper
+    dvt_matches = prior[prior.apply(
+        lambda row: (
+            code_matches_category(row["icd_code"], VTE_CODES["dvt_lower"], row["icd_version"]) or
+            code_matches_category(row["icd_code"], VTE_CODES["dvt_upper"], row["icd_version"])
+        ),
+        axis=1
+    )]
+
+    prior_dvt_ever = len(dvt_matches) > 0
+    prior_dvt_months = None
+    if prior_dvt_ever:
+        most_recent_days = dvt_matches["days_from_pe"].max()
+        prior_dvt_months = days_to_months(most_recent_days)
+
+    return {
+        "prior_dvt_ever": prior_dvt_ever,
+        "prior_dvt_months": prior_dvt_months,
+    }
+
+
+def extract_vte_history_features(diagnoses: pd.DataFrame) -> dict:
+    """Extract all VTE history features.
+
+    Args:
+        diagnoses: Layer 1 DataFrame with icd_code, icd_version, days_from_pe
+
+    Returns:
+        {
+            "prior_pe_ever": bool,
+            "prior_pe_months": float or None,
+            "prior_pe_count": int,
+            "prior_dvt_ever": bool,
+            "prior_dvt_months": float or None,
+            "prior_vte_count": int,
+            "is_recurrent_vte": bool,
+        }
+    """
+    pe_features = extract_prior_pe_features(diagnoses)
+    dvt_features = extract_prior_dvt_features(diagnoses)
+
+    # Count all VTE events
+    from config.icd_code_lists import VTE_CODES
+    prior = diagnoses[diagnoses["days_from_pe"] < 0].copy()
+    vte_matches = prior[prior.apply(
+        lambda row: (
+            code_matches_category(row["icd_code"], VTE_CODES["pe"], row["icd_version"]) or
+            code_matches_category(row["icd_code"], VTE_CODES["dvt_lower"], row["icd_version"]) or
+            code_matches_category(row["icd_code"], VTE_CODES["dvt_upper"], row["icd_version"])
+        ),
+        axis=1
+    )]
+
+    return {
+        **pe_features,
+        **dvt_features,
+        "prior_vte_count": len(vte_matches),
+        "is_recurrent_vte": pe_features["prior_pe_ever"] or dvt_features["prior_dvt_ever"],
+    }
+
+
+def extract_pe_characterization(diagnoses: pd.DataFrame) -> dict:
+    """Characterize the index PE from ICD codes.
+
+    PE Subtype Logic (ICD-10-CM):
+    - I26.92 → saddle
+    - I26.93 → single subsegmental
+    - I26.94 → multiple subsegmental
+    - I26.99 → other (lobar)
+    - I26.90 → unspecified
+    - I26.0x → with cor pulmonale (high risk)
+
+    Args:
+        diagnoses: Layer 1 DataFrame with icd_code, icd_version, days_from_pe,
+                   is_index_concurrent, is_pe_diagnosis
+
+    Returns:
+        {
+            "pe_subtype": str,  # 'saddle', 'subsegmental', 'other', 'unspecified'
+            "pe_bilateral": bool,
+            "pe_with_cor_pulmonale": bool,
+            "pe_high_risk_code": bool,
+        }
+    """
+    # Get index PE diagnoses only
+    index_dx = get_index_diagnoses(diagnoses)
+
+    # Find PE codes at index
+    pe_codes = index_dx[index_dx["is_pe_diagnosis"] == True]["icd_code"].tolist()
+
+    # Determine subtype from codes
+    pe_subtype = "unspecified"
+    pe_bilateral = False
+    pe_with_cor_pulmonale = False
+    pe_high_risk_code = False
+
+    for code in pe_codes:
+        code_upper = str(code).upper()
+
+        # Saddle PE
+        if code_upper.startswith("I26.92"):
+            pe_subtype = "saddle"
+            pe_high_risk_code = True
+
+        # Subsegmental
+        elif code_upper.startswith("I26.93") or code_upper.startswith("I26.94"):
+            if pe_subtype not in ["saddle"]:
+                pe_subtype = "subsegmental"
+
+        # Other (lobar assumed)
+        elif code_upper.startswith("I26.99"):
+            if pe_subtype not in ["saddle", "subsegmental"]:
+                pe_subtype = "other"
+
+        # With acute cor pulmonale = high risk
+        if code_upper.startswith("I26.0"):
+            pe_with_cor_pulmonale = True
+            pe_high_risk_code = True
+
+    return {
+        "pe_subtype": pe_subtype,
+        "pe_bilateral": pe_bilateral,  # Would need radiology data, keep as False
+        "pe_with_cor_pulmonale": pe_with_cor_pulmonale,
+        "pe_high_risk_code": pe_high_risk_code,
+    }

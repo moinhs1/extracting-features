@@ -8,6 +8,10 @@ from processing.pe_feature_builder import (
     get_index_diagnoses,
     days_to_months,
     get_most_recent_prior,
+    extract_prior_pe_features,
+    extract_prior_dvt_features,
+    extract_vte_history_features,
+    extract_pe_characterization,
 )
 from config.icd_code_lists import (
     VTE_CODES,
@@ -312,3 +316,132 @@ class TestTimeHelpers:
         })
         result = get_most_recent_prior(df, VTE_CODES["pe"])
         assert result is None
+
+
+class TestVTEHistoryFeatures:
+    """Tests for VTE history feature extraction."""
+
+    def test_no_prior_pe(self):
+        """Patient with no prior PE."""
+        df = pd.DataFrame({
+            "icd_code": ["I50.9"],
+            "icd_version": ["10"],
+            "days_from_pe": [-30],
+            "is_pe_diagnosis": [False],
+        })
+        result = extract_prior_pe_features(df)
+        assert result["prior_pe_ever"] == False
+        assert result["prior_pe_months"] is None
+        assert result["prior_pe_count"] == 0
+
+    def test_single_prior_pe(self):
+        """One PE 6 months ago."""
+        df = pd.DataFrame({
+            "icd_code": ["I26.99"],
+            "icd_version": ["10"],
+            "days_from_pe": [-183],  # ~6 months
+            "is_pe_diagnosis": [True],
+        })
+        result = extract_prior_pe_features(df)
+        assert result["prior_pe_ever"] == True
+        assert 5.9 < result["prior_pe_months"] < 6.1
+        assert result["prior_pe_count"] == 1
+
+    def test_multiple_prior_pe(self):
+        """Three prior PEs."""
+        df = pd.DataFrame({
+            "icd_code": ["I26.0", "I26.9", "I26.99"],
+            "icd_version": ["10", "10", "10"],
+            "days_from_pe": [-365, -180, -30],
+            "is_pe_diagnosis": [True, True, True],
+        })
+        result = extract_prior_pe_features(df)
+        assert result["prior_pe_count"] == 3
+        assert result["prior_pe_months"] < 1.5  # Most recent was 30 days ago
+
+    def test_prior_dvt(self):
+        """Prior DVT detection."""
+        df = pd.DataFrame({
+            "icd_code": ["I82.401"],
+            "icd_version": ["10"],
+            "days_from_pe": [-90],
+            "is_pe_diagnosis": [False],
+        })
+        result = extract_prior_dvt_features(df)
+        assert result["prior_dvt_ever"] == True
+        assert result["prior_dvt_months"] is not None
+
+    def test_recurrent_vte_pe_only(self):
+        """Prior PE only → is_recurrent_vte=True."""
+        df = pd.DataFrame({
+            "icd_code": ["I26.99"],
+            "icd_version": ["10"],
+            "days_from_pe": [-180],
+            "is_pe_diagnosis": [True],
+        })
+        result = extract_vte_history_features(df)
+        assert result["is_recurrent_vte"] == True
+
+    def test_recurrent_vte_dvt_only(self):
+        """Prior DVT only → is_recurrent_vte=True."""
+        df = pd.DataFrame({
+            "icd_code": ["I82.401"],
+            "icd_version": ["10"],
+            "days_from_pe": [-90],
+            "is_pe_diagnosis": [False],
+        })
+        result = extract_vte_history_features(df)
+        assert result["is_recurrent_vte"] == True
+
+    def test_no_recurrence(self):
+        """No prior VTE → is_recurrent_vte=False."""
+        df = pd.DataFrame({
+            "icd_code": ["I50.9"],
+            "icd_version": ["10"],
+            "days_from_pe": [-30],
+            "is_pe_diagnosis": [False],
+        })
+        result = extract_vte_history_features(df)
+        assert result["is_recurrent_vte"] == False
+
+
+class TestPECharacterization:
+    """Tests for PE index characterization."""
+
+    def test_saddle_pe(self):
+        """Saddle PE detected from I26.92."""
+        df = pd.DataFrame({
+            "icd_code": ["I26.92"],
+            "icd_version": ["10"],
+            "days_from_pe": [0],
+            "is_pe_diagnosis": [True],
+            "is_index_concurrent": [True],
+        })
+        result = extract_pe_characterization(df)
+        assert result["pe_subtype"] == "saddle"
+        assert result["pe_high_risk_code"] == True
+
+    def test_subsegmental_pe(self):
+        """Subsegmental PE detected."""
+        df = pd.DataFrame({
+            "icd_code": ["I26.93"],
+            "icd_version": ["10"],
+            "days_from_pe": [0],
+            "is_pe_diagnosis": [True],
+            "is_index_concurrent": [True],
+        })
+        result = extract_pe_characterization(df)
+        assert result["pe_subtype"] == "subsegmental"
+
+    def test_cor_pulmonale(self):
+        """PE with acute cor pulmonale."""
+        df = pd.DataFrame({
+            "icd_code": ["I26.02"],
+            "icd_version": ["10"],
+            "days_from_pe": [0],
+            "is_pe_diagnosis": [True],
+            "is_index_concurrent": [True],
+        })
+        result = extract_pe_characterization(df)
+        assert result["pe_with_cor_pulmonale"] == True
+        assert result["pe_high_risk_code"] == True
