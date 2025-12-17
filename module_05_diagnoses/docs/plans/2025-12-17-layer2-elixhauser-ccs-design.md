@@ -1,0 +1,453 @@
+# Layer 2 Extension: Elixhauser + CCS Design
+
+**Date:** 2025-12-17
+**Status:** Approved
+**Phase:** Module 05 Phase 2 Extension
+
+---
+
+## Overview
+
+Extend Layer 2 with Elixhauser Comorbidity Index (van Walraven weights) and CCS (Clinical Classifications Software) categories.
+
+### Key Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Elixhauser scoring | van Walraven composite | Single score, parallels Charlson pattern |
+| CCS version | Single-level CCS | Works for both ICD-9 and ICD-10 |
+| Output format | Wide (indices) + Long (CCS) | Indices together, CCS separate |
+| CCS data source | AHRQ HCUP crosswalks | Authoritative, free |
+
+---
+
+## File Structure
+
+**New Files:**
+```
+module_05_diagnoses/
+├── config/
+│   ├── comorbidity_codes.py      # Existing (Charlson)
+│   └── elixhauser_codes.py       # NEW: 31 categories + weights
+├── processing/
+│   ├── charlson_calculator.py    # Existing
+│   ├── elixhauser_calculator.py  # NEW: Elixhauser calculator
+│   ├── ccs_mapper.py             # NEW: ICD → CCS mapping
+│   └── layer2_builder.py         # UPDATE: Add Elixhauser + CCS
+├── tests/
+│   ├── test_charlson_calculator.py  # Existing
+│   ├── test_elixhauser_calculator.py # NEW
+│   └── test_ccs_mapper.py           # NEW
+└── outputs/
+    └── layer2/
+        ├── comorbidity_scores.parquet  # UPDATE: Add Elixhauser
+        └── ccs_categories.parquet      # NEW
+```
+
+**External Data:**
+```
+data/vocabularies/ccs/
+├── ccs_icd9_crosswalk.csv
+├── ccs_icd10_crosswalk.csv
+└── ccs_category_labels.csv
+```
+
+---
+
+## Output Schemas
+
+### comorbidity_scores.parquet (Extended)
+
+| Column | Type | Description |
+|--------|------|-------------|
+| EMPI | str | Patient identifier |
+| cci_score | int | Charlson Comorbidity Index |
+| cci_components | str | JSON list of present components |
+| cci_component_count | int | Number of Charlson components |
+| elixhauser_score | int | van Walraven composite score |
+| elixhauser_components | str | JSON list of present components |
+| elixhauser_component_count | int | Number of Elixhauser components |
+
+### ccs_categories.parquet (New)
+
+| Column | Type | Description |
+|--------|------|-------------|
+| EMPI | str | Patient identifier |
+| ccs_category | int | CCS category code (1-285) |
+| ccs_description | str | Category description |
+| diagnosis_count | int | Count of diagnoses in category |
+| is_preexisting | bool | All diagnoses in category are pre-PE |
+
+---
+
+## Elixhauser Comorbidity Index
+
+### 31 Categories with van Walraven Weights
+
+```python
+ELIXHAUSER_COMPONENTS = {
+    "congestive_heart_failure": {
+        "weight": 7,
+        "icd10": ["I09.9", "I11.0", "I13.0", "I13.2", "I25.5", "I42.0", "I42.5",
+                  "I42.6", "I42.7", "I42.8", "I42.9", "I43", "I50", "P29.0"],
+        "icd9": ["398.91", "402.01", "402.11", "402.91", "404.01", "404.03",
+                 "404.11", "404.13", "404.91", "404.93", "425.4", "425.5",
+                 "425.6", "425.7", "425.8", "425.9", "428"],
+    },
+    "cardiac_arrhythmias": {
+        "weight": 5,
+        "icd10": ["I44.1", "I44.2", "I44.3", "I45.6", "I45.9", "I47", "I48", "I49",
+                  "R00.0", "R00.1", "R00.8", "T82.1", "Z45.0", "Z95.0"],
+        "icd9": ["426.0", "426.13", "426.7", "426.9", "426.10", "426.12", "427.0",
+                 "427.1", "427.2", "427.31", "427.60", "427.9", "785.0",
+                 "996.01", "996.04", "V45.0", "V53.3"],
+    },
+    "valvular_disease": {
+        "weight": -1,
+        "icd10": ["A52.0", "I05", "I06", "I07", "I08", "I09.1", "I09.8", "I34",
+                  "I35", "I36", "I37", "I38", "I39", "Q23.0", "Q23.1", "Q23.2",
+                  "Q23.3", "Z95.2", "Z95.3", "Z95.4"],
+        "icd9": ["093.2", "394", "395", "396", "397", "424", "746.3", "746.4",
+                 "746.5", "746.6", "V42.2", "V43.3"],
+    },
+    "pulmonary_circulation_disorders": {
+        "weight": 4,
+        "icd10": ["I26", "I27", "I28.0", "I28.8", "I28.9"],
+        "icd9": ["415.0", "415.1", "416", "417.0", "417.8", "417.9"],
+    },
+    "peripheral_vascular_disorders": {
+        "weight": 2,
+        "icd10": ["I70", "I71", "I73.1", "I73.8", "I73.9", "I77.1", "I79.0",
+                  "I79.2", "K55.1", "K55.8", "K55.9", "Z95.8", "Z95.9"],
+        "icd9": ["093.0", "437.3", "440", "441", "443.1", "443.2", "443.8",
+                 "443.9", "447.1", "557.1", "557.9", "V43.4"],
+    },
+    "hypertension_uncomplicated": {
+        "weight": 0,
+        "icd10": ["I10"],
+        "icd9": ["401.1", "401.9"],
+    },
+    "hypertension_complicated": {
+        "weight": 0,
+        "icd10": ["I11", "I12", "I13", "I15"],
+        "icd9": ["401.0", "402", "403", "404", "405"],
+    },
+    "paralysis": {
+        "weight": 7,
+        "icd10": ["G04.1", "G11.4", "G80.1", "G80.2", "G81", "G82", "G83.0",
+                  "G83.1", "G83.2", "G83.3", "G83.4", "G83.9"],
+        "icd9": ["334.1", "342", "343", "344.0", "344.1", "344.2", "344.3",
+                 "344.4", "344.5", "344.6", "344.9"],
+    },
+    "other_neurological_disorders": {
+        "weight": 6,
+        "icd10": ["G10", "G11", "G12", "G13", "G20", "G21", "G22", "G25.4",
+                  "G25.5", "G31.2", "G31.8", "G31.9", "G32", "G35", "G36",
+                  "G37", "G40", "G41", "G93.1", "G93.4", "R47.0", "R56"],
+        "icd9": ["331.9", "332.0", "332.1", "333.4", "333.5", "333.92", "334",
+                 "335", "336.2", "340", "341", "345", "348.1", "348.3", "780.3",
+                 "784.3"],
+    },
+    "chronic_pulmonary_disease": {
+        "weight": 3,
+        "icd10": ["I27.8", "I27.9", "J40", "J41", "J42", "J43", "J44", "J45",
+                  "J46", "J47", "J60", "J61", "J62", "J63", "J64", "J65", "J66",
+                  "J67", "J68.4", "J70.1", "J70.3"],
+        "icd9": ["416.8", "416.9", "490", "491", "492", "493", "494", "495",
+                 "496", "500", "501", "502", "503", "504", "505", "506.4",
+                 "508.1", "508.8"],
+    },
+    "diabetes_uncomplicated": {
+        "weight": 0,
+        "icd10": ["E10.0", "E10.1", "E10.9", "E11.0", "E11.1", "E11.9", "E12.0",
+                  "E12.1", "E12.9", "E13.0", "E13.1", "E13.9", "E14.0", "E14.1",
+                  "E14.9"],
+        "icd9": ["250.0", "250.1", "250.2", "250.3"],
+    },
+    "diabetes_complicated": {
+        "weight": 0,
+        "icd10": ["E10.2", "E10.3", "E10.4", "E10.5", "E10.6", "E10.7", "E10.8",
+                  "E11.2", "E11.3", "E11.4", "E11.5", "E11.6", "E11.7", "E11.8",
+                  "E12.2", "E12.3", "E12.4", "E12.5", "E12.6", "E12.7", "E12.8",
+                  "E13.2", "E13.3", "E13.4", "E13.5", "E13.6", "E13.7", "E13.8",
+                  "E14.2", "E14.3", "E14.4", "E14.5", "E14.6", "E14.7", "E14.8"],
+        "icd9": ["250.4", "250.5", "250.6", "250.7", "250.8", "250.9"],
+    },
+    "hypothyroidism": {
+        "weight": 0,
+        "icd10": ["E00", "E01", "E02", "E03", "E89.0"],
+        "icd9": ["240.9", "243", "244", "246.1", "246.8"],
+    },
+    "renal_failure": {
+        "weight": 5,
+        "icd10": ["I12.0", "I13.1", "N18", "N19", "N25.0", "Z49.0", "Z49.1",
+                  "Z49.2", "Z94.0", "Z99.2"],
+        "icd9": ["403.01", "403.11", "403.91", "404.02", "404.03", "404.12",
+                 "404.13", "404.92", "404.93", "585", "586", "588.0", "V42.0",
+                 "V45.1", "V56"],
+    },
+    "liver_disease": {
+        "weight": 11,
+        "icd10": ["B18", "I85", "I86.4", "I98.2", "K70", "K71.1", "K71.3",
+                  "K71.4", "K71.5", "K71.7", "K72", "K73", "K74", "K76.0",
+                  "K76.2", "K76.3", "K76.4", "K76.5", "K76.6", "K76.7", "K76.8",
+                  "K76.9", "Z94.4"],
+        "icd9": ["070.22", "070.23", "070.32", "070.33", "070.44", "070.54",
+                 "070.6", "070.9", "456.0", "456.1", "456.2", "571", "572.2",
+                 "572.3", "572.4", "572.8", "V42.7"],
+    },
+    "peptic_ulcer_disease": {
+        "weight": 0,
+        "icd10": ["K25.7", "K25.9", "K26.7", "K26.9", "K27.7", "K27.9", "K28.7",
+                  "K28.9"],
+        "icd9": ["531.7", "531.9", "532.7", "532.9", "533.7", "533.9", "534.7",
+                 "534.9"],
+    },
+    "aids_hiv": {
+        "weight": 0,
+        "icd10": ["B20", "B21", "B22", "B24"],
+        "icd9": ["042", "043", "044"],
+    },
+    "lymphoma": {
+        "weight": 9,
+        "icd10": ["C81", "C82", "C83", "C84", "C85", "C88", "C96", "C90.0",
+                  "C90.2"],
+        "icd9": ["200", "201", "202", "203.0", "238.6"],
+    },
+    "metastatic_cancer": {
+        "weight": 12,
+        "icd10": ["C77", "C78", "C79", "C80"],
+        "icd9": ["196", "197", "198", "199.0", "199.1"],
+    },
+    "solid_tumor_without_metastasis": {
+        "weight": 4,
+        "icd10": ["C00", "C01", "C02", "C03", "C04", "C05", "C06", "C07", "C08",
+                  "C09", "C10", "C11", "C12", "C13", "C14", "C15", "C16", "C17",
+                  "C18", "C19", "C20", "C21", "C22", "C23", "C24", "C25", "C26",
+                  "C30", "C31", "C32", "C33", "C34", "C37", "C38", "C39", "C40",
+                  "C41", "C43", "C45", "C46", "C47", "C48", "C49", "C50", "C51",
+                  "C52", "C53", "C54", "C55", "C56", "C57", "C58", "C60", "C61",
+                  "C62", "C63", "C64", "C65", "C66", "C67", "C68", "C69", "C70",
+                  "C71", "C72", "C73", "C74", "C75", "C76", "C97"],
+        "icd9": ["140", "141", "142", "143", "144", "145", "146", "147", "148",
+                 "149", "150", "151", "152", "153", "154", "155", "156", "157",
+                 "158", "159", "160", "161", "162", "163", "164", "165", "166",
+                 "167", "168", "169", "170", "171", "172", "174", "175", "176",
+                 "177", "178", "179", "180", "181", "182", "183", "184", "185",
+                 "186", "187", "188", "189", "190", "191", "192", "193", "194",
+                 "195"],
+    },
+    "rheumatoid_arthritis": {
+        "weight": 0,
+        "icd10": ["L94.0", "L94.1", "L94.3", "M05", "M06", "M31.5", "M32", "M33",
+                  "M34", "M35.1", "M35.3", "M36.0"],
+        "icd9": ["446.5", "710.0", "710.1", "710.2", "710.3", "710.4", "714.0",
+                 "714.1", "714.2", "714.8", "725"],
+    },
+    "coagulopathy": {
+        "weight": 3,
+        "icd10": ["D65", "D66", "D67", "D68", "D69.1", "D69.3", "D69.4", "D69.5",
+                  "D69.6"],
+        "icd9": ["286", "287.1", "287.3", "287.4", "287.5"],
+    },
+    "obesity": {
+        "weight": -4,
+        "icd10": ["E66"],
+        "icd9": ["278.0"],
+    },
+    "weight_loss": {
+        "weight": 6,
+        "icd10": ["E40", "E41", "E42", "E43", "E44", "E45", "E46", "R63.4", "R64"],
+        "icd9": ["260", "261", "262", "263", "783.2", "799.4"],
+    },
+    "fluid_electrolyte_disorders": {
+        "weight": 5,
+        "icd10": ["E22.2", "E86", "E87"],
+        "icd9": ["253.6", "276"],
+    },
+    "blood_loss_anemia": {
+        "weight": -2,
+        "icd10": ["D50.0"],
+        "icd9": ["280.0"],
+    },
+    "deficiency_anemia": {
+        "weight": -2,
+        "icd10": ["D50.8", "D50.9", "D51", "D52", "D53"],
+        "icd9": ["280.1", "280.8", "280.9", "281"],
+    },
+    "alcohol_abuse": {
+        "weight": 0,
+        "icd10": ["F10", "E52", "G62.1", "I42.6", "K29.2", "K70.0", "K70.3",
+                  "K70.9", "T51", "Z50.2", "Z71.4", "Z72.1"],
+        "icd9": ["265.2", "291.1", "291.2", "291.3", "291.5", "291.8", "291.9",
+                 "303.0", "303.9", "305.0", "357.5", "425.5", "535.3", "571.0",
+                 "571.1", "571.2", "571.3", "980", "V11.3"],
+    },
+    "drug_abuse": {
+        "weight": -7,
+        "icd10": ["F11", "F12", "F13", "F14", "F15", "F16", "F18", "F19", "Z71.5",
+                  "Z72.2"],
+        "icd9": ["292", "304", "305.2", "305.3", "305.4", "305.5", "305.6",
+                 "305.7", "305.8", "305.9", "V65.42"],
+    },
+    "psychoses": {
+        "weight": 0,
+        "icd10": ["F20", "F22", "F23", "F24", "F25", "F28", "F29", "F30.2",
+                  "F31.2", "F31.5"],
+        "icd9": ["293.8", "295", "296.04", "296.14", "296.44", "296.54", "297",
+                 "298"],
+    },
+    "depression": {
+        "weight": -3,
+        "icd10": ["F20.4", "F31.3", "F31.4", "F31.5", "F32", "F33", "F34.1",
+                  "F41.2", "F43.2"],
+        "icd9": ["296.2", "296.3", "296.5", "300.4", "309", "311"],
+    },
+}
+
+# Hierarchy rules
+ELIXHAUSER_HIERARCHY = {
+    "diabetes_uncomplicated": "diabetes_complicated",
+    "hypertension_uncomplicated": "hypertension_complicated",
+    "solid_tumor_without_metastasis": "metastatic_cancer",
+}
+```
+
+---
+
+## CCS Mapper
+
+### CCS Data Files
+
+Download from AHRQ HCUP:
+- https://hcup-us.ahrq.gov/toolssoftware/ccs/ccs.jsp (ICD-9)
+- https://hcup-us.ahrq.gov/toolssoftware/ccsr/dxccsr.jsp (ICD-10 via CCSR)
+
+**Simplified Approach:** Use pre-built crosswalk CSVs with format:
+
+```csv
+icd_code,ccs_category,ccs_description
+I26.99,100,Pulmonary embolism
+I50.9,108,Congestive heart failure
+J44.1,127,Chronic obstructive pulmonary disease
+```
+
+### CCSMapper Class
+
+```python
+class CCSMapper:
+    """Map ICD codes to CCS categories."""
+
+    def __init__(self, ccs_path: Path):
+        """
+        Load CCS crosswalk files.
+
+        Args:
+            ccs_path: Directory with crosswalk CSVs
+        """
+        self.icd9_to_ccs = self._load_crosswalk(ccs_path / "ccs_icd9_crosswalk.csv")
+        self.icd10_to_ccs = self._load_crosswalk(ccs_path / "ccs_icd10_crosswalk.csv")
+        self.ccs_labels = self._load_labels(ccs_path / "ccs_category_labels.csv")
+
+    def get_ccs_category(self, icd_code: str, version: str) -> Optional[int]:
+        """Map ICD code to CCS category number."""
+        lookup = self.icd10_to_ccs if version == '10' else self.icd9_to_ccs
+
+        # Try exact match first
+        if icd_code in lookup:
+            return lookup[icd_code]
+
+        # Try prefix matching (remove trailing characters)
+        for length in range(len(icd_code) - 1, 2, -1):
+            prefix = icd_code[:length]
+            if prefix in lookup:
+                return lookup[prefix]
+
+        return None
+
+    def get_ccs_description(self, category: int) -> str:
+        """Get description for CCS category."""
+        return self.ccs_labels.get(category, f"CCS {category}")
+
+    def categorize_patient_diagnoses(self, diagnoses: pd.DataFrame) -> pd.DataFrame:
+        """
+        Categorize all diagnoses for a patient into CCS categories.
+
+        Args:
+            diagnoses: DataFrame with icd_code, icd_version, is_preexisting
+
+        Returns:
+            DataFrame with ccs_category, ccs_description, diagnosis_count, is_preexisting
+        """
+        ...
+```
+
+---
+
+## Updated Layer 2 Builder
+
+```python
+def build_layer2_comorbidity_scores(layer1_df: pd.DataFrame) -> pd.DataFrame:
+    """Build Layer 2 comorbidity scores from Layer 1 data."""
+    # Calculate Charlson
+    cci_df = calculate_charlson_batch(layer1_df)
+
+    # Calculate Elixhauser
+    elix_df = calculate_elixhauser_batch(layer1_df)
+
+    # Merge
+    result = cci_df.merge(elix_df, on='EMPI', how='outer')
+    return result
+
+
+def build_layer2_ccs_categories(layer1_df: pd.DataFrame, ccs_path: Path) -> pd.DataFrame:
+    """Build CCS category assignments from Layer 1 data."""
+    mapper = CCSMapper(ccs_path)
+
+    results = []
+    for empi, group in layer1_df.groupby('EMPI'):
+        categories = mapper.categorize_patient_diagnoses(group)
+        categories['EMPI'] = empi
+        results.append(categories)
+
+    return pd.concat(results, ignore_index=True)
+```
+
+---
+
+## Implementation Order
+
+| Order | Component | Tests |
+|-------|-----------|-------|
+| 1 | Download CCS crosswalks | - |
+| 2 | `config/elixhauser_codes.py` | 2 |
+| 3 | `processing/elixhauser_calculator.py` | 6 |
+| 4 | `processing/ccs_mapper.py` | 5 |
+| 5 | Update `layer2_builder.py` | 3 |
+| 6 | Integration tests | 2 |
+
+**Total: ~18 new tests**
+
+---
+
+## Quality Checks
+
+| Check | Expected |
+|-------|----------|
+| Elixhauser score range | -19 to +89 |
+| Elixhauser mean for PE population | 5-15 |
+| CCS mapping rate | >95% |
+| CCS categories per patient | 5-20 mean |
+
+---
+
+## References
+
+- van Walraven C, et al. "A modification of the Elixhauser comorbidity measures into a point system for hospital death using administrative data." Med Care. 2009;47(6):626-633.
+- AHRQ HCUP CCS: https://hcup-us.ahrq.gov/toolssoftware/ccs/ccs.jsp
+- Quan H, et al. "Coding algorithms for defining comorbidities in ICD-9-CM and ICD-10 administrative data." Med Care. 2005;43(11):1130-1139.
+
+---
+
+**Document Version:** 1.0
+**Author:** Brainstorming session 2025-12-17
