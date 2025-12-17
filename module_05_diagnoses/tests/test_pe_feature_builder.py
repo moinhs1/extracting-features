@@ -1,7 +1,16 @@
 """Tests for PE feature builder - starting with generic code matcher."""
 import pytest
 from processing.pe_feature_builder import code_matches_category
-from config.icd_code_lists import VTE_CODES
+from config.icd_code_lists import (
+    VTE_CODES,
+    CANCER_CODES,
+    CARDIOVASCULAR_CODES,
+    PULMONARY_CODES,
+    BLEEDING_CODES,
+    RENAL_CODES,
+    PROVOKING_FACTOR_CODES,
+    COMPLICATION_CODES,
+)
 
 
 class TestCodeMatcher:
@@ -62,3 +71,165 @@ class TestVTECodes:
         assert code_matches_category("I50.9", VTE_CODES["pe"], "10") is False
         assert code_matches_category("I50.9", VTE_CODES["dvt_lower"], "10") is False
         assert code_matches_category("I50.9", VTE_CODES["dvt_upper"], "10") is False
+
+
+class TestICDCodeLists:
+    """Tests for all ICD code list structures and basic matching."""
+
+    # CANCER_CODES tests
+    def test_cancer_codes_structure(self):
+        """Verify CANCER_CODES has expected categories and structure."""
+        expected_categories = ["lung", "gi", "gu", "hematologic", "breast", "metastatic", "chemotherapy"]
+        for category in expected_categories:
+            assert category in CANCER_CODES
+            assert "icd10" in CANCER_CODES[category]
+            assert "icd9" in CANCER_CODES[category]
+
+    def test_cancer_lung_match(self):
+        """Test that C34.90 (lung cancer) matches lung category."""
+        assert code_matches_category("C34.90", CANCER_CODES["lung"], "10") is True
+
+    def test_cancer_gi_match(self):
+        """Test that C18.9 (colon cancer) matches GI category."""
+        assert code_matches_category("C18.9", CANCER_CODES["gi"], "10") is True
+
+    def test_cancer_metastatic_match(self):
+        """Test that C79.51 (bone metastasis) matches metastatic category."""
+        assert code_matches_category("C79.51", CANCER_CODES["metastatic"], "10") is True
+
+    def test_cancer_chemotherapy_match(self):
+        """Test that Z51.11 (chemotherapy) matches chemotherapy category."""
+        assert code_matches_category("Z51.11", CANCER_CODES["chemotherapy"], "10") is True
+
+    # CARDIOVASCULAR_CODES tests
+    def test_cardiovascular_codes_structure(self):
+        """Verify CARDIOVASCULAR_CODES has expected categories."""
+        expected_categories = ["heart_failure", "heart_failure_reduced", "heart_failure_preserved",
+                               "coronary_artery_disease", "atrial_fibrillation", "pulmonary_hypertension",
+                               "valvular_heart_disease"]
+        for category in expected_categories:
+            assert category in CARDIOVASCULAR_CODES
+            assert "icd10" in CARDIOVASCULAR_CODES[category]
+            assert "icd9" in CARDIOVASCULAR_CODES[category]
+
+    def test_cv_heart_failure_match(self):
+        """Test that I50.9 (heart failure) matches heart_failure category."""
+        assert code_matches_category("I50.9", CARDIOVASCULAR_CODES["heart_failure"], "10") is True
+
+    def test_cv_afib_match(self):
+        """Test that I48.91 (atrial fibrillation) matches afib category."""
+        assert code_matches_category("I48.91", CARDIOVASCULAR_CODES["atrial_fibrillation"], "10") is True
+
+    def test_cv_cad_match(self):
+        """Test that I25.10 (CAD) matches coronary_artery_disease category."""
+        assert code_matches_category("I25.10", CARDIOVASCULAR_CODES["coronary_artery_disease"], "10") is True
+
+    # PULMONARY_CODES tests
+    def test_pulmonary_codes_structure(self):
+        """Verify PULMONARY_CODES has expected categories."""
+        expected_categories = ["copd", "asthma", "interstitial_lung_disease", "home_oxygen", "respiratory_failure"]
+        for category in expected_categories:
+            assert category in PULMONARY_CODES
+            assert "icd10" in PULMONARY_CODES[category]
+            assert "icd9" in PULMONARY_CODES[category]
+
+    def test_pulm_copd_match(self):
+        """Test that J44.1 (COPD) matches copd category."""
+        assert code_matches_category("J44.1", PULMONARY_CODES["copd"], "10") is True
+
+    def test_pulm_asthma_match(self):
+        """Test that J45.909 (asthma) matches asthma category."""
+        assert code_matches_category("J45.909", PULMONARY_CODES["asthma"], "10") is True
+
+    def test_pulm_resp_failure_match(self):
+        """Test that J96.90 (respiratory failure) matches respiratory_failure category."""
+        assert code_matches_category("J96.90", PULMONARY_CODES["respiratory_failure"], "10") is True
+
+    # BLEEDING_CODES tests
+    def test_bleeding_codes_structure(self):
+        """Verify BLEEDING_CODES has expected categories."""
+        expected_categories = ["gi_bleeding", "intracranial_hemorrhage", "other_major_bleeding",
+                               "peptic_ulcer", "thrombocytopenia", "coagulopathy"]
+        for category in expected_categories:
+            assert category in BLEEDING_CODES
+            assert "icd10" in BLEEDING_CODES[category]
+            assert "icd9" in BLEEDING_CODES[category]
+
+    def test_bleeding_gi_match(self):
+        """Test that K92.2 (GI bleeding) matches gi_bleeding category."""
+        assert code_matches_category("K92.2", BLEEDING_CODES["gi_bleeding"], "10") is True
+
+    def test_bleeding_ich_match(self):
+        """Test that I61.9 (intracerebral hemorrhage) matches intracranial_hemorrhage category."""
+        assert code_matches_category("I61.9", BLEEDING_CODES["intracranial_hemorrhage"], "10") is True
+
+    def test_bleeding_coagulopathy_match(self):
+        """Test that D68.9 (coagulopathy) matches coagulopathy category."""
+        assert code_matches_category("D68.9", BLEEDING_CODES["coagulopathy"], "10") is True
+
+    # RENAL_CODES tests
+    def test_renal_codes_structure(self):
+        """Verify RENAL_CODES has expected categories."""
+        expected_categories = ["ckd_stage1", "ckd_stage2", "ckd_stage3", "ckd_stage4", "ckd_stage5",
+                               "dialysis", "aki"]
+        for category in expected_categories:
+            assert category in RENAL_CODES
+            assert "icd10" in RENAL_CODES[category]
+            assert "icd9" in RENAL_CODES[category]
+
+    def test_renal_ckd3_match(self):
+        """Test that N18.31 (CKD stage 3a) matches ckd_stage3 category."""
+        assert code_matches_category("N18.31", RENAL_CODES["ckd_stage3"], "10") is True
+
+    def test_renal_dialysis_match(self):
+        """Test that Z99.2 (dialysis) matches dialysis category."""
+        assert code_matches_category("Z99.2", RENAL_CODES["dialysis"], "10") is True
+
+    def test_renal_aki_match(self):
+        """Test that N17.9 (acute kidney injury) matches aki category."""
+        assert code_matches_category("N17.9", RENAL_CODES["aki"], "10") is True
+
+    # PROVOKING_FACTOR_CODES tests
+    def test_provoking_factor_codes_structure(self):
+        """Verify PROVOKING_FACTOR_CODES has expected categories."""
+        expected_categories = ["recent_surgery", "trauma", "immobilization", "pregnancy",
+                               "hormonal_therapy", "central_venous_catheter"]
+        for category in expected_categories:
+            assert category in PROVOKING_FACTOR_CODES
+            assert "icd10" in PROVOKING_FACTOR_CODES[category]
+            assert "icd9" in PROVOKING_FACTOR_CODES[category]
+
+    def test_provoking_surgery_match(self):
+        """Test that Z98.89 (post-surgical) matches recent_surgery category."""
+        assert code_matches_category("Z98.89", PROVOKING_FACTOR_CODES["recent_surgery"], "10") is True
+
+    def test_provoking_trauma_match(self):
+        """Test that S82.001A (tibial fracture) matches trauma category."""
+        assert code_matches_category("S82.001A", PROVOKING_FACTOR_CODES["trauma"], "10") is True
+
+    def test_provoking_pregnancy_match(self):
+        """Test that O99.89 (pregnancy complication) matches pregnancy category."""
+        assert code_matches_category("O99.89", PROVOKING_FACTOR_CODES["pregnancy"], "10") is True
+
+    # COMPLICATION_CODES tests
+    def test_complication_codes_structure(self):
+        """Verify COMPLICATION_CODES has expected categories."""
+        expected_categories = ["aki", "bleeding_any", "bleeding_major", "intracranial_hemorrhage",
+                               "respiratory_failure", "cardiogenic_shock", "cardiac_arrest",
+                               "recurrent_vte", "cteph"]
+        for category in expected_categories:
+            assert category in COMPLICATION_CODES
+            assert "icd10" in COMPLICATION_CODES[category]
+            assert "icd9" in COMPLICATION_CODES[category]
+
+    def test_complication_shock_match(self):
+        """Test that R57.0 (cardiogenic shock) matches cardiogenic_shock category."""
+        assert code_matches_category("R57.0", COMPLICATION_CODES["cardiogenic_shock"], "10") is True
+
+    def test_complication_cardiac_arrest_match(self):
+        """Test that I46.9 (cardiac arrest) matches cardiac_arrest category."""
+        assert code_matches_category("I46.9", COMPLICATION_CODES["cardiac_arrest"], "10") is True
+
+    def test_complication_cteph_match(self):
+        """Test that I27.24 (CTEPH) matches cteph category."""
+        assert code_matches_category("I27.24", COMPLICATION_CODES["cteph"], "10") is True
