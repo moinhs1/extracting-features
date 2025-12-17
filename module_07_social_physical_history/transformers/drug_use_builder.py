@@ -137,3 +137,10 @@ class DrugUseBuilder:
             'ivdu_current_at_index': ivdu_current,
             'ivdu_status_date': ivdu_date,
         }
+
+    def build_all_features(self, empi: str) -> Dict:
+        """Build all drug use features for a patient."""
+        features = {'empi': empi}
+        features.update(self.build_status_features(empi))
+        features.update(self.build_ivdu_features(empi))
+        return features

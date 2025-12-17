@@ -133,3 +133,39 @@ class TestIVDUPermanentFlag:
         """IVDU flag never becomes stale - it's permanent."""
         from config.social_physical_config import STALENESS_THRESHOLDS
         assert STALENESS_THRESHOLDS['ivdu'] == float('inf')
+
+
+class TestBuildAllDrugUseFeatures:
+    def test_combines_status_and_ivdu(self):
+        from transformers.drug_use_builder import DrugUseBuilder
+        data = pd.DataFrame({
+            'EMPI': ['100001', '100001'],
+            'Date': ['1/1/2020', '1/1/2020'],
+            'Concept_Name': ['Drug User (Illicit)- Yes', 'Drug User IV'],
+            'Result': ['', ''],
+        })
+        index_dates = {'100001': datetime(2020, 3, 15)}
+        builder = DrugUseBuilder(data, index_dates)
+        features = builder.build_all_features('100001')
+
+        assert features['drug_use_status_at_index'] == 'current'
+        assert features['drug_use_ever'] == True
+        assert features['ivdu_ever'] == True
+        assert features['empi'] == '100001'
+
+    def test_ivdu_true_even_with_current_no_status(self):
+        """IVDU ever stays True even if current drug status is 'No'."""
+        from transformers.drug_use_builder import DrugUseBuilder
+        data = pd.DataFrame({
+            'EMPI': ['100001', '100001'],
+            'Date': ['1/1/2010', '1/1/2020'],
+            'Concept_Name': ['Drug User IV', 'Drug User (Illicit)- No'],
+            'Result': ['', ''],
+        })
+        index_dates = {'100001': datetime(2020, 3, 15)}
+        builder = DrugUseBuilder(data, index_dates)
+        features = builder.build_all_features('100001')
+
+        # Current status is 'no' but IVDU ever remains True
+        assert features['drug_use_status_at_index'] == 'no'
+        assert features['ivdu_ever'] == True
