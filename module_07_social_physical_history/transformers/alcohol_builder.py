@@ -150,3 +150,10 @@ class AlcoholBuilder:
             'alcohol_moderate_use': drinking_level == 'moderate',
             'alcohol_light_use': drinking_level == 'light',
         }
+
+    def build_all_features(self, empi: str, sex: str = None) -> Dict:
+        """Build all alcohol features for a patient."""
+        features = {'empi': empi}
+        features.update(self.build_status_features(empi))
+        features.update(self.build_quantitative_features(empi, sex))
+        return features

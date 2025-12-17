@@ -144,3 +144,21 @@ class TestHeavyDrinkingClassification:
         builder = AlcoholBuilder(data, index_dates)
         features = builder.build_quantitative_features('100001', sex='F')
         assert features['alcohol_heavy_use'] == True
+
+
+class TestBuildAllAlcoholFeatures:
+    def test_combines_all_feature_types(self):
+        from transformers.alcohol_builder import AlcoholBuilder
+        data = pd.DataFrame({
+            'EMPI': ['100001', '100001'],
+            'Date': ['1/1/2020', '1/1/2020'],
+            'Concept_Name': ['Alcohol User-Yes', 'Alcohol Drinks Per Week'],
+            'Result': ['', '10'],
+        })
+        index_dates = {'100001': datetime(2020, 3, 15)}
+        builder = AlcoholBuilder(data, index_dates)
+        features = builder.build_all_features('100001')
+
+        assert features['alcohol_status_at_index'] == 'current'
+        assert features['alcohol_drinks_per_week_at_index'] == 10.0
+        assert features['empi'] == '100001'
