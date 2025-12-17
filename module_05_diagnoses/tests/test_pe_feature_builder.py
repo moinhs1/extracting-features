@@ -1,6 +1,14 @@
 """Tests for PE feature builder - starting with generic code matcher."""
 import pytest
-from processing.pe_feature_builder import code_matches_category
+import pandas as pd
+from processing.pe_feature_builder import (
+    code_matches_category,
+    get_preexisting_diagnoses,
+    get_complication_diagnoses,
+    get_index_diagnoses,
+    days_to_months,
+    get_most_recent_prior,
+)
 from config.icd_code_lists import (
     VTE_CODES,
     CANCER_CODES,
@@ -233,3 +241,74 @@ class TestICDCodeLists:
     def test_complication_cteph_match(self):
         """Test that I27.24 (CTEPH) matches cteph category."""
         assert code_matches_category("I27.24", COMPLICATION_CODES["cteph"], "10") is True
+
+
+class TestTemporalFilters:
+    """Tests for temporal filter helper functions."""
+
+    def test_preexisting_filter(self):
+        """Returns only preexisting or recent antecedent rows."""
+        df = pd.DataFrame({
+            "is_preexisting": [True, False, False],
+            "is_recent_antecedent": [False, True, False],
+            "is_complication": [False, False, True],
+            "is_index_concurrent": [False, False, False],
+        })
+        result = get_preexisting_diagnoses(df)
+        assert len(result) == 2
+
+    def test_complication_filter(self):
+        """Returns only complication rows."""
+        df = pd.DataFrame({
+            "is_preexisting": [True, False],
+            "is_recent_antecedent": [False, False],
+            "is_complication": [False, True],
+            "is_index_concurrent": [False, False],
+        })
+        result = get_complication_diagnoses(df)
+        assert len(result) == 1
+
+    def test_index_filter(self):
+        """Returns only index concurrent rows."""
+        df = pd.DataFrame({
+            "is_preexisting": [False, False],
+            "is_recent_antecedent": [False, False],
+            "is_complication": [False, False],
+            "is_index_concurrent": [True, False],
+        })
+        result = get_index_diagnoses(df)
+        assert len(result) == 1
+
+
+class TestTimeHelpers:
+    """Tests for time-based helper functions."""
+
+    def test_days_to_months_positive(self):
+        """Converts 365 days to approximately 12 months."""
+        result = days_to_months(365)
+        assert 11.9 < result < 12.1
+
+    def test_days_to_months_negative(self):
+        """Handles negative days (before PE)."""
+        result = days_to_months(-180)
+        assert 5.8 < result < 6.0
+
+    def test_get_most_recent_prior_found(self):
+        """Finds most recent prior matching diagnosis."""
+        df = pd.DataFrame({
+            "icd_code": ["I26.0", "I26.9"],
+            "icd_version": ["10", "10"],
+            "days_from_pe": [-365, -30],  # -30 is more recent
+        })
+        result = get_most_recent_prior(df, VTE_CODES["pe"])
+        assert result == -30
+
+    def test_get_most_recent_prior_none(self):
+        """Returns None when no matches."""
+        df = pd.DataFrame({
+            "icd_code": ["I50.9"],  # Not PE
+            "icd_version": ["10"],
+            "days_from_pe": [-30],
+        })
+        result = get_most_recent_prior(df, VTE_CODES["pe"])
+        assert result is None
