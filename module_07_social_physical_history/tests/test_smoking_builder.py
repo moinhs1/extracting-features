@@ -188,3 +188,35 @@ class TestQuitFeatures:
         builder = SmokingBuilder(data, index_dates)
         features = builder.build_quit_features('100001')
         assert features['smoking_quit_recent_90d'] == False
+
+
+class TestBuildAllSmokingFeatures:
+    def test_combines_all_feature_types(self):
+        from transformers.smoking_builder import SmokingBuilder
+        data = pd.DataFrame({
+            'EMPI': ['100001'] * 4,
+            'Date': ['1/1/2020'] * 4,
+            'Concept_Name': [
+                'Smoking Tobacco Use-Former Smoker',
+                'Tobacco Pack Per Day',
+                'Tobacco Used Years',
+                'Smoking Quit Date',
+            ],
+            'Result': ['', '1', '20', '6/1/2019'],
+        })
+        index_dates = {'100001': datetime(2020, 3, 15)}
+        builder = SmokingBuilder(data, index_dates)
+        features = builder.build_all_features('100001')
+
+        # Status
+        assert features['smoking_status_at_index'] == 'former'
+        assert features['smoking_ever'] == True
+
+        # Quantitative
+        assert features['smoking_pack_years'] == 20.0
+
+        # Quit
+        assert features['smoking_quit_date'] is not None
+
+        # EMPI
+        assert features['empi'] == '100001'

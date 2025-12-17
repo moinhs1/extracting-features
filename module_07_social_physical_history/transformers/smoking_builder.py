@@ -202,3 +202,25 @@ class SmokingBuilder:
             'smoking_quit_recent_90d': 0 <= days_since_quit <= 90,
             'smoking_quit_recent_1yr': 0 <= days_since_quit <= 365,
         }
+
+    def build_all_features(self, empi: str) -> Dict:
+        """Build all smoking features for a patient.
+
+        Combines status, quantitative (pack-years), and quit features into
+        a single dictionary with an 'empi' key.
+
+        Args:
+            empi: Patient identifier
+
+        Returns:
+            Dict with all smoking features including:
+                - empi: patient identifier
+                - Status features (smoking_status_at_index, smoking_ever, etc.)
+                - Quantitative features (smoking_pack_years, etc.)
+                - Quit features (smoking_quit_date, smoking_quit_recent_90d, etc.)
+        """
+        features = {'empi': empi}
+        features.update(self.build_status_features(empi))
+        features.update(self.build_quantitative_features(empi))
+        features.update(self.build_quit_features(empi))
+        return features
