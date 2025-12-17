@@ -12,6 +12,13 @@ from processing.pe_feature_builder import (
     extract_prior_dvt_features,
     extract_vte_history_features,
     extract_pe_characterization,
+    extract_cancer_features,
+    extract_cardiovascular_features,
+    extract_pulmonary_features,
+    extract_bleeding_risk_features,
+    extract_renal_features,
+    extract_provoking_factors,
+    extract_complication_features,
 )
 from config.icd_code_lists import (
     VTE_CODES,
@@ -445,3 +452,476 @@ class TestPECharacterization:
         result = extract_pe_characterization(df)
         assert result["pe_with_cor_pulmonale"] == True
         assert result["pe_high_risk_code"] == True
+
+
+class TestCancerFeatures:
+    """Tests for cancer feature extraction."""
+
+    def test_no_cancer(self):
+        """Patient with no cancer codes."""
+        df = pd.DataFrame({
+            "icd_code": ["I50.9"],
+            "icd_version": ["10"],
+            "days_from_pe": [-30],
+            "is_preexisting": [True],
+            "is_recent_antecedent": [False],
+        })
+        result = extract_cancer_features(df)
+        assert result["cancer_active"] == False
+        assert result["cancer_site"] is None
+        assert result["cancer_metastatic"] == False
+        assert result["cancer_recent_diagnosis"] == False
+        assert result["cancer_on_chemotherapy"] == False
+
+    def test_lung_cancer(self):
+        """Lung cancer detected."""
+        df = pd.DataFrame({
+            "icd_code": ["C34.1"],
+            "icd_version": ["10"],
+            "days_from_pe": [-60],
+            "is_preexisting": [True],
+            "is_recent_antecedent": [False],
+        })
+        result = extract_cancer_features(df)
+        assert result["cancer_active"] == True
+        assert result["cancer_site"] == "lung"
+        assert result["cancer_metastatic"] == False
+
+    def test_metastatic_cancer(self):
+        """Metastatic cancer detected."""
+        df = pd.DataFrame({
+            "icd_code": ["C78.0"],
+            "icd_version": ["10"],
+            "days_from_pe": [-30],
+            "is_preexisting": [True],
+            "is_recent_antecedent": [False],
+        })
+        result = extract_cancer_features(df)
+        assert result["cancer_metastatic"] == True
+        assert result["cancer_active"] == True
+        assert result["cancer_site"] == "other"
+
+    def test_recent_cancer_diagnosis(self):
+        """Cancer diagnosed within 6 months."""
+        df = pd.DataFrame({
+            "icd_code": ["C34.90"],
+            "icd_version": ["10"],
+            "days_from_pe": [-90],  # 3 months
+            "is_preexisting": [True],
+            "is_recent_antecedent": [False],
+        })
+        result = extract_cancer_features(df)
+        assert result["cancer_recent_diagnosis"] == True
+
+    def test_chemotherapy(self):
+        """Patient on chemotherapy."""
+        df = pd.DataFrame({
+            "icd_code": ["C34.1", "Z51.11"],
+            "icd_version": ["10", "10"],
+            "days_from_pe": [-180, -30],
+            "is_preexisting": [True, True],
+            "is_recent_antecedent": [False, False],
+        })
+        result = extract_cancer_features(df)
+        assert result["cancer_on_chemotherapy"] == True
+
+
+class TestCardiovascularFeatures:
+    """Tests for cardiovascular feature extraction."""
+
+    def test_heart_failure_hfref(self):
+        """HFrEF detected."""
+        df = pd.DataFrame({
+            "icd_code": ["I50.2"],
+            "icd_version": ["10"],
+            "days_from_pe": [-60],
+            "is_preexisting": [True],
+            "is_recent_antecedent": [False],
+        })
+        result = extract_cardiovascular_features(df)
+        assert result["heart_failure"] == True
+        assert result["heart_failure_type"] == "HFrEF"
+
+    def test_heart_failure_hfpef(self):
+        """HFpEF detected."""
+        df = pd.DataFrame({
+            "icd_code": ["I50.3"],
+            "icd_version": ["10"],
+            "days_from_pe": [-60],
+            "is_preexisting": [True],
+            "is_recent_antecedent": [False],
+        })
+        result = extract_cardiovascular_features(df)
+        assert result["heart_failure"] == True
+        assert result["heart_failure_type"] == "HFpEF"
+
+    def test_atrial_fibrillation(self):
+        """Atrial fibrillation detected."""
+        df = pd.DataFrame({
+            "icd_code": ["I48.0"],
+            "icd_version": ["10"],
+            "days_from_pe": [-90],
+            "is_preexisting": [True],
+            "is_recent_antecedent": [False],
+        })
+        result = extract_cardiovascular_features(df)
+        assert result["atrial_fibrillation"] == True
+
+    def test_coronary_artery_disease(self):
+        """CAD detected."""
+        df = pd.DataFrame({
+            "icd_code": ["I25.10"],
+            "icd_version": ["10"],
+            "days_from_pe": [-120],
+            "is_preexisting": [True],
+            "is_recent_antecedent": [False],
+        })
+        result = extract_cardiovascular_features(df)
+        assert result["coronary_artery_disease"] == True
+
+    def test_no_cv_comorbidities(self):
+        """No cardiovascular comorbidities."""
+        df = pd.DataFrame({
+            "icd_code": ["J44.0"],
+            "icd_version": ["10"],
+            "days_from_pe": [-60],
+            "is_preexisting": [True],
+            "is_recent_antecedent": [False],
+        })
+        result = extract_cardiovascular_features(df)
+        assert result["heart_failure"] == False
+        assert result["atrial_fibrillation"] == False
+
+
+class TestPulmonaryFeatures:
+    """Tests for pulmonary feature extraction."""
+
+    def test_copd(self):
+        """COPD detected."""
+        df = pd.DataFrame({
+            "icd_code": ["J44.1"],
+            "icd_version": ["10"],
+            "days_from_pe": [-180],
+            "is_preexisting": [True],
+            "is_recent_antecedent": [False],
+        })
+        result = extract_pulmonary_features(df)
+        assert result["copd"] == True
+
+    def test_asthma(self):
+        """Asthma detected."""
+        df = pd.DataFrame({
+            "icd_code": ["J45.909"],
+            "icd_version": ["10"],
+            "days_from_pe": [-90],
+            "is_preexisting": [True],
+            "is_recent_antecedent": [False],
+        })
+        result = extract_pulmonary_features(df)
+        assert result["asthma"] == True
+
+    def test_home_oxygen(self):
+        """Home oxygen use detected."""
+        df = pd.DataFrame({
+            "icd_code": ["Z99.81"],
+            "icd_version": ["10"],
+            "days_from_pe": [-60],
+            "is_preexisting": [True],
+            "is_recent_antecedent": [False],
+        })
+        result = extract_pulmonary_features(df)
+        assert result["home_oxygen"] == True
+
+    def test_no_pulm_comorbidities(self):
+        """No pulmonary comorbidities."""
+        df = pd.DataFrame({
+            "icd_code": ["I50.9"],
+            "icd_version": ["10"],
+            "days_from_pe": [-60],
+            "is_preexisting": [True],
+            "is_recent_antecedent": [False],
+        })
+        result = extract_pulmonary_features(df)
+        assert result["copd"] == False
+        assert result["asthma"] == False
+
+
+class TestBleedingRiskFeatures:
+    """Tests for bleeding risk feature extraction."""
+
+    def test_gi_bleeding(self):
+        """GI bleeding history detected."""
+        df = pd.DataFrame({
+            "icd_code": ["K92.0"],
+            "icd_version": ["10"],
+            "days_from_pe": [-90],
+            "is_preexisting": [True],
+            "is_recent_antecedent": [False],
+        })
+        result = extract_bleeding_risk_features(df)
+        assert result["prior_gi_bleeding"] == True
+        assert result["prior_major_bleeding"] == True
+
+    def test_intracranial_hemorrhage(self):
+        """ICH history detected."""
+        df = pd.DataFrame({
+            "icd_code": ["I61.9"],
+            "icd_version": ["10"],
+            "days_from_pe": [-120],
+            "is_preexisting": [True],
+            "is_recent_antecedent": [False],
+        })
+        result = extract_bleeding_risk_features(df)
+        assert result["prior_intracranial_hemorrhage"] == True
+        assert result["prior_major_bleeding"] == True
+
+    def test_thrombocytopenia(self):
+        """Thrombocytopenia detected."""
+        df = pd.DataFrame({
+            "icd_code": ["D69.6"],
+            "icd_version": ["10"],
+            "days_from_pe": [-30],
+            "is_preexisting": [True],
+            "is_recent_antecedent": [False],
+        })
+        result = extract_bleeding_risk_features(df)
+        assert result["thrombocytopenia"] == True
+
+    def test_no_bleeding_risk(self):
+        """No bleeding risk factors."""
+        df = pd.DataFrame({
+            "icd_code": ["I50.9"],
+            "icd_version": ["10"],
+            "days_from_pe": [-60],
+            "is_preexisting": [True],
+            "is_recent_antecedent": [False],
+        })
+        result = extract_bleeding_risk_features(df)
+        assert result["prior_major_bleeding"] == False
+        assert result["coagulopathy"] == False
+
+
+class TestRenalFeatures:
+    """Tests for renal feature extraction."""
+
+    def test_ckd_stage3(self):
+        """CKD stage 3 detected."""
+        df = pd.DataFrame({
+            "icd_code": ["N18.31"],
+            "icd_version": ["10"],
+            "days_from_pe": [-90],
+            "is_preexisting": [True],
+            "is_recent_antecedent": [False],
+            "is_index_concurrent": [False],
+        })
+        result = extract_renal_features(df)
+        assert result["ckd_stage"] == 3
+
+    def test_ckd_stage4(self):
+        """CKD stage 4 detected."""
+        df = pd.DataFrame({
+            "icd_code": ["N18.4"],
+            "icd_version": ["10"],
+            "days_from_pe": [-90],
+            "is_preexisting": [True],
+            "is_recent_antecedent": [False],
+            "is_index_concurrent": [False],
+        })
+        result = extract_renal_features(df)
+        assert result["ckd_stage"] == 4
+
+    def test_aki_at_presentation(self):
+        """AKI at PE presentation."""
+        df = pd.DataFrame({
+            "icd_code": ["N17.0"],
+            "icd_version": ["10"],
+            "days_from_pe": [0],
+            "is_preexisting": [False],
+            "is_recent_antecedent": [False],
+            "is_index_concurrent": [True],
+        })
+        result = extract_renal_features(df)
+        assert result["aki_at_presentation"] == True
+
+    def test_dialysis(self):
+        """Patient on dialysis."""
+        df = pd.DataFrame({
+            "icd_code": ["Z99.2"],
+            "icd_version": ["10"],
+            "days_from_pe": [-60],
+            "is_preexisting": [True],
+            "is_recent_antecedent": [False],
+            "is_index_concurrent": [False],
+        })
+        result = extract_renal_features(df)
+        assert result["ckd_dialysis"] == True
+
+    def test_no_renal_disease(self):
+        """No renal disease."""
+        df = pd.DataFrame({
+            "icd_code": ["I50.9"],
+            "icd_version": ["10"],
+            "days_from_pe": [-60],
+            "is_preexisting": [True],
+            "is_recent_antecedent": [False],
+            "is_index_concurrent": [False],
+        })
+        result = extract_renal_features(df)
+        assert result["ckd_stage"] == 0
+        assert result["aki_at_presentation"] == False
+
+
+class TestProvokingFactors:
+    """Tests for provoking factor extraction."""
+
+    def test_recent_surgery(self):
+        """Recent surgery detected."""
+        df = pd.DataFrame({
+            "icd_code": ["Z98.89"],
+            "icd_version": ["10"],
+            "days_from_pe": [-7],
+            "is_preexisting": [False],
+            "is_recent_antecedent": [True],
+        })
+        result = extract_provoking_factors(df)
+        assert result["recent_surgery"] == True
+        assert result["is_provoked_vte"] == True
+
+    def test_trauma(self):
+        """Recent trauma detected."""
+        df = pd.DataFrame({
+            "icd_code": ["S82.001A"],
+            "icd_version": ["10"],
+            "days_from_pe": [-14],
+            "is_preexisting": [False],
+            "is_recent_antecedent": [True],
+        })
+        result = extract_provoking_factors(df)
+        assert result["recent_trauma"] == True
+        assert result["is_provoked_vte"] == True
+
+    def test_immobilization(self):
+        """Immobilization detected."""
+        df = pd.DataFrame({
+            "icd_code": ["R26.3"],
+            "icd_version": ["10"],
+            "days_from_pe": [-10],
+            "is_preexisting": [False],
+            "is_recent_antecedent": [True],
+        })
+        result = extract_provoking_factors(df)
+        assert result["immobilization"] == True
+        assert result["is_provoked_vte"] == True
+
+    def test_unprovoked_vte(self):
+        """No provoking factors - unprovoked VTE."""
+        df = pd.DataFrame({
+            "icd_code": ["I50.9"],
+            "icd_version": ["10"],
+            "days_from_pe": [-7],
+            "is_preexisting": [False],
+            "is_recent_antecedent": [True],
+        })
+        result = extract_provoking_factors(df)
+        assert result["is_provoked_vte"] == False
+        assert result["recent_surgery"] == False
+        assert result["recent_trauma"] == False
+
+    def test_multiple_provoking_factors(self):
+        """Multiple provoking factors present."""
+        df = pd.DataFrame({
+            "icd_code": ["Z98.89", "S82.001A"],
+            "icd_version": ["10", "10"],
+            "days_from_pe": [-7, -14],
+            "is_preexisting": [False, False],
+            "is_recent_antecedent": [True, True],
+        })
+        result = extract_provoking_factors(df)
+        assert result["recent_surgery"] == True
+        assert result["recent_trauma"] == True
+        assert result["is_provoked_vte"] == True
+
+
+class TestComplicationFeatures:
+    """Tests for complication feature extraction."""
+
+    def test_complication_aki(self):
+        """Post-PE AKI detected."""
+        df = pd.DataFrame({
+            "icd_code": ["N17.0"],
+            "icd_version": ["10"],
+            "days_from_pe": [3],
+            "is_complication": [True],
+        })
+        result = extract_complication_features(df)
+        assert result["complication_aki"] == True
+
+    def test_complication_bleeding_major(self):
+        """Major bleeding complication."""
+        df = pd.DataFrame({
+            "icd_code": ["K92.0"],
+            "icd_version": ["10"],
+            "days_from_pe": [5],
+            "is_complication": [True],
+        })
+        result = extract_complication_features(df)
+        assert result["complication_bleeding_major"] == True
+        assert result["complication_bleeding_any"] == True
+
+    def test_complication_ich(self):
+        """ICH complication."""
+        df = pd.DataFrame({
+            "icd_code": ["I61.9"],
+            "icd_version": ["10"],
+            "days_from_pe": [4],
+            "is_complication": [True],
+        })
+        result = extract_complication_features(df)
+        assert result["complication_ich"] == True
+        assert result["complication_bleeding_any"] == True
+
+    def test_complication_respiratory_failure(self):
+        """Respiratory failure complication."""
+        df = pd.DataFrame({
+            "icd_code": ["J96.90"],
+            "icd_version": ["10"],
+            "days_from_pe": [2],
+            "is_complication": [True],
+        })
+        result = extract_complication_features(df)
+        assert result["complication_respiratory_failure"] == True
+
+    def test_complication_cardiogenic_shock(self):
+        """Cardiogenic shock complication."""
+        df = pd.DataFrame({
+            "icd_code": ["R57.0"],
+            "icd_version": ["10"],
+            "days_from_pe": [1],
+            "is_complication": [True],
+        })
+        result = extract_complication_features(df)
+        assert result["complication_cardiogenic_shock"] == True
+
+    def test_complication_recurrent_vte(self):
+        """Recurrent VTE complication."""
+        df = pd.DataFrame({
+            "icd_code": ["I26.99"],
+            "icd_version": ["10"],
+            "days_from_pe": [30],
+            "is_complication": [True],
+        })
+        result = extract_complication_features(df)
+        assert result["complication_recurrent_vte"] == True
+
+    def test_no_complications(self):
+        """No complications detected."""
+        df = pd.DataFrame({
+            "icd_code": ["I50.9"],
+            "icd_version": ["10"],
+            "days_from_pe": [5],
+            "is_complication": [True],
+        })
+        result = extract_complication_features(df)
+        assert result["complication_aki"] == False
+        assert result["complication_bleeding_any"] == False
+        assert result["complication_respiratory_failure"] == False

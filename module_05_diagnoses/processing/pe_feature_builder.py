@@ -321,3 +321,368 @@ def extract_pe_characterization(diagnoses: pd.DataFrame) -> dict:
         "pe_with_cor_pulmonale": pe_with_cor_pulmonale,
         "pe_high_risk_code": pe_high_risk_code,
     }
+
+
+# Cancer Feature Extraction
+
+def extract_cancer_features(diagnoses: pd.DataFrame) -> dict:
+    """Extract cancer-related features from preexisting diagnoses.
+
+    Args:
+        diagnoses: Layer 1 DataFrame with icd_code, icd_version, days_from_pe
+
+    Returns:
+        {
+            "cancer_active": bool,
+            "cancer_site": str or None,  # 'lung', 'gi', 'gu', 'hematologic', 'breast', 'other'
+            "cancer_metastatic": bool,
+            "cancer_recent_diagnosis": bool,  # First cancer dx within 6 months of PE
+            "cancer_on_chemotherapy": bool,
+        }
+    """
+    from config.icd_code_lists import CANCER_CODES
+
+    preexisting = get_preexisting_diagnoses(diagnoses)
+
+    # Check for any cancer (priority order: solid tumors first, then hematologic)
+    cancer_sites = ["lung", "gi", "gu", "breast", "hematologic"]
+    cancer_active = False
+    detected_site = None
+
+    for site in cancer_sites:
+        matches = preexisting[preexisting.apply(
+            lambda row: code_matches_category(row["icd_code"], CANCER_CODES[site], row["icd_version"]),
+            axis=1
+        )]
+        if len(matches) > 0:
+            cancer_active = True
+            detected_site = site
+            break  # Take first match in priority order
+
+    # Check metastatic
+    metastatic_matches = preexisting[preexisting.apply(
+        lambda row: code_matches_category(row["icd_code"], CANCER_CODES["metastatic"], row["icd_version"]),
+        axis=1
+    )]
+    cancer_metastatic = len(metastatic_matches) > 0
+    if cancer_metastatic and detected_site is None:
+        detected_site = "other"
+        cancer_active = True
+
+    # Check recent diagnosis (within 6 months = 183 days)
+    cancer_recent_diagnosis = False
+    if cancer_active:
+        all_cancer_dx = preexisting[preexisting.apply(
+            lambda row: any(
+                code_matches_category(row["icd_code"], CANCER_CODES[site], row["icd_version"])
+                for site in cancer_sites + ["metastatic"]
+            ),
+            axis=1
+        )]
+        if len(all_cancer_dx) > 0:
+            earliest_dx = all_cancer_dx["days_from_pe"].min()  # Most negative = first
+            cancer_recent_diagnosis = abs(earliest_dx) <= 183
+
+    # Check chemotherapy
+    chemo_matches = preexisting[preexisting.apply(
+        lambda row: code_matches_category(row["icd_code"], CANCER_CODES["chemotherapy"], row["icd_version"]),
+        axis=1
+    )]
+    cancer_on_chemotherapy = len(chemo_matches) > 0
+
+    return {
+        "cancer_active": cancer_active,
+        "cancer_site": detected_site,
+        "cancer_metastatic": cancer_metastatic,
+        "cancer_recent_diagnosis": cancer_recent_diagnosis,
+        "cancer_on_chemotherapy": cancer_on_chemotherapy,
+    }
+
+
+# Cardiovascular Feature Extraction
+
+def extract_cardiovascular_features(diagnoses: pd.DataFrame) -> dict:
+    """Extract cardiovascular comorbidity features.
+
+    Args:
+        diagnoses: Layer 1 DataFrame with icd_code, icd_version, days_from_pe
+
+    Returns:
+        {
+            "heart_failure": bool,
+            "heart_failure_type": str or None,  # 'HFrEF', 'HFpEF', 'unspecified'
+            "coronary_artery_disease": bool,
+            "atrial_fibrillation": bool,
+            "pulmonary_hypertension": bool,
+            "valvular_heart_disease": bool,
+        }
+    """
+    from config.icd_code_lists import CARDIOVASCULAR_CODES
+
+    preexisting = get_preexisting_diagnoses(diagnoses)
+
+    def has_category(category):
+        matches = preexisting[preexisting.apply(
+            lambda row: code_matches_category(row["icd_code"], CARDIOVASCULAR_CODES[category], row["icd_version"]),
+            axis=1
+        )]
+        return len(matches) > 0
+
+    heart_failure = has_category("heart_failure")
+
+    # Determine HF type
+    heart_failure_type = None
+    if heart_failure:
+        if has_category("heart_failure_reduced"):
+            heart_failure_type = "HFrEF"
+        elif has_category("heart_failure_preserved"):
+            heart_failure_type = "HFpEF"
+        else:
+            heart_failure_type = "unspecified"
+
+    return {
+        "heart_failure": heart_failure,
+        "heart_failure_type": heart_failure_type,
+        "coronary_artery_disease": has_category("coronary_artery_disease"),
+        "atrial_fibrillation": has_category("atrial_fibrillation"),
+        "pulmonary_hypertension": has_category("pulmonary_hypertension"),
+        "valvular_heart_disease": has_category("valvular_heart_disease"),
+    }
+
+
+# Pulmonary Feature Extraction
+
+def extract_pulmonary_features(diagnoses: pd.DataFrame) -> dict:
+    """Extract pulmonary comorbidity features.
+
+    Args:
+        diagnoses: Layer 1 DataFrame with icd_code, icd_version, days_from_pe
+
+    Returns:
+        {
+            "copd": bool,
+            "asthma": bool,
+            "interstitial_lung_disease": bool,
+            "home_oxygen": bool,
+            "prior_respiratory_failure": bool,
+        }
+    """
+    from config.icd_code_lists import PULMONARY_CODES
+
+    preexisting = get_preexisting_diagnoses(diagnoses)
+
+    def has_category(category):
+        matches = preexisting[preexisting.apply(
+            lambda row: code_matches_category(row["icd_code"], PULMONARY_CODES[category], row["icd_version"]),
+            axis=1
+        )]
+        return len(matches) > 0
+
+    return {
+        "copd": has_category("copd"),
+        "asthma": has_category("asthma"),
+        "interstitial_lung_disease": has_category("interstitial_lung_disease"),
+        "home_oxygen": has_category("home_oxygen"),
+        "prior_respiratory_failure": has_category("respiratory_failure"),
+    }
+
+
+# Bleeding Risk Feature Extraction
+
+def extract_bleeding_risk_features(diagnoses: pd.DataFrame) -> dict:
+    """Extract bleeding risk features from preexisting diagnoses.
+
+    Args:
+        diagnoses: Layer 1 DataFrame with icd_code, icd_version, days_from_pe
+
+    Returns:
+        {
+            "prior_major_bleeding": bool,
+            "prior_gi_bleeding": bool,
+            "prior_intracranial_hemorrhage": bool,
+            "active_peptic_ulcer": bool,
+            "thrombocytopenia": bool,
+            "coagulopathy": bool,
+        }
+    """
+    from config.icd_code_lists import BLEEDING_CODES
+
+    preexisting = get_preexisting_diagnoses(diagnoses)
+
+    def has_category(category):
+        matches = preexisting[preexisting.apply(
+            lambda row: code_matches_category(row["icd_code"], BLEEDING_CODES[category], row["icd_version"]),
+            axis=1
+        )]
+        return len(matches) > 0
+
+    prior_gi_bleeding = has_category("gi_bleeding")
+    prior_intracranial_hemorrhage = has_category("intracranial_hemorrhage")
+    other_major_bleeding = has_category("other_major_bleeding")
+
+    return {
+        "prior_major_bleeding": prior_gi_bleeding or prior_intracranial_hemorrhage or other_major_bleeding,
+        "prior_gi_bleeding": prior_gi_bleeding,
+        "prior_intracranial_hemorrhage": prior_intracranial_hemorrhage,
+        "active_peptic_ulcer": has_category("peptic_ulcer"),
+        "thrombocytopenia": has_category("thrombocytopenia"),
+        "coagulopathy": has_category("coagulopathy"),
+    }
+
+
+# Renal Feature Extraction
+
+def extract_renal_features(diagnoses: pd.DataFrame) -> dict:
+    """Extract renal function features.
+
+    Args:
+        diagnoses: Layer 1 DataFrame with icd_code, icd_version, days_from_pe,
+                   is_preexisting, is_index_concurrent
+
+    Returns:
+        {
+            "ckd_stage": int,  # 0-5 (0 = no CKD)
+            "ckd_dialysis": bool,
+            "aki_at_presentation": bool,
+        }
+    """
+    from config.icd_code_lists import RENAL_CODES
+
+    preexisting = get_preexisting_diagnoses(diagnoses)
+    index_dx = get_index_diagnoses(diagnoses)
+
+    def has_category_in(df, category):
+        if df.empty:
+            return False
+        matches = df[df.apply(
+            lambda row: code_matches_category(row["icd_code"], RENAL_CODES[category], row["icd_version"]),
+            axis=1
+        )]
+        return len(matches) > 0
+
+    # Determine highest CKD stage
+    ckd_stage = 0
+    for stage in range(5, 0, -1):
+        if has_category_in(preexisting, f"ckd_stage{stage}"):
+            ckd_stage = stage
+            break
+
+    return {
+        "ckd_stage": ckd_stage,
+        "ckd_dialysis": has_category_in(preexisting, "dialysis"),
+        "aki_at_presentation": has_category_in(index_dx, "aki"),
+    }
+
+
+# Provoking Factor Extraction
+
+def extract_provoking_factors(diagnoses: pd.DataFrame) -> dict:
+    """Extract VTE provoking factors from recent diagnoses.
+
+    Args:
+        diagnoses: Layer 1 DataFrame with icd_code, icd_version, days_from_pe
+
+    Returns:
+        {
+            "recent_surgery": bool,
+            "recent_trauma": bool,
+            "immobilization": bool,
+            "pregnancy_related": bool,
+            "hormonal_therapy": bool,
+            "central_venous_catheter": bool,
+            "is_provoked_vte": bool,
+        }
+    """
+    from config.icd_code_lists import PROVOKING_FACTOR_CODES
+
+    # Use recent antecedent window (-30 to 0 days) for provoking factors
+    recent = diagnoses[
+        (diagnoses["days_from_pe"] >= -30) &
+        (diagnoses["days_from_pe"] <= 0)
+    ].copy()
+
+    def has_category(category):
+        if recent.empty:
+            return False
+        matches = recent[recent.apply(
+            lambda row: code_matches_category(row["icd_code"], PROVOKING_FACTOR_CODES[category], row["icd_version"]),
+            axis=1
+        )]
+        return len(matches) > 0
+
+    recent_surgery = has_category("recent_surgery")
+    recent_trauma = has_category("trauma")
+    immobilization = has_category("immobilization")
+    pregnancy_related = has_category("pregnancy")
+    hormonal_therapy = has_category("hormonal_therapy")
+    central_venous_catheter = has_category("central_venous_catheter")
+
+    is_provoked = any([
+        recent_surgery, recent_trauma, immobilization,
+        pregnancy_related, hormonal_therapy, central_venous_catheter
+    ])
+
+    return {
+        "recent_surgery": recent_surgery,
+        "recent_trauma": recent_trauma,
+        "immobilization": immobilization,
+        "pregnancy_related": pregnancy_related,
+        "hormonal_therapy": hormonal_therapy,
+        "central_venous_catheter": central_venous_catheter,
+        "is_provoked_vte": is_provoked,
+    }
+
+
+# Complication Feature Extraction
+
+def extract_complication_features(diagnoses: pd.DataFrame) -> dict:
+    """Extract post-PE complication features.
+
+    Uses is_complication=True rows only (days_from_pe > 1).
+
+    Args:
+        diagnoses: Layer 1 DataFrame with icd_code, icd_version, days_from_pe,
+                   is_complication
+
+    Returns:
+        {
+            "complication_aki": bool,
+            "complication_bleeding_any": bool,
+            "complication_bleeding_major": bool,
+            "complication_ich": bool,
+            "complication_respiratory_failure": bool,
+            "complication_cardiogenic_shock": bool,
+            "complication_cardiac_arrest": bool,
+            "complication_recurrent_vte": bool,
+            "complication_cteph": bool,
+        }
+    """
+    from config.icd_code_lists import COMPLICATION_CODES
+
+    complications = get_complication_diagnoses(diagnoses)
+
+    def has_category(category):
+        if complications.empty:
+            return False
+        codes = COMPLICATION_CODES[category]
+        matches = complications[complications.apply(
+            lambda row: code_matches_category(row["icd_code"], codes, row["icd_version"]),
+            axis=1
+        )]
+        return len(matches) > 0
+
+    bleeding_gi = has_category("bleeding_major")  # GI bleeding
+    bleeding_any = has_category("bleeding_any")
+    ich = has_category("intracranial_hemorrhage")
+
+    return {
+        "complication_aki": has_category("aki"),
+        "complication_bleeding_any": bleeding_any or ich,
+        "complication_bleeding_major": bleeding_gi,
+        "complication_ich": ich,
+        "complication_respiratory_failure": has_category("respiratory_failure"),
+        "complication_cardiogenic_shock": has_category("cardiogenic_shock"),
+        "complication_cardiac_arrest": has_category("cardiac_arrest"),
+        "complication_recurrent_vte": has_category("recurrent_vte"),
+        "complication_cteph": has_category("cteph"),
+    }
