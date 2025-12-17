@@ -91,3 +91,49 @@ class DrugUseBuilder:
             'drug_use_ever': drug_use_ever,
             'drug_use_current_at_index': status in self.CURRENT_STATUSES,
         }
+
+    def build_ivdu_features(self, empi: str) -> Dict:
+        """
+        Build IV drug use features.
+
+        CRITICAL: ivdu_ever is a PERMANENT flag.
+        If ANY record EVER shows IV drug use, ivdu_ever = True.
+        This flag must NEVER be set to False once True.
+
+        Rationale: IV drug use history is a permanent VTE risk factor
+        due to vascular damage, infection risk, and lifestyle factors.
+        """
+        index_date = self.index_dates.get(empi)
+
+        if self.phy_data.empty:
+            return {
+                'ivdu_ever': False,
+                'ivdu_current_at_index': False,
+                'ivdu_status_date': None,
+            }
+
+        # Check ALL records for IV drug use - not just pre-index
+        # Because ivdu_ever is a permanent lifetime flag
+        mask = (
+            (self.phy_data['EMPI'] == empi) &
+            (self.phy_data['Concept_Name'] == 'Drug User IV')
+        )
+        ivdu_records = self.phy_data[mask]
+
+        # PERMANENT FLAG: If ANY record exists, ivdu_ever = True
+        ivdu_ever = len(ivdu_records) > 0
+
+        # Current status uses records up to index date
+        ivdu_current = False
+        ivdu_date = None
+        if index_date and not ivdu_records.empty:
+            valid = ivdu_records[ivdu_records['Date'] <= pd.Timestamp(index_date)]
+            if not valid.empty:
+                ivdu_current = True  # Most recent IV record before index
+                ivdu_date = valid.iloc[-1]['Date']
+
+        return {
+            'ivdu_ever': ivdu_ever,  # PERMANENT - never set to False once True
+            'ivdu_current_at_index': ivdu_current,
+            'ivdu_status_date': ivdu_date,
+        }
