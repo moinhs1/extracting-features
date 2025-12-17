@@ -841,6 +841,19 @@ class TestProvokingFactors:
         assert result["recent_trauma"] == True
         assert result["is_provoked_vte"] == True
 
+    def test_provoking_factors_excludes_day_zero(self):
+        """Provoking factors should exclude day 0 (index day)."""
+        df = pd.DataFrame({
+            "icd_code": ["Z98.89"],  # Surgery code
+            "icd_version": ["10"],
+            "days_from_pe": [0],  # At index day - should be excluded
+            "is_preexisting": [False],
+            "is_recent_antecedent": [False],
+        })
+        result = extract_provoking_factors(df)
+        assert result["recent_surgery"] == False  # Day 0 excluded from provoking window
+        assert result["is_provoked_vte"] == False
+
 
 class TestComplicationFeatures:
     """Tests for complication feature extraction."""

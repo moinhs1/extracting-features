@@ -595,10 +595,11 @@ def extract_provoking_factors(diagnoses: pd.DataFrame) -> dict:
     """
     from config.icd_code_lists import PROVOKING_FACTOR_CODES
 
-    # Use recent antecedent window (-30 to 0 days) for provoking factors
+    # Use recent antecedent window (-30 to -1 days) for provoking factors
+    # Excludes day 0 (index day) to avoid temporal leakage
     recent = diagnoses[
         (diagnoses["days_from_pe"] >= -30) &
-        (diagnoses["days_from_pe"] <= 0)
+        (diagnoses["days_from_pe"] < 0)
     ].copy()
 
     def has_category(category):
