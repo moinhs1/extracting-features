@@ -1,5 +1,5 @@
 # Project Progress Tracker
-*Last Updated: 2025-12-12 (Module 4 COMPLETE)*
+*Last Updated: 2025-12-17 (Module 6 COMPLETE)*
 
 ## Overall Project Status
 
@@ -40,14 +40,22 @@ gantt
     Phase 7: Layer 5 Dose          :done, m4g, 2025-12-11, 1d
     Phase 8: Exporters + Bug Fixes :done, m4h, 2025-12-12, 1d
 
-    section Module 5
-    Diagnoses/Procedures          :pending, m5a, after m4e, 2d
-
     section Module 6
-    Temporal Alignment            :pending, m6a, after m5a, 2d
+    Procedures 5-Layer Design      :done, m6d, 2025-12-11, 1d
+    Phase 1: Setup & Layer 1       :done, m6a, 2025-12-17, 1d
+    Phase 2: Code Mapping          :done, m6b, 2025-12-17, 1d
+    Phase 3: Layer 2 CCS           :done, m6c, 2025-12-17, 1d
+    Phase 4: Layer 3 PE Features   :done, m6e, 2025-12-17, 1d
+    Phase 5: Layer 4 Embeddings    :done, m6f, 2025-12-17, 1d
+    Phase 6: Layer 5 World Model   :done, m6g, 2025-12-17, 1d
+    Phase 7: Exporters             :done, m6h, 2025-12-17, 1d
+    Phase 8: Validation & Docs     :done, m6i, 2025-12-17, 1d
+
+    section Module 5
+    Diagnoses Processing          :pending, m5a, after m6i, 2d
 
     section Module 7
-    Trajectory Engineering        :pending, m7a, after m6a, 3d
+    Trajectory Engineering        :pending, m7a, after m5a, 3d
 ```
 
 ## Module Completion Status
@@ -59,7 +67,7 @@ pie title Module Completion Status
     "Module 3 - Phase 1 Complete" : 60
     "Module 4 - COMPLETE" : 100
     "Module 5 - Not Started" : 0
-    "Module 6 - Not Started" : 0
+    "Module 6 - COMPLETE" : 100
     "Module 7 - Not Started" : 0
 ```
 
@@ -153,12 +161,37 @@ pie title Module Completion Status
 - `exports/grud_medications.h5` (8,394 × 168 × 12 tensor)
 - `exports/xgboost_medication_features.parquet` (8,219 × 831 features)
 
-### Modules 5-7: Future Work
+### Module 6: Procedure Encoding - COMPLETE ✅ (NEW)
+
+| Task | Status | Date | Notes |
+|------|--------|------|-------|
+| 5-Layer Architecture Design | Complete | Dec 11 | Design doc approved |
+| Phase 1: Setup & Layer 1 | Complete | Dec 17 | 7 temporal flags, canonical extraction |
+| Phase 2: Code Mapping | Complete | Dec 17 | CCS + SNOMED, fuzzy matching |
+| Phase 3: Layer 2 CCS Indicators | Complete | Dec 17 | 27 tests, surgical risk classification |
+| Phase 4: Layer 3 PE Features | Complete | Dec 17 | 24 tests, 63+ clinical features |
+| Phase 5: Layer 4 Embeddings | Complete | Dec 17 | 17 tests, HDF5 output |
+| Phase 6: Layer 5 World Model | Complete | Dec 17 | 29 tests, discretion-weighted actions |
+| Phase 7: Exporters | Complete | Dec 17 | 9 tests, GBTM/GRU-D/XGBoost |
+| Phase 8: Validation & Docs | Complete | Dec 17 | 12 tests, README |
+
+**Tests:** 145 total
+**Output:**
+- `data/bronze/canonical_procedures.parquet` (22M records target)
+- `data/silver/mapped_procedures.parquet` (85% CCS mapping target)
+- `data/gold/ccs_indicators/` (Layer 2)
+- `data/gold/pe_procedure_features/` (Layer 3, 63+ features)
+- `data/embeddings/procedure_embeddings.h5` (Layer 4)
+- `data/gold/world_model_states/` (Layer 5 - static, dynamic, actions)
+- `exports/gbtm_procedures.csv`
+- `exports/grud_procedures.h5`
+- `exports/xgboost_procedure_features.parquet`
+
+### Modules 5 & 7: Future Work
 
 | Module | Status | Description |
 |--------|--------|-------------|
-| Module 5 | Pending | Diagnoses/procedures processing |
-| Module 6 | Pending | Temporal alignment across modalities |
+| Module 5 | Pending | Diagnoses processing |
 | Module 7 | Pending | Trajectory feature engineering |
 
 ## Key Milestones
@@ -205,6 +238,11 @@ timeline
                  : Bug fixes (heparin, DDD mapping)
                  : All 3 exporters (GBTM, GRU-D, XGBoost)
                  : 67 tests passing
+
+    Dec 17, 2025 : Module 6 COMPLETE
+                 : 5-layer procedure encoding
+                 : 145 tests passing
+                 : World model integration ready
 ```
 
 ## Cohort Statistics
@@ -228,7 +266,8 @@ timeline
 | Module 2 | - | - | No formal tests |
 | Module 3 | 9 files | 252 | ✅ All Pass |
 | Module 4 | 8 files | 67 | ✅ All Pass |
-| **Total** | **17 files** | **319** | **✅ All Pass** |
+| Module 6 | 10 files | 145 | ✅ All Pass |
+| **Total** | **27 files** | **464** | **✅ All Pass** |
 
 ## Technical Debt & Issues
 
@@ -244,9 +283,9 @@ timeline
 
 1. **Immediate:** Module 3 Layers 3-5 (Feature Engineering, Embeddings)
 2. **Short-term:** Module 2 Rerun on expanded cohort (8,713 patients)
-3. **Medium-term:** Module 5 - Diagnoses/Procedures processing
-4. **Long-term:** Modules 6-7, ML model development
+3. **Medium-term:** Module 5 - Diagnoses processing
+4. **Long-term:** Module 7, ML model development, World Model training
 
 ---
 
-*Version: 7.0 | Updated: 2025-12-12*
+*Version: 8.0 | Updated: 2025-12-17*

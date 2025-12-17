@@ -63,10 +63,9 @@ open outputs/discovery/test_n10_cluster_dendrogram_interactive.html
 | **2. Lab Processing** | LOINC harmonization, temporal features | ✅ Complete | 22 |
 | **3. Vitals Processing** | NLP extraction, hourly grid, tensors | 🔄 Phase 1 Complete | 252 |
 | **4. Medication Processing** | RxNorm mapping, 5-layer encoding | ✅ Complete | 67 |
-| **5. Clinical NLP** | Note features, entities | ⬜ Not Started | - |
-| **6. Temporal Alignment** | Multi-modal hourly alignment | ⬜ Not Started | - |
+| **5. Diagnoses Processing** | ICD-10 encoding, comorbidities | ⬜ Not Started | - |
+| **6. Procedure Encoding** | CCS mapping, 5-layer encoding, world models | ✅ Complete | 145 |
 | **7. Trajectory Features** | Rolling windows, CSD indicators | ⬜ Not Started | - |
-| **8. Format Conversion** | GRU-D, GBTM, XGBoost exports | ⬜ Not Started | - |
 
 ---
 
@@ -219,6 +218,50 @@ outputs/discovery/
 - `module_04_medications/config/medication_config.py` - Central configuration
 
 **Documentation:** See [docs/plans/2025-12-08-module-04-medications-design.md](docs/plans/2025-12-08-module-04-medications-design.md)
+
+---
+
+### Module 6: Procedure Encoding ✅ (NEW)
+
+**Purpose:** Unified procedure encoding for PE trajectory analysis with world model support
+
+**Status:** COMPLETE (All 8 Phases, 145 tests)
+
+#### Architecture: 5-Layer System
+
+| Layer | Purpose | Output | Status |
+|-------|---------|--------|--------|
+| **Layer 1** | Canonical Records | `canonical_procedures.parquet` (22M records, 7 temporal flags) | ✅ Complete |
+| **Layer 2** | CCS Indicators | `ccs_indicators.parquet` (~230 categories, surgical risk) | ✅ Complete |
+| **Layer 3** | PE-Specific Features | `pe_features.parquet` (63+ clinical features) | ✅ Complete |
+| **Layer 4** | Embeddings | `procedure_embeddings.h5` (complexity + co-occurrence) | ✅ Complete |
+| **Layer 5** | World Model States | `world_model_states/` (actions + states + discretion) | ✅ Complete |
+| **Exports** | GBTM, GRU-D, XGBoost | `exports/` directory | ✅ Complete |
+
+#### Key Features
+
+- **7 Temporal Windows**: Lifetime history, provoking, diagnostic, initial treatment, escalation, post-discharge
+- **CCS + SNOMED Mapping**: Direct CPT mapping (71%) + fuzzy matching for EPIC codes
+- **63+ PE-Specific Features**: Prior IVC filter, CDT, thrombolysis, intubation, ECMO, cardiac arrest
+- **World Model Integration**: Dual representation (actions + state updates) with discretion weighting
+- **Multi-Format Export**: GBTM CSVs, GRU-D tensors (168h), XGBoost features (~500)
+
+#### Discretion Weighting (World Models)
+
+| Level | Weight | Examples |
+|-------|--------|----------|
+| High | 1.0 | Thrombolysis, CDT, IVC filter |
+| Moderate | 0.6-0.8 | Intubation, ECMO |
+| Low | 0.2-0.4 | Transfusion, dialysis |
+| None | 0.0 | CPR (obligate response) |
+
+**Key Files:**
+- `module_06_procedures/config/pe_procedure_codes.yaml` - 84 CPT code definitions
+- `module_06_procedures/config/surgical_risk.yaml` - VTE risk classifications
+- `module_06_procedures/config/discretion_weights.yaml` - Action discretion weights
+- `module_06_procedures/config/procedure_config.py` - Central configuration
+
+**Documentation:** See [docs/plans/2025-12-11-module-06-procedures-design.md](docs/plans/2025-12-11-module-06-procedures-design.md)
 
 ---
 
@@ -565,6 +608,15 @@ def test_my_feature():
 
 ## Changelog
 
+### 2025-12-17 - Module 6 COMPLETE (NEW)
+- ✅ All 8 phases complete (145 tests passing)
+- ✨ 5-layer procedure encoding system
+- ✨ CCS + SNOMED mapping with fuzzy matching
+- ✨ 63+ PE-specific clinical features
+- ✨ World model integration with discretion-weighted actions
+- ✨ 7 temporal windows (lifetime, provoking, diagnostic, treatment, escalation, post-discharge)
+- ✨ Multi-format exports (GBTM, GRU-D, XGBoost)
+
 ### 2025-12-12 - Module 4 COMPLETE + Bug Fixes
 - ✅ All 8 phases complete including exporters (GBTM, GRU-D, XGBoost)
 - 🐛 Fixed heparin PIN→IN ingredient mapping (`has_form` relationship)
@@ -618,5 +670,5 @@ def test_my_feature():
 ---
 
 **Status:** 🔄 Active Development
-**Last Updated:** 2025-12-12
-**Version:** 2.7.0
+**Last Updated:** 2025-12-17
+**Version:** 3.0.0

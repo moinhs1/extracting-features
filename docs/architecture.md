@@ -1,5 +1,5 @@
 # System Architecture
-*Last Updated: 2025-12-12*
+*Last Updated: 2025-12-17*
 
 ## High-Level Pipeline Overview
 
@@ -39,12 +39,22 @@ flowchart TB
         M4_Dose[Layer 5: Dose Intensity<br/>86K records, 97.2% DDD]
     end
 
+    subgraph Module6["Module 6: Procedure Encoding ✅ NEW"]
+        M6_Extract[Layer 1: Canonical Extract<br/>22M records, 7 temporal flags]
+        M6_Map[CCS + SNOMED Mapping<br/>85% target coverage]
+        M6_CCS[Layer 2: CCS Indicators<br/>~230 categories]
+        M6_PE[Layer 3: PE Features<br/>63+ clinical features]
+        M6_Embed[Layer 4: Embeddings<br/>HDF5 output]
+        M6_World[Layer 5: World Model<br/>Actions + States]
+    end
+
     subgraph Outputs["Output Files"]
         OUT_CSV[(outcomes.csv<br/>8,713 patients)]
         OUT_PKL[(patient_timelines.pkl)]
         OUT_LAB[(lab_features.csv)]
         OUT_H5[(lab_sequences.h5)]
         OUT_MED[(medication outputs)]
+        OUT_PRC[(procedure outputs)]
     end
 
     %% Data flow
@@ -81,6 +91,16 @@ flowchart TB
     M4_Indiv --> OUT_MED
     M4_Embed --> OUT_MED
     M4_Dose --> OUT_MED
+
+    OUT_PKL --> M6_Extract
+    RPDR --> M6_Extract
+    M6_Extract --> M6_Map
+    M6_Map --> M6_CCS
+    M6_CCS --> M6_PE
+    M6_PE --> M6_Embed
+    M6_PE --> M6_World
+    M6_Embed --> OUT_PRC
+    M6_World --> OUT_PRC
 ```
 
 ## Module 1: Core Infrastructure
@@ -258,6 +278,95 @@ flowchart TB
     L5_Gold --> EX_XGB
 ```
 
+## Module 6: Procedure Encoding ✅ COMPLETE (NEW)
+
+```mermaid
+flowchart TB
+    subgraph Layer1["Layer 1: Canonical Extraction"]
+        L1_Parse[Parse Prc.txt<br/>22M records]
+        L1_Temporal[7 Temporal Flags<br/>lifetime, provoking, diagnostic, etc.]
+        L1_Bronze[Bronze: canonical_procedures.parquet]
+    end
+
+    subgraph Mapping["CCS + SNOMED Mapping"]
+        MAP_CCS[(CCS Crosswalk<br/>~230 categories)]
+        MAP_Direct[Direct CPT→CCS<br/>71% of records]
+        MAP_Fuzzy[Fuzzy Matching<br/>EPIC codes]
+        MAP_Silver[Silver: mapped_procedures.parquet<br/>85% target coverage]
+    end
+
+    subgraph Layer2["Layer 2: CCS Indicators"]
+        L2_CCS[CCS Category Indicators<br/>per patient-timewindow]
+        L2_Risk[Surgical Risk Classification<br/>very_high → minimal]
+        L2_Gold[Gold: ccs_indicators.parquet]
+    end
+
+    subgraph Layer3["Layer 3: PE-Specific Features"]
+        L3_History[Lifetime History<br/>prior IVC, surgeries]
+        L3_Provoking[Provoking Procedures<br/>surgery within 30d]
+        L3_Diagnostic[Diagnostic Workup<br/>CTA, echo with datetimes]
+        L3_Treatment[Initial Treatment<br/>CDT, thrombolysis, ECMO]
+        L3_Escalation[Escalation<br/>transfusions, arrest]
+        L3_Gold[Gold: pe_features.parquet<br/>63+ features]
+    end
+
+    subgraph Layer4["Layer 4: Embeddings"]
+        L4_Complexity[Procedural Complexity<br/>16 dims]
+        L4_CoOccur[CCS Co-occurrence<br/>Word2Vec 128d]
+        L4_HDF5[procedure_embeddings.h5]
+    end
+
+    subgraph Layer5["Layer 5: World Model"]
+        L5_Static[Static State<br/>lifetime history, provoking]
+        L5_Dynamic[Dynamic State<br/>support level, complications]
+        L5_Actions[Action Vectors<br/>discretion-weighted]
+        L5_Gold[Gold: world_model_states/]
+    end
+
+    subgraph Exports["Method-Specific Exports"]
+        EX_GBTM[GBTM: CSV<br/>daily features]
+        EX_GRUD[GRU-D: HDF5<br/>168h × features]
+        EX_XGB[XGBoost: Parquet<br/>~500 features]
+    end
+
+    L1_Parse --> L1_Temporal
+    L1_Temporal --> L1_Bronze
+    L1_Bronze --> MAP_Direct
+    MAP_CCS --> MAP_Direct
+    L1_Bronze --> MAP_Fuzzy
+    MAP_Direct --> MAP_Silver
+    MAP_Fuzzy --> MAP_Silver
+    MAP_Silver --> L2_CCS
+    L2_CCS --> L2_Risk
+    L2_Risk --> L2_Gold
+    MAP_Silver --> L3_History
+    MAP_Silver --> L3_Provoking
+    MAP_Silver --> L3_Diagnostic
+    MAP_Silver --> L3_Treatment
+    MAP_Silver --> L3_Escalation
+    L3_History --> L3_Gold
+    L3_Provoking --> L3_Gold
+    L3_Diagnostic --> L3_Gold
+    L3_Treatment --> L3_Gold
+    L3_Escalation --> L3_Gold
+    MAP_Silver --> L4_Complexity
+    MAP_Silver --> L4_CoOccur
+    L4_Complexity --> L4_HDF5
+    L4_CoOccur --> L4_HDF5
+    L3_Gold --> L5_Static
+    L3_Gold --> L5_Dynamic
+    L3_Gold --> L5_Actions
+    L5_Static --> L5_Gold
+    L5_Dynamic --> L5_Gold
+    L5_Actions --> L5_Gold
+    L2_Gold --> EX_GBTM
+    L3_Gold --> EX_GBTM
+    MAP_Silver --> EX_GRUD
+    L2_Gold --> EX_XGB
+    L3_Gold --> EX_XGB
+    L4_HDF5 --> EX_XGB
+```
+
 ## Data Flow Architecture
 
 ```mermaid
@@ -265,7 +374,7 @@ flowchart LR
     subgraph Raw["Raw RPDR Data"]
         R1[63.4M Lab Rows]
         R2[Encounters]
-        R3[Procedures]
+        R3[22M Procedures]
         R4[Diagnoses]
         R5[Medications]
     end
@@ -282,17 +391,32 @@ flowchart LR
         M3A[Vital Signs<br/>HR, BP, SpO2]
     end
 
+    subgraph M4["Module 4"]
+        M4A[1.71M Med Records<br/>53 Classes, 581 Meds]
+    end
+
+    subgraph M6["Module 6"]
+        M6A[22M Procedure Records<br/>63+ PE Features]
+    end
+
     subgraph ML["ML Ready"]
         ML1[3,456 Lab Features<br/>per patient]
         ML2[Temporal Sequences<br/>HDF5 format]
+        ML3[World Model States<br/>Actions + States]
     end
 
     R1 --> M2
     R2 & R3 & R4 & R5 --> M1
     M1 --> M2
     M1 --> M3
+    M1 --> M4
+    M1 --> M6
+    R3 --> M6
+    R5 --> M4
     M2 --> ML1
     M2 --> ML2
+    M4 --> ML2
+    M6 --> ML3
 ```
 
 ## File Structure
@@ -352,6 +476,7 @@ TDA_11_25/
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 5.0 | 2025-12-17 | Module 6 COMPLETE - 5-layer procedure encoding, 145 tests, world model support |
 | 4.0 | 2025-12-12 | Module 4 COMPLETE - All 8 phases, bug fixes (heparin mapping, DDD expansion) |
 | 3.0 | 2025-12-11 | Module 4 Layers 1-4 complete (581 med indicators, embeddings) |
 | 2.5 | 2025-12-10 | Module 4 Phases 2-4 (RxNorm mapping, 53 therapeutic classes) |
