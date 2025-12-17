@@ -73,3 +73,38 @@ class TestMultiScaleDecoder:
         for bo in branch_outputs:
             assert bo.shape[0] == 4  # batch
             assert bo.shape[2] == 7  # output_dim
+
+
+class TestMultiScaleVAE:
+    """Test full VAE forward pass."""
+
+    def test_vae_forward(self):
+        from processing.layer4.vae_multiscale import MultiScaleConv1DVAE
+
+        vae = MultiScaleConv1DVAE(
+            input_dim=7,
+            seq_len=745,
+            latent_dim=32,
+            base_channels=64
+        )
+
+        x = torch.randn(4, 745, 7)
+        recon, mu, logvar = vae(x)
+
+        assert recon.shape == (4, 745, 7)
+        assert mu.shape == (4, 32)
+        assert logvar.shape == (4, 32)
+
+    def test_vae_reparameterize(self):
+        from processing.layer4.vae_multiscale import MultiScaleConv1DVAE
+
+        vae = MultiScaleConv1DVAE(input_dim=7, seq_len=745, latent_dim=32)
+
+        mu = torch.zeros(4, 32)
+        logvar = torch.zeros(4, 32)
+
+        z1 = vae.reparameterize(mu, logvar)
+        z2 = vae.reparameterize(mu, logvar)
+
+        # Should be different due to sampling
+        assert not torch.allclose(z1, z2)

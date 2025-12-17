@@ -271,3 +271,86 @@ class MultiScaleDecoder(nn.Module):
             return recon, branches
 
         return recon
+
+
+class MultiScaleConv1DVAE(nn.Module):
+    """Multi-Scale 1D Convolutional VAE.
+
+    Prevents posterior collapse through:
+    - Multi-scale feature extraction (local to multi-day)
+    - Per-branch reconstruction loss
+    - Symmetric encoder-decoder design
+    """
+
+    def __init__(
+        self,
+        input_dim: int = 7,
+        seq_len: int = 745,
+        latent_dim: int = 32,
+        base_channels: int = 64,
+        dropout: float = 0.2
+    ):
+        super().__init__()
+
+        self.latent_dim = latent_dim
+        self.seq_len = seq_len
+
+        self.encoder = MultiScaleEncoder(
+            input_dim=input_dim,
+            seq_len=seq_len,
+            latent_dim=latent_dim,
+            base_channels=base_channels,
+            dropout=dropout
+        )
+
+        self.decoder = MultiScaleDecoder(
+            output_dim=input_dim,
+            seq_len=seq_len,
+            latent_dim=latent_dim,
+            base_channels=base_channels,
+            dropout=dropout
+        )
+
+    def reparameterize(self, mu: torch.Tensor, logvar: torch.Tensor) -> torch.Tensor:
+        """Sample from latent distribution using reparameterization trick."""
+        std = torch.exp(0.5 * logvar)
+        eps = torch.randn_like(std)
+        return mu + eps * std
+
+    def forward(
+        self,
+        x: torch.Tensor,
+        mask: Optional[torch.Tensor] = None,
+        return_branches: bool = False
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        """Forward pass.
+
+        Args:
+            x: (batch, seq_len, input_dim)
+            mask: Optional observation mask
+            return_branches: If True, also return per-branch reconstructions
+
+        Returns:
+            recon: (batch, seq_len, input_dim)
+            mu: (batch, latent_dim)
+            logvar: (batch, latent_dim)
+        """
+        mu, logvar = self.encoder(x, mask)
+        z = self.reparameterize(mu, logvar)
+
+        if return_branches:
+            recon, branches = self.decoder(z, return_branches=True)
+            return recon, mu, logvar, branches
+
+        recon = self.decoder(z)
+        return recon, mu, logvar
+
+    def encode(
+        self,
+        x: torch.Tensor,
+        mask: Optional[torch.Tensor] = None
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        """Encode only (for inference)."""
+        mu, logvar = self.encoder(x, mask)
+        z = self.reparameterize(mu, logvar)
+        return z, mu, logvar
