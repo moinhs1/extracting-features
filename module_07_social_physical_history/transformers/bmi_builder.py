@@ -90,3 +90,68 @@ class BMIBuilder:
         if pct_change < -threshold:
             return 'decreasing'
         return 'stable'
+
+    def _get_patient_bmi_records(self, empi: str) -> pd.DataFrame:
+        """Get BMI records for a patient."""
+        if self.phy_data.empty:
+            return pd.DataFrame()
+
+        mask = (
+            (self.phy_data['EMPI'] == empi) &
+            (self.phy_data['Concept_Name'].isin(self.BMI_CONCEPTS)) &
+            (self.phy_data['Result_Numeric'].notna()) &
+            (self.phy_data['Result_Numeric'] >= 10) &
+            (self.phy_data['Result_Numeric'] <= 100)
+        )
+        return self.phy_data[mask].sort_values('Date')
+
+    def build_point_in_time(self, empi: str) -> Dict:
+        """
+        Build point-in-time BMI features.
+
+        Args:
+            empi: Patient identifier
+
+        Returns:
+            Dict with bmi_at_index, bmi_at_index_date, etc.
+        """
+        index_date = self.index_dates.get(empi)
+        if index_date is None:
+            return {'bmi_at_index': None}
+
+        records = self._get_patient_bmi_records(empi)
+
+        if records.empty:
+            return {
+                'bmi_at_index': None,
+                'bmi_at_index_date': None,
+                'bmi_at_index_days_prior': None,
+                'bmi_at_index_stale': True,
+                'bmi_category_at_index': 'unknown',
+            }
+
+        # Filter to records before or on index date
+        valid = records[records['Date'] <= pd.Timestamp(index_date)]
+
+        if valid.empty:
+            return {
+                'bmi_at_index': None,
+                'bmi_at_index_date': None,
+                'bmi_at_index_days_prior': None,
+                'bmi_at_index_stale': True,
+                'bmi_category_at_index': 'unknown',
+            }
+
+        # Get closest (most recent before index)
+        closest = valid.iloc[-1]
+        bmi_value = closest['Result_Numeric']
+        bmi_date = closest['Date']
+        days_prior = (pd.Timestamp(index_date) - bmi_date).days
+
+        return {
+            'bmi_at_index': bmi_value,
+            'bmi_at_index_date': bmi_date,
+            'bmi_at_index_days_prior': days_prior,
+            'bmi_at_index_stale': days_prior > self.STALENESS_DAYS,
+            'bmi_category_at_index': self.classify_bmi(bmi_value),
+        }
