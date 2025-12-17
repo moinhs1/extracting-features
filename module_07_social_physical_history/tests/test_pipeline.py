@@ -137,3 +137,26 @@ class TestLoadPatientTimelines:
         """Test that load_patient_timelines function is importable."""
         from pipeline import load_patient_timelines
         assert callable(load_patient_timelines)
+
+
+class TestTransformerImports:
+    """Test that all transformers are properly exported from __init__.py."""
+
+    def test_can_import_all_builders(self):
+        """Test all builder classes can be imported from transformers package."""
+        from transformers import (
+            BMIBuilder,
+            WeightBuilder,
+            HeightBuilder,
+            BSABuilder,
+            BodyMeasurementsBuilder,
+            SmokingBuilder,
+            AlcoholBuilder,
+            DrugUseBuilder,
+            SocialHistoryBuilder,
+            PainBuilder,
+            FunctionalStatusBuilder,
+        )
+        assert BMIBuilder is not None
+        assert SmokingBuilder is not None
+        assert DrugUseBuilder is not None
