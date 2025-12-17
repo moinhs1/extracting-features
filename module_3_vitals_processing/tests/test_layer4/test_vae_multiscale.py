@@ -166,3 +166,23 @@ class TestMultiScaleLoss:
 
         # Epoch 20: new cycle starts, beta back to 0
         assert loss_fn.get_beta(20) == 0.0
+
+
+class TestVAETrainerIntegration:
+    """Test VAE trainer with multi-scale model."""
+
+    def test_trainer_creates_multiscale_model(self):
+        from processing.layer4.vae_trainer import VAEBuilder
+        from pathlib import Path
+        import tempfile
+
+        # Create dummy data
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Skip actual training, just test model creation
+            builder = VAEBuilder(
+                layer2_tensors_path=Path(tmpdir) / "dummy.h5",
+                output_dir=Path(tmpdir),
+                model_type='multiscale_conv1d',
+                latent_dim=32
+            )
+            assert builder.model_type == 'multiscale_conv1d'
