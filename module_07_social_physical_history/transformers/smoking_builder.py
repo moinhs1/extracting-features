@@ -64,6 +64,17 @@ class SmokingBuilder:
             return {'smoking_status_at_index': 'unknown', 'smoking_ever': False}
 
         records = self._get_status_records(empi)
+        if records.empty:
+            return {
+                'smoking_status_at_index': 'unknown',
+                'smoking_status_date': None,
+                'smoking_status_days_prior': None,
+                'smoking_status_stale': True,
+                'smoking_ever': False,
+                'smoking_current_at_index': False,
+                'smoking_former_at_index': False,
+            }
+
         valid = records[records['Date'] <= pd.Timestamp(index_date)]
 
         if valid.empty:

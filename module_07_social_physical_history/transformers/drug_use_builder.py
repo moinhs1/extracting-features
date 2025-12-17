@@ -60,6 +60,16 @@ class DrugUseBuilder:
             return {'drug_use_status_at_index': 'unknown', 'drug_use_ever': False}
 
         records = self._get_status_records(empi)
+        if records.empty:
+            return {
+                'drug_use_status_at_index': 'unknown',
+                'drug_use_status_date': None,
+                'drug_use_status_days_prior': None,
+                'drug_use_status_stale': True,
+                'drug_use_ever': False,
+                'drug_use_current_at_index': False,
+            }
+
         valid = records[records['Date'] <= pd.Timestamp(index_date)]
 
         if valid.empty:

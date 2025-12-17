@@ -220,6 +220,9 @@ class BMIBuilder:
             return self._empty_trend_features()
 
         records = self._get_patient_bmi_records(empi)
+        if records.empty:
+            return self._empty_trend_features()
+
         cutoff = pd.Timestamp(index_date) - timedelta(days=window_days)
         window_data = records[
             (records['Date'] >= cutoff) &

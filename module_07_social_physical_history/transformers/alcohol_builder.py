@@ -54,6 +54,16 @@ class AlcoholBuilder:
             return {'alcohol_status_at_index': 'unknown', 'alcohol_ever': False}
 
         records = self._get_status_records(empi)
+        if records.empty:
+            return {
+                'alcohol_status_at_index': 'unknown',
+                'alcohol_status_date': None,
+                'alcohol_status_days_prior': None,
+                'alcohol_status_stale': True,
+                'alcohol_ever': False,
+                'alcohol_current_at_index': False,
+            }
+
         valid = records[records['Date'] <= pd.Timestamp(index_date)]
 
         if valid.empty:
