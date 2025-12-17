@@ -190,3 +190,67 @@ class TestWindowAggregates:
 
         assert features['bmi_90d_mean'] is None
         assert features['bmi_90d_count'] == 0
+
+
+class TestTrendFeatures:
+    """Test trend calculation features."""
+
+    @pytest.fixture
+    def increasing_data(self):
+        """Data with increasing BMI trend."""
+        data = pd.DataFrame({
+            'EMPI': ['100001'] * 4,
+            'Date': ['1/1/2020', '2/1/2020', '3/1/2020', '4/1/2020'],
+            'Concept_Name': ['BMI'] * 4,
+            'Result': ['25.0', '27.0', '29.0', '31.0'],  # +24% change
+        })
+        index_dates = {'100001': datetime(2020, 4, 15)}
+        return data, index_dates
+
+    def test_calculates_pct_change(self, increasing_data):
+        """Calculates percent change correctly."""
+        from transformers.bmi_builder import BMIBuilder
+        data, index_dates = increasing_data
+        builder = BMIBuilder(data, index_dates)
+
+        features = builder.build_trend_features('100001')
+
+        # (31 - 25) / 25 * 100 = 24%
+        assert features['bmi_6mo_pct_change'] == pytest.approx(24.0)
+
+    def test_classifies_increasing_trend(self, increasing_data):
+        """Classifies increasing trend."""
+        from transformers.bmi_builder import BMIBuilder
+        data, index_dates = increasing_data
+        builder = BMIBuilder(data, index_dates)
+
+        features = builder.build_trend_features('100001')
+
+        assert features['bmi_trend'] == 'increasing'
+
+    def test_detects_became_obese(self, increasing_data):
+        """Detects crossing obesity threshold."""
+        from transformers.bmi_builder import BMIBuilder
+        data, index_dates = increasing_data
+        builder = BMIBuilder(data, index_dates)
+
+        features = builder.build_trend_features('100001')
+
+        # Started at 25 (overweight), ended at 31 (obese_1)
+        assert features['bmi_became_obese_1yr'] == True
+
+    def test_insufficient_data_returns_unknown(self):
+        """Returns unknown when insufficient data."""
+        from transformers.bmi_builder import BMIBuilder
+        data = pd.DataFrame({
+            'EMPI': ['100001'],
+            'Date': ['3/1/2020'],
+            'Concept_Name': ['BMI'],
+            'Result': ['28.0'],
+        })
+        index_dates = {'100001': datetime(2020, 4, 15)}
+        builder = BMIBuilder(data, index_dates)
+
+        features = builder.build_trend_features('100001')
+
+        assert features['bmi_trend'] == 'unknown'

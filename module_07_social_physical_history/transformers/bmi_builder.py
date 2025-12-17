@@ -203,3 +203,70 @@ class BMIBuilder:
                 features[f'bmi_{window_days}d_count'] = len(window_data)
 
         return features
+
+    def build_trend_features(self, empi: str, window_days: int = 180) -> Dict:
+        """
+        Build trend features over time window.
+
+        Args:
+            empi: Patient identifier
+            window_days: Window size for trend calculation
+
+        Returns:
+            Dict with first, last, change, pct_change, slope, trend
+        """
+        index_date = self.index_dates.get(empi)
+        if index_date is None:
+            return self._empty_trend_features()
+
+        records = self._get_patient_bmi_records(empi)
+        cutoff = pd.Timestamp(index_date) - timedelta(days=window_days)
+        window_data = records[
+            (records['Date'] >= cutoff) &
+            (records['Date'] <= pd.Timestamp(index_date))
+        ].sort_values('Date')
+
+        if len(window_data) < 2:
+            return self._empty_trend_features()
+
+        first_val = window_data.iloc[0]['Result_Numeric']
+        last_val = window_data.iloc[-1]['Result_Numeric']
+        change = last_val - first_val
+        pct_change = (change / first_val * 100) if first_val else None
+
+        # Linear regression for slope
+        x = (window_data['Date'] - window_data['Date'].min()).dt.days.values
+        y = window_data['Result_Numeric'].values
+        slope = np.polyfit(x, y, 1)[0] if len(x) >= 2 else None
+
+        # Detect if became obese in past year
+        year_ago = pd.Timestamp(index_date) - timedelta(days=365)
+        year_data = records[records['Date'] >= year_ago]
+        became_obese = False
+        if not year_data.empty and last_val and last_val >= 30:
+            earliest_in_year = year_data.iloc[0]['Result_Numeric']
+            became_obese = earliest_in_year < 30
+
+        return {
+            'bmi_6mo_first': first_val,
+            'bmi_6mo_last': last_val,
+            'bmi_6mo_change': change,
+            'bmi_6mo_pct_change': pct_change,
+            'bmi_6mo_slope': slope,
+            'bmi_trend': self.classify_trend(pct_change),
+            'bmi_became_obese_1yr': became_obese,
+            'bmi_highest_ever': records['Result_Numeric'].max() if not records.empty else None,
+        }
+
+    def _empty_trend_features(self) -> Dict:
+        """Return empty trend features dict."""
+        return {
+            'bmi_6mo_first': None,
+            'bmi_6mo_last': None,
+            'bmi_6mo_change': None,
+            'bmi_6mo_pct_change': None,
+            'bmi_6mo_slope': None,
+            'bmi_trend': 'unknown',
+            'bmi_became_obese_1yr': False,
+            'bmi_highest_ever': None,
+        }
