@@ -155,3 +155,51 @@ class BMIBuilder:
             'bmi_at_index_stale': days_prior > self.STALENESS_DAYS,
             'bmi_category_at_index': self.classify_bmi(bmi_value),
         }
+
+    def build_window_features(self, empi: str, windows: List[int] = [30, 90]) -> Dict:
+        """
+        Build window aggregate features.
+
+        Args:
+            empi: Patient identifier
+            windows: Window sizes in days
+
+        Returns:
+            Dict with mean, min, max, count for each window
+        """
+        index_date = self.index_dates.get(empi)
+        if index_date is None:
+            return {f'bmi_{w}d_{stat}': None
+                    for w in windows
+                    for stat in ['mean', 'min', 'max', 'count']}
+
+        records = self._get_patient_bmi_records(empi)
+        features = {}
+
+        if records.empty:
+            for window_days in windows:
+                features[f'bmi_{window_days}d_mean'] = None
+                features[f'bmi_{window_days}d_min'] = None
+                features[f'bmi_{window_days}d_max'] = None
+                features[f'bmi_{window_days}d_count'] = 0
+            return features
+
+        for window_days in windows:
+            cutoff = pd.Timestamp(index_date) - timedelta(days=window_days)
+            window_data = records[
+                (records['Date'] >= cutoff) &
+                (records['Date'] <= pd.Timestamp(index_date))
+            ]['Result_Numeric']
+
+            if window_data.empty:
+                features[f'bmi_{window_days}d_mean'] = None
+                features[f'bmi_{window_days}d_min'] = None
+                features[f'bmi_{window_days}d_max'] = None
+                features[f'bmi_{window_days}d_count'] = 0
+            else:
+                features[f'bmi_{window_days}d_mean'] = window_data.mean()
+                features[f'bmi_{window_days}d_min'] = window_data.min()
+                features[f'bmi_{window_days}d_max'] = window_data.max()
+                features[f'bmi_{window_days}d_count'] = len(window_data)
+
+        return features

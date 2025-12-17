@@ -131,3 +131,62 @@ class TestPointInTime:
         features = builder.build_point_in_time('100001')
 
         assert features['bmi_at_index'] is None
+
+
+class TestWindowAggregates:
+    """Test window aggregate features."""
+
+    @pytest.fixture
+    def multi_measurement_data(self):
+        """Create data with multiple measurements."""
+        data = pd.DataFrame({
+            'EMPI': ['100001'] * 5,
+            'Date': ['1/1/2020', '1/15/2020', '2/1/2020', '2/15/2020', '3/1/2020'],
+            'Concept_Name': ['BMI'] * 5,
+            'Result': ['28.0', '29.0', '30.0', '31.0', '32.0'],
+        })
+        index_dates = {'100001': datetime(2020, 3, 15)}
+        return data, index_dates
+
+    def test_90d_mean(self, multi_measurement_data):
+        """Calculates 90-day mean correctly."""
+        from transformers.bmi_builder import BMIBuilder
+        data, index_dates = multi_measurement_data
+        builder = BMIBuilder(data, index_dates)
+
+        features = builder.build_window_features('100001')
+
+        # All 5 values within 90 days of March 15
+        expected_mean = (28.0 + 29.0 + 30.0 + 31.0 + 32.0) / 5
+        assert features['bmi_90d_mean'] == pytest.approx(expected_mean)
+
+    def test_90d_min_max(self, multi_measurement_data):
+        """Calculates 90-day min and max."""
+        from transformers.bmi_builder import BMIBuilder
+        data, index_dates = multi_measurement_data
+        builder = BMIBuilder(data, index_dates)
+
+        features = builder.build_window_features('100001')
+
+        assert features['bmi_90d_min'] == 28.0
+        assert features['bmi_90d_max'] == 32.0
+
+    def test_90d_count(self, multi_measurement_data):
+        """Counts measurements in window."""
+        from transformers.bmi_builder import BMIBuilder
+        data, index_dates = multi_measurement_data
+        builder = BMIBuilder(data, index_dates)
+
+        features = builder.build_window_features('100001')
+
+        assert features['bmi_90d_count'] == 5
+
+    def test_empty_window_returns_none(self):
+        """Returns None for empty windows."""
+        from transformers.bmi_builder import BMIBuilder
+        builder = BMIBuilder(pd.DataFrame(), {'100001': datetime(2020, 3, 15)})
+
+        features = builder.build_window_features('100001')
+
+        assert features['bmi_90d_mean'] is None
+        assert features['bmi_90d_count'] == 0
