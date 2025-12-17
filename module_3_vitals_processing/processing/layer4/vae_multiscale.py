@@ -354,3 +354,96 @@ class MultiScaleConv1DVAE(nn.Module):
         mu, logvar = self.encoder(x, mask)
         z = self.reparameterize(mu, logvar)
         return z, mu, logvar
+
+
+class MultiScaleVAELoss(nn.Module):
+    """VAE loss with cyclical beta annealing and free bits.
+
+    Features:
+    - Per-branch reconstruction loss (optional)
+    - Free bits to prevent posterior collapse
+    - Cyclical beta annealing to escape local minima
+    """
+
+    def __init__(
+        self,
+        beta: float = 0.5,
+        free_bits: float = 2.0,
+        warmup_epochs: int = 30,
+        cycle_epochs: int = 40
+    ):
+        super().__init__()
+        self.target_beta = beta
+        self.free_bits = free_bits
+        self.warmup_epochs = warmup_epochs
+        self.cycle_epochs = cycle_epochs
+        self._current_beta = 0.0
+
+    def get_beta(self, epoch: int) -> float:
+        """Get beta value for current epoch with cyclical annealing."""
+        # Which cycle are we in?
+        cycle_position = epoch % self.cycle_epochs
+
+        # Warmup within cycle
+        if cycle_position < self.warmup_epochs:
+            beta = self.target_beta * (cycle_position / self.warmup_epochs)
+        else:
+            beta = self.target_beta
+
+        self._current_beta = beta
+        return beta
+
+    def forward(
+        self,
+        recon: torch.Tensor,
+        target: torch.Tensor,
+        mu: torch.Tensor,
+        logvar: torch.Tensor,
+        mask: Optional[torch.Tensor] = None,
+        branch_recons: Optional[list] = None
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        """Compute VAE loss.
+
+        Args:
+            recon: (batch, seq_len, dim) reconstruction
+            target: (batch, seq_len, dim) target
+            mu: (batch, latent_dim) mean
+            logvar: (batch, latent_dim) log variance
+            mask: Optional observation mask
+            branch_recons: Optional list of per-branch reconstructions
+
+        Returns:
+            total_loss, recon_loss, kl_loss
+        """
+        # Reconstruction loss
+        if mask is not None:
+            recon_error = ((recon - target) ** 2) * mask
+            recon_loss = recon_error.sum() / (mask.sum() + 1e-8)
+        else:
+            recon_loss = F.mse_loss(recon, target)
+
+        # Per-branch reconstruction loss (if provided)
+        if branch_recons is not None:
+            branch_losses = []
+            for branch_recon in branch_recons:
+                if mask is not None:
+                    br_error = ((branch_recon - target) ** 2) * mask
+                    br_loss = br_error.sum() / (mask.sum() + 1e-8)
+                else:
+                    br_loss = F.mse_loss(branch_recon, target)
+                branch_losses.append(br_loss)
+            recon_loss = (recon_loss + sum(branch_losses)) / (1 + len(branch_losses))
+
+        # KL divergence with free bits
+        kl_per_dim = -0.5 * (1 + logvar - mu.pow(2) - logvar.exp())  # (batch, latent_dim)
+
+        # Apply free bits: only penalize KL above threshold
+        if self.free_bits > 0:
+            kl_per_dim = torch.clamp(kl_per_dim - self.free_bits, min=0)
+
+        kl_loss = kl_per_dim.mean()
+
+        # Total loss
+        total_loss = recon_loss + self._current_beta * kl_loss
+
+        return total_loss, recon_loss, kl_loss

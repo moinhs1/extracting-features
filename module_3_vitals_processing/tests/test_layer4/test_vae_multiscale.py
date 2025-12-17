@@ -108,3 +108,61 @@ class TestMultiScaleVAE:
 
         # Should be different due to sampling
         assert not torch.allclose(z1, z2)
+
+
+class TestMultiScaleLoss:
+    """Test VAE loss with cyclical annealing."""
+
+    def test_loss_basic(self):
+        from processing.layer4.vae_multiscale import MultiScaleVAELoss
+
+        loss_fn = MultiScaleVAELoss(beta=1.0, free_bits=0.0)
+
+        recon = torch.randn(4, 745, 7)
+        target = torch.randn(4, 745, 7)
+        mu = torch.randn(4, 32)
+        logvar = torch.randn(4, 32)
+
+        total, recon_loss, kl_loss = loss_fn(recon, target, mu, logvar)
+
+        assert total.ndim == 0  # scalar
+        assert recon_loss.ndim == 0
+        assert kl_loss.ndim == 0
+        assert total >= 0
+
+    def test_loss_free_bits(self):
+        from processing.layer4.vae_multiscale import MultiScaleVAELoss
+
+        loss_fn = MultiScaleVAELoss(beta=1.0, free_bits=2.0)
+
+        recon = torch.zeros(4, 745, 7)
+        target = torch.zeros(4, 745, 7)
+        mu = torch.zeros(4, 32)  # Zero KL
+        logvar = torch.zeros(4, 32)
+
+        total, recon_loss, kl_loss = loss_fn(recon, target, mu, logvar)
+
+        # With free_bits=2.0 and zero actual KL, kl_loss should be 0
+        assert kl_loss == 0.0
+
+    def test_cyclical_beta(self):
+        from processing.layer4.vae_multiscale import MultiScaleVAELoss
+
+        loss_fn = MultiScaleVAELoss(
+            beta=0.5,
+            free_bits=2.0,
+            warmup_epochs=10,
+            cycle_epochs=20
+        )
+
+        # Epoch 0: beta should be 0
+        assert loss_fn.get_beta(0) == 0.0
+
+        # Epoch 5: beta should be 0.25 (halfway through warmup)
+        assert abs(loss_fn.get_beta(5) - 0.25) < 0.01
+
+        # Epoch 10: beta should be 0.5 (end of warmup)
+        assert abs(loss_fn.get_beta(10) - 0.5) < 0.01
+
+        # Epoch 20: new cycle starts, beta back to 0
+        assert loss_fn.get_beta(20) == 0.0
