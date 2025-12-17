@@ -270,3 +270,35 @@ class BMIBuilder:
             'bmi_became_obese_1yr': False,
             'bmi_highest_ever': None,
         }
+
+    def build_all_features(self, empi: str) -> Dict:
+        """
+        Build all BMI features for a patient.
+
+        Args:
+            empi: Patient identifier
+
+        Returns:
+            Dict with all BMI features
+        """
+        features = {'empi': empi}
+        features.update(self.build_point_in_time(empi))
+        features.update(self.build_window_features(empi))
+        features.update(self.build_trend_features(empi))
+        return features
+
+    def build_for_cohort(self, empis: List[str]) -> pd.DataFrame:
+        """
+        Build BMI features for entire cohort.
+
+        Args:
+            empis: List of patient identifiers
+
+        Returns:
+            DataFrame with one row per patient
+        """
+        all_features = []
+        for empi in empis:
+            features = self.build_all_features(empi)
+            all_features.append(features)
+        return pd.DataFrame(all_features)

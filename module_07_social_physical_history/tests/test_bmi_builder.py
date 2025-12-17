@@ -254,3 +254,82 @@ class TestTrendFeatures:
         features = builder.build_trend_features('100001')
 
         assert features['bmi_trend'] == 'unknown'
+
+
+class TestBuildAllFeatures:
+    """Test combined feature building."""
+
+    def test_builds_all_feature_types(self):
+        """Builds point-in-time, window, and trend features."""
+        from transformers.bmi_builder import BMIBuilder
+        data = pd.DataFrame({
+            'EMPI': ['100001'] * 4,
+            'Date': ['1/1/2020', '2/1/2020', '3/1/2020', '4/1/2020'],
+            'Concept_Name': ['BMI'] * 4,
+            'Result': ['28.0', '29.0', '30.0', '31.0'],
+        })
+        index_dates = {'100001': datetime(2020, 4, 15)}
+        builder = BMIBuilder(data, index_dates)
+
+        features = builder.build_all_features('100001')
+
+        # Point-in-time
+        assert 'bmi_at_index' in features
+        assert features['bmi_at_index'] == 31.0
+
+        # Window (90 days before 4/15 is 1/16, so only 3 dates: 2/1, 3/1, 4/1)
+        assert 'bmi_90d_mean' in features
+        assert features['bmi_90d_count'] == 3
+
+        # Trend
+        assert 'bmi_trend' in features
+        assert 'bmi_6mo_pct_change' in features
+
+    def test_includes_empi_in_features(self):
+        """Includes EMPI in output."""
+        from transformers.bmi_builder import BMIBuilder
+        data = pd.DataFrame({
+            'EMPI': ['100001'],
+            'Date': ['3/1/2020'],
+            'Concept_Name': ['BMI'],
+            'Result': ['28.0'],
+        })
+        index_dates = {'100001': datetime(2020, 4, 15)}
+        builder = BMIBuilder(data, index_dates)
+
+        features = builder.build_all_features('100001')
+
+        assert features['empi'] == '100001'
+
+    def test_build_for_cohort_returns_dataframe(self):
+        """build_for_cohort returns DataFrame with all patients."""
+        from transformers.bmi_builder import BMIBuilder
+        data = pd.DataFrame({
+            'EMPI': ['100001', '100001', '100002', '100002'],
+            'Date': ['1/1/2020', '2/1/2020', '1/15/2020', '2/15/2020'],
+            'Concept_Name': ['BMI'] * 4,
+            'Result': ['28.0', '29.0', '30.0', '31.0'],
+        })
+        index_dates = {
+            '100001': datetime(2020, 3, 15),
+            '100002': datetime(2020, 3, 15),
+        }
+        builder = BMIBuilder(data, index_dates)
+
+        df = builder.build_for_cohort(['100001', '100002'])
+
+        assert isinstance(df, pd.DataFrame)
+        assert len(df) == 2
+        assert 'empi' in df.columns
+        assert 'bmi_at_index' in df.columns
+        assert set(df['empi'].tolist()) == {'100001', '100002'}
+
+    def test_build_for_cohort_handles_empty_list(self):
+        """build_for_cohort handles empty patient list."""
+        from transformers.bmi_builder import BMIBuilder
+        builder = BMIBuilder(pd.DataFrame(), {})
+
+        df = builder.build_for_cohort([])
+
+        assert isinstance(df, pd.DataFrame)
+        assert len(df) == 0
