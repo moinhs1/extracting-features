@@ -145,3 +145,60 @@ class SmokingBuilder:
             'smoking_pack_years': pack_years,
             'smoking_pack_years_category': self._categorize_pack_years(pack_years),
         }
+
+    def build_quit_features(self, empi: str) -> Dict:
+        """Build quit date features for a patient.
+
+        Returns:
+            Dict with:
+                - smoking_quit_date: parsed quit date from Result field
+                - smoking_quit_days_ago: days between quit date and index
+                - smoking_quit_recent_90d: True if quit within 90 days (critical for VTE risk!)
+                - smoking_quit_recent_1yr: True if quit within 1 year
+        """
+        index_date = self.index_dates.get(empi)
+        if index_date is None:
+            return {'smoking_quit_date': None}
+
+        if self.phy_data.empty:
+            return {
+                'smoking_quit_date': None,
+                'smoking_quit_days_ago': None,
+                'smoking_quit_recent_90d': False,
+                'smoking_quit_recent_1yr': False,
+            }
+
+        mask = (
+            (self.phy_data['EMPI'] == empi) &
+            (self.phy_data['Concept_Name'] == 'Smoking Quit Date')
+        )
+        records = self.phy_data[mask].sort_values('Date')
+
+        if records.empty:
+            return {
+                'smoking_quit_date': None,
+                'smoking_quit_days_ago': None,
+                'smoking_quit_recent_90d': False,
+                'smoking_quit_recent_1yr': False,
+            }
+
+        # Parse quit date from Result field
+        latest = records.iloc[-1]
+        quit_date = pd.to_datetime(latest['Result'], errors='coerce')
+
+        if pd.isna(quit_date):
+            return {
+                'smoking_quit_date': None,
+                'smoking_quit_days_ago': None,
+                'smoking_quit_recent_90d': False,
+                'smoking_quit_recent_1yr': False,
+            }
+
+        days_since_quit = (pd.Timestamp(index_date) - quit_date).days
+
+        return {
+            'smoking_quit_date': quit_date,
+            'smoking_quit_days_ago': days_since_quit,
+            'smoking_quit_recent_90d': 0 <= days_since_quit <= 90,
+            'smoking_quit_recent_1yr': 0 <= days_since_quit <= 365,
+        }

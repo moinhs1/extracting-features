@@ -133,3 +133,58 @@ class TestPackYears:
         builder = SmokingBuilder(data, index_dates)
         features = builder.build_quantitative_features('100001')
         assert features['smoking_pack_years'] is None
+
+
+class TestQuitFeatures:
+    def test_extracts_quit_date(self):
+        from transformers.smoking_builder import SmokingBuilder
+        data = pd.DataFrame({
+            'EMPI': ['100001'],
+            'Date': ['1/1/2020'],
+            'Concept_Name': ['Smoking Quit Date'],
+            'Result': ['6/1/2019'],
+        })
+        index_dates = {'100001': datetime(2020, 3, 15)}
+        builder = SmokingBuilder(data, index_dates)
+        features = builder.build_quit_features('100001')
+        assert features['smoking_quit_date'] == pd.Timestamp('2019-06-01')
+
+    def test_calculates_days_since_quit(self):
+        from transformers.smoking_builder import SmokingBuilder
+        data = pd.DataFrame({
+            'EMPI': ['100001'],
+            'Date': ['1/1/2020'],
+            'Concept_Name': ['Smoking Quit Date'],
+            'Result': ['1/1/2020'],
+        })
+        index_dates = {'100001': datetime(2020, 3, 15)}
+        builder = SmokingBuilder(data, index_dates)
+        features = builder.build_quit_features('100001')
+        # March 15 - Jan 1 = 74 days
+        assert features['smoking_quit_days_ago'] == 74
+
+    def test_flags_recent_90d_quit(self):
+        from transformers.smoking_builder import SmokingBuilder
+        data = pd.DataFrame({
+            'EMPI': ['100001'],
+            'Date': ['1/1/2020'],
+            'Concept_Name': ['Smoking Quit Date'],
+            'Result': ['2/1/2020'],  # 43 days before index
+        })
+        index_dates = {'100001': datetime(2020, 3, 15)}
+        builder = SmokingBuilder(data, index_dates)
+        features = builder.build_quit_features('100001')
+        assert features['smoking_quit_recent_90d'] == True
+
+    def test_not_recent_if_over_90d(self):
+        from transformers.smoking_builder import SmokingBuilder
+        data = pd.DataFrame({
+            'EMPI': ['100001'],
+            'Date': ['1/1/2020'],
+            'Concept_Name': ['Smoking Quit Date'],
+            'Result': ['1/1/2019'],  # Over 1 year ago
+        })
+        index_dates = {'100001': datetime(2020, 3, 15)}
+        builder = SmokingBuilder(data, index_dates)
+        features = builder.build_quit_features('100001')
+        assert features['smoking_quit_recent_90d'] == False
