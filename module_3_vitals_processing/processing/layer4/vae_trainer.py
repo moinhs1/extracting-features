@@ -34,24 +34,26 @@ class VAETrainer:
 
     def __init__(
         self,
-        model: LSTMVAE,
+        model: torch.nn.Module,
         device: str = 'auto',
         beta: float = 1.0,
         learning_rate: float = 1e-3,
         weight_decay: float = 1e-5,
         beta_warmup_epochs: int = 0,
-        free_bits: float = 0.0
+        free_bits: float = 0.0,
+        loss_fn: Optional[torch.nn.Module] = None
     ):
         """Initialize trainer.
 
         Args:
-            model: LSTMVAE model to train
+            model: VAE model to train (LSTMVAE, MultiScaleConv1DVAE, etc.)
             device: 'cuda', 'cpu', or 'auto'
             beta: Target KL weight for β-VAE (reached after warmup)
             learning_rate: Initial learning rate
             weight_decay: L2 regularization
             beta_warmup_epochs: Epochs to linearly anneal β from 0 to target (prevents posterior collapse)
             free_bits: Minimum KL per dimension before penalty applies
+            loss_fn: Optional loss function (if None, creates VAELoss with given params)
         """
         if device == 'auto':
             device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -61,7 +63,13 @@ class VAETrainer:
         self.target_beta = beta
         self.beta_warmup_epochs = beta_warmup_epochs
         self.free_bits = free_bits
-        self.loss_fn = VAELoss(beta=0.0 if beta_warmup_epochs > 0 else beta, free_bits=free_bits)
+
+        # Use provided loss_fn or create default
+        if loss_fn is not None:
+            self.loss_fn = loss_fn
+        else:
+            self.loss_fn = VAELoss(beta=0.0 if beta_warmup_epochs > 0 else beta, free_bits=free_bits)
+
         self.optimizer = Adam(
             model.parameters(),
             lr=learning_rate,
@@ -196,7 +204,9 @@ class VAETrainer:
         Returns:
             Training history dict
         """
-        logger.info(f"Training VAE: {epochs} epochs, batch_size={batch_size}, β={self.loss_fn.beta}")
+        # Get initial beta for logging
+        initial_beta = getattr(self.loss_fn, 'beta', None) or getattr(self.loss_fn, 'target_beta', self.target_beta)
+        logger.info(f"Training VAE: {epochs} epochs, batch_size={batch_size}, β={initial_beta}")
 
         train_loader, val_loader = self._create_dataloaders(
             values, masks, batch_size, val_split
@@ -207,8 +217,12 @@ class VAETrainer:
 
         for epoch in range(epochs):
             # Update beta for this epoch (annealing)
-            current_beta = self._get_beta(epoch)
-            self.loss_fn.beta = current_beta
+            # Use loss_fn's get_beta() if available, otherwise use local _get_beta()
+            if hasattr(self.loss_fn, 'get_beta'):
+                current_beta = self.loss_fn.get_beta(epoch)
+            else:
+                current_beta = self._get_beta(epoch)
+                self.loss_fn.beta = current_beta
 
             # Train
             train_loss, train_recon, train_kl = self._train_epoch(train_loader)
@@ -450,13 +464,15 @@ class VAEBuilder:
             )
 
         # Create trainer with β-annealing to prevent posterior collapse
+        # Pass the loss_fn so trainer uses it instead of creating its own
         self.trainer = VAETrainer(
             model,
             device='auto',
             beta=self.beta,
             learning_rate=learning_rate,
             beta_warmup_epochs=self.beta_warmup_epochs,
-            free_bits=self.free_bits
+            free_bits=self.free_bits,
+            loss_fn=loss_fn
         )
 
         # Train
