@@ -319,25 +319,46 @@ class VAETrainer:
 
     def save_model(self, path: Path):
         """Save model weights."""
-        torch.save({
-            'model_state': self.model.state_dict(),
-            'config': {
+        # Detect model type and save appropriate config
+        if hasattr(self.model.encoder, 'lstm'):
+            # LSTM-based VAE
+            model_type = 'lstm'
+            config = {
+                'model_type': model_type,
                 'input_dim': self.model.encoder.input_proj.in_features,
                 'hidden_dim': self.model.encoder.lstm.hidden_size,
                 'latent_dim': self.model.latent_dim,
                 'seq_len': self.model.decoder.seq_len,
                 'n_layers': self.model.encoder.lstm.num_layers
             }
+        else:
+            # MultiScale Conv1D VAE
+            model_type = 'multiscale_conv1d'
+            config = {
+                'model_type': model_type,
+                'input_dim': self.model.encoder.input_dim,
+                'latent_dim': self.model.latent_dim,
+                'seq_len': self.model.seq_len,
+                'base_channels': self.model.encoder.fc_merge.in_features // 4
+            }
+
+        torch.save({
+            'model_state': self.model.state_dict(),
+            'config': config
         }, path)
-        logger.info(f"Saved model to {path}")
+        logger.info(f"Saved {model_type} model to {path}")
 
     @classmethod
     def load_model(cls, path: Path, device: str = 'auto') -> 'VAETrainer':
         """Load model from checkpoint."""
         checkpoint = torch.load(path, map_location='cpu')
         config = checkpoint['config']
+        model_type = config.pop('model_type', 'lstm')
 
-        model = LSTMVAE(**config)
+        if model_type == 'multiscale_conv1d':
+            model = MultiScaleConv1DVAE(**config)
+        else:
+            model = LSTMVAE(**config)
         model.load_state_dict(checkpoint['model_state'])
 
         trainer = cls(model, device=device)
