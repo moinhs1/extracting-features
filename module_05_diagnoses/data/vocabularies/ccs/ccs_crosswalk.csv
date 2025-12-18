@@ -1,0 +1,40 @@
+icd_code,icd_version,ccs_category,ccs_description
+I26,10,103,Pulmonary heart disease
+I26.0,10,103,Pulmonary heart disease
+I26.9,10,103,Pulmonary heart disease
+I50,10,108,Congestive heart failure
+I48,10,106,Cardiac dysrhythmias
+I21,10,100,Acute myocardial infarction
+I25,10,101,Coronary atherosclerosis
+J44,10,127,Chronic obstructive pulmonary disease and bronchiectasis
+J45,10,128,Asthma
+E11,10,50,Diabetes mellitus with complications
+E10,10,49,Diabetes mellitus without complication
+C34,10,19,Cancer of bronchus; lung
+C50,10,24,Cancer of breast
+N18,10,158,Chronic kidney disease
+I10,10,98,Essential hypertension
+I82,10,118,Phlebitis; thrombophlebitis and thromboembolism
+K92,10,153,Gastrointestinal hemorrhage
+D69,10,62,Coagulation and hemorrhagic disorders
+I60,10,109,Acute cerebrovascular disease
+I61,10,109,Acute cerebrovascular disease
+I62,10,109,Acute cerebrovascular disease
+N17,10,157,Acute and unspecified renal failure
+410,9,100,Acute myocardial infarction
+428,9,108,Congestive heart failure
+415,9,103,Pulmonary heart disease
+427,9,106,Cardiac dysrhythmias
+491,9,127,Chronic obstructive pulmonary disease and bronchiectasis
+492,9,127,Chronic obstructive pulmonary disease and bronchiectasis
+493,9,128,Asthma
+250,9,49,Diabetes mellitus without complication
+162,9,19,Cancer of bronchus; lung
+585,9,158,Chronic kidney disease
+401,9,98,Essential hypertension
+453,9,118,Phlebitis; thrombophlebitis and thromboembolism
+578,9,153,Gastrointestinal hemorrhage
+286,9,62,Coagulation and hemorrhagic disorders
+430,9,109,Acute cerebrovascular disease
+431,9,109,Acute cerebrovascular disease
+584,9,157,Acute and unspecified renal failure
