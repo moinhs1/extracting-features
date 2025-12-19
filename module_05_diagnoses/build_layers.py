@@ -6,7 +6,7 @@ import pickle
 import pandas as pd
 from extractors.diagnosis_extractor import extract_diagnoses_for_patients, filter_excluded_codes
 from processing.layer1_builder import build_layer1
-from processing.layer2_builder import build_layer2_comorbidity_scores, save_layer2
+from processing.layer2_builder import build_layer2_comorbidity_scores, build_layer2_ccs_categories, save_layer2
 from processing.layer3_builder import build_layer3
 
 
@@ -98,13 +98,29 @@ def run_pipeline(
             layer1_path = output_path / "layer1" / "canonical_diagnoses.parquet"
             layer1_df = pd.read_parquet(layer1_path)
 
-        print("Building Layer 2 (comorbidity scores)...")
-        layer2_df = build_layer2_comorbidity_scores(layer1_df)
-        print(f"  Layer 2: {len(layer2_df)} patients with scores")
+        print("Building Layer 2 (comorbidity scores + CCS categories)...")
+
+        # Build comorbidity scores (CCI + Elixhauser)
+        layer2_scores = build_layer2_comorbidity_scores(layer1_df)
+        print(f"  Comorbidity scores: {len(layer2_scores)} patients")
+
+        # Build CCS categories
+        # Get module directory from this file's location
+        module_dir = Path(__file__).parent
+        ccs_path = module_dir / "data" / "vocabularies" / "ccs" / "ccs_crosswalk.csv"
+
+        if ccs_path.exists():
+            layer2_ccs = build_layer2_ccs_categories(layer1_df, ccs_path)
+            print(f"  CCS categories: {len(layer2_ccs)} rows for {layer2_ccs['EMPI'].nunique()} patients")
+        else:
+            layer2_ccs = pd.DataFrame()
+            print(f"  CCS crosswalk not found at {ccs_path}, skipping CCS categorization")
 
         # Save Layer 2
-        save_layer2(layer2_df, output_path / "layer2")
-        print(f"  Saved to {output_path / 'layer2' / 'comorbidity_scores.parquet'}")
+        save_layer2(layer2_scores, layer2_ccs, output_path / "layer2")
+        print(f"  Saved comorbidity scores to {output_path / 'layer2' / 'comorbidity_scores.parquet'}")
+        if not layer2_ccs.empty:
+            print(f"  Saved CCS categories to {output_path / 'layer2' / 'ccs_categories.parquet'}")
 
     # Build Layer 3
     if 3 in layers:
