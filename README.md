@@ -61,7 +61,7 @@ open outputs/discovery/test_n10_cluster_dendrogram_interactive.html
 |--------|---------|--------|-------|
 | **1. Core Infrastructure** | Time Zero, temporal windows, outcomes | ✅ Complete | - |
 | **2. Lab Processing** | LOINC harmonization, temporal features | ✅ Complete | 22 |
-| **3. Vitals Processing** | NLP extraction, hourly grid, tensors | 🔄 Phase 1 Complete | 252 |
+| **3. Vitals Processing** | NLP extraction, Multi-Scale VAE, world states | ✅ Complete | 443 |
 | **4. Medication Processing** | RxNorm mapping, 5-layer encoding | ✅ Complete | 67 |
 | **5. Diagnoses Processing** | ICD-10 encoding, comorbidities | ⬜ Not Started | - |
 | **6. Procedure Encoding** | CCS mapping, 5-layer encoding, world models | ✅ Complete | 145 |
@@ -146,29 +146,46 @@ outputs/discovery/
 
 ---
 
-### Module 3: Vitals Processing 🔄
+### Module 3: Vitals Processing ✅
 
-**Purpose:** Extract vital signs from structured and unstructured sources, create hourly aligned tensors
+**Purpose:** Extract vital signs from structured and unstructured sources, create multi-scale temporal embeddings
 
-**Status:** Phase 1 Complete (Layers 1-2), 252 tests passing
+**Status:** COMPLETE (All 5 Layers), 443 tests passing
 
 #### Architecture: 5-Layer System
 
-| Layer | Purpose | Output |
-|-------|---------|--------|
-| **Layer 1** | Canonical Records | `canonical_vitals.parquet` |
-| **Layer 2** | Hourly Grid + Tensors | `hourly_tensors.h5` |
-| **Layer 3** | Feature Engineering | `engineered_features.parquet` |
-| **Layer 4** | Embeddings | FPCA, autoencoder latents |
-| **Layer 5** | World Model States | Dynamics learning |
+| Layer | Purpose | Output | Status |
+|-------|---------|--------|--------|
+| **Layer 1** | Canonical Records | `canonical_vitals.parquet` (3.5M records) | ✅ Complete |
+| **Layer 2** | Hourly Grid + Tensors | `hourly_tensors.h5` (7,689 × 745 × 7) | ✅ Complete |
+| **Layer 3** | Feature Engineering | `timeseries_features.parquet` (315 cols) | ✅ Complete |
+| **Layer 4** | Multi-Scale VAE + FPCA | `vae_latents.h5`, `fpca_scores.parquet` | ✅ Complete |
+| **Layer 5** | World Model States | `world_states.h5` (100-dim per hour) | ✅ Complete |
+
+#### Multi-Scale Conv1D VAE (Layer 4)
+
+The VAE uses **4 parallel convolutional branches** to capture patterns at different temporal scales:
+
+| Branch | Kernel Sizes | Patterns Captured |
+|--------|--------------|-------------------|
+| Local | k=3, 5 | Beat-to-beat variability |
+| Hourly | k=15, 31 | Hour-scale trends |
+| Daily | k=63, 127 | Circadian patterns |
+| Multi-day | k=255 | Long-term trajectories |
+
+**Anti-Collapse Measures:**
+- Cyclical β-annealing (0→0.5 every 40 epochs)
+- Free bits (2.0 per latent dimension)
+- Per-branch reconstruction loss
+- Results: mu_std=0.42 (healthy latent space)
 
 #### Data Sources
 
 | Source | File | Records | Extraction |
 |--------|------|---------|------------|
-| PHY (Structured) | `Phy.txt` | 2.7 GB | Direct parsing |
-| HNP (H&P Notes) | `Hnp.txt` | 2.3 GB | NLP extraction |
-| PRG (Progress Notes) | `Prg.txt` | 29.7 GB | NLP extraction |
+| PHY (Structured) | `Phy.txt` | 160K | Direct parsing |
+| HNP (H&P Notes) | `Hnp.txt` | 1.1M | NLP extraction |
+| PRG (Progress Notes) | `Prg.txt` | 18.7M | NLP extraction |
 
 #### Vital Signs Extracted
 
@@ -180,10 +197,10 @@ outputs/discovery/
 
 **Key Files:**
 - `module_3_vitals_processing/extractors/` - PHY, HNP, PRG extractors
-- `module_3_vitals_processing/processing/` - Layer builders
+- `module_3_vitals_processing/processing/layer4/vae_multiscale.py` - Multi-Scale VAE
 - `module_3_vitals_processing/config/vitals_config.py` - Central config
 
-**Documentation:** See [docs/plans/2025-12-08-vitals-5-layer-architecture-design.md](docs/plans/2025-12-08-vitals-5-layer-architecture-design.md)
+**Documentation:** See [module_3_vitals_processing/README.md](module_3_vitals_processing/README.md)
 
 ---
 

@@ -1,5 +1,5 @@
 # System Architecture
-*Last Updated: 2025-12-17*
+*Last Updated: 2025-12-18*
 
 ## High-Level Pipeline Overview
 
@@ -25,9 +25,12 @@ flowchart TB
         M2_Phase2[Phase 2: Feature Engineering<br/>72 Features per Test]
     end
 
-    subgraph Module3["Module 3: Vitals Processing"]
-        M3_Extract[Extract Vital Signs<br/>HR, BP, SpO2, RR, Temp]
-        M3_Features[Temporal Features]
+    subgraph Module3["Module 3: Vitals Processing ✅"]
+        M3_Extract[Layer 1: Canonical Vitals<br/>3.5M records, 7 vital types]
+        M3_Grid[Layer 2: Hourly Grid<br/>5.7M rows × 745 hours]
+        M3_Features[Layer 3: Features<br/>315 timeseries + 4,426 summary]
+        M3_Embed[Layer 4: Embeddings<br/>Multi-Scale VAE + FPCA]
+        M3_World[Layer 5: World States<br/>7,689 × 745 × 100]
     end
 
     subgraph Module4["Module 4: Medication Processing ✅"]
@@ -206,6 +209,86 @@ flowchart TB
     P2_Feat --> F3
     P2_Feat --> F4
 ```
+
+## Module 3: Vitals Processing ✅ COMPLETE
+
+```mermaid
+flowchart TB
+    subgraph Layer1["Layer 1: Canonical Extraction"]
+        L1_PHY[PHY Extractor<br/>160K structured]
+        L1_HNP[HNP Extractor<br/>1.1M from H&P notes]
+        L1_PRG[PRG Extractor<br/>18.7M from Progress]
+        L1_Merge[Merge + Validate<br/>3.5M canonical records]
+    end
+
+    subgraph Layer2["Layer 2: Hourly Grid"]
+        L2_Aggregate[Hourly Aggregation<br/>-24h to +720h = 745 bins]
+        L2_Impute[4-Tier Imputation<br/>Observed → FFill → Patient → Cohort]
+        L2_Tensor[HDF5 Tensors<br/>7,689 × 745 × 7]
+    end
+
+    subgraph Layer3["Layer 3: Features"]
+        L3_Composite[Composite Vitals<br/>Shock index, Pulse pressure]
+        L3_Rolling[Rolling Stats<br/>6h/12h/24h windows]
+        L3_Trend[Trend Features<br/>Slope, R², Direction]
+        L3_Var[Variability<br/>RMSSD, Successive var]
+        L3_Summary[Summary Aggregation<br/>5 clinical windows]
+    end
+
+    subgraph Layer4["Layer 4: Embeddings"]
+        L4_FPCA[FPCA Builder<br/>10 components × 7 vitals]
+        L4_VAE[Multi-Scale Conv1D VAE<br/>4 temporal branches, 32-dim latent]
+        L4_DTW[DTW Clustering<br/>Validation baseline]
+        L4_HDBSCAN[HDBSCAN Clustering<br/>102-dim combined]
+    end
+
+    subgraph Layer5["Layer 5: World States"]
+        L5_Assemble[State Assembly<br/>7,689 × 745 × 100 dims]
+        L5_Schema[Schema: vitals, masks, FPCA, VAE,<br/>trends, clusters, reserved]
+    end
+
+    L1_PHY --> L1_Merge
+    L1_HNP --> L1_Merge
+    L1_PRG --> L1_Merge
+    L1_Merge --> L2_Aggregate
+    L2_Aggregate --> L2_Impute
+    L2_Impute --> L2_Tensor
+    L2_Tensor --> L3_Composite
+    L2_Tensor --> L3_Rolling
+    L2_Tensor --> L3_Trend
+    L2_Tensor --> L3_Var
+    L3_Composite --> L3_Summary
+    L3_Rolling --> L3_Summary
+    L3_Trend --> L3_Summary
+    L3_Var --> L3_Summary
+    L2_Tensor --> L4_FPCA
+    L2_Tensor --> L4_VAE
+    L4_FPCA --> L4_HDBSCAN
+    L4_VAE --> L4_HDBSCAN
+    L2_Tensor --> L4_DTW
+    L4_FPCA --> L5_Assemble
+    L4_VAE --> L5_Assemble
+    L4_HDBSCAN --> L5_Assemble
+    L3_Summary --> L5_Assemble
+    L5_Assemble --> L5_Schema
+```
+
+### Multi-Scale Conv1D VAE Architecture
+
+The VAE uses 4 parallel convolutional branches to prevent posterior collapse:
+
+| Branch | Encoder Kernels | Patterns | Purpose |
+|--------|-----------------|----------|---------|
+| Local | k=3, 5 | Beat-to-beat | Rapid variability |
+| Hourly | k=15, 31 | Hour-scale | Short-term trends |
+| Daily | k=63, 127 | Day-scale | Circadian patterns |
+| Multi-day | k=255 | Multi-day | Long-term trajectories |
+
+**Anti-Collapse Measures:**
+- Cyclical β-annealing (0→0.5 every 40 epochs)
+- Free bits (2.0 per latent dimension)
+- Per-branch reconstruction loss
+- Multi-scale forces encoding all resolutions
 
 ## Module 4: Medication Processing ✅ COMPLETE
 
@@ -476,6 +559,7 @@ TDA_11_25/
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 5.1 | 2025-12-18 | Module 3 Multi-Scale Conv1D VAE - replaces collapsed LSTM-VAE, 4 temporal branches, cyclical β-annealing |
 | 5.0 | 2025-12-17 | Module 6 COMPLETE - 5-layer procedure encoding, 145 tests, world model support |
 | 4.0 | 2025-12-12 | Module 4 COMPLETE - All 8 phases, bug fixes (heparin mapping, DDD expansion) |
 | 3.0 | 2025-12-11 | Module 4 Layers 1-4 complete (581 med indicators, embeddings) |

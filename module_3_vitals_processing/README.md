@@ -1,8 +1,8 @@
 # Module 3: Comprehensive Vitals Extraction & Processing
 
-**Version:** 3.4
+**Version:** 3.5
 **Status:** ALL PHASES COMPLETE
-**Last Updated:** 2025-12-15
+**Last Updated:** 2025-12-18
 **Dependencies:** Module 1 (patient_timelines.pkl)
 
 ---
@@ -39,13 +39,13 @@
 | Component | Status | Tests | Description |
 |-----------|--------|-------|-------------|
 | **3.7 FPCA Builder** | ✅ COMPLETE | 4 | 10 components × 7 vitals, 76-92% variance explained |
-| **3.8 LSTM-VAE** | ✅ COMPLETE | 6 | 32-dim latent, MSE=0.0094, 26 epochs |
+| **3.8 Multi-Scale Conv1D VAE** | ✅ COMPLETE | 16 | 32-dim latent, 4 temporal branches, cyclical β-annealing |
 | **3.9 DTW Clustering** | ✅ COMPLETE | 1 | Silhouette: HR 0.33, MAP 0.26 (acute window) |
 | **3.10 HDBSCAN Clustering** | ✅ COMPLETE | 3 | 102-dim combined (FPCA+VAE), 2 clusters |
 | **3.11 Layer 4 Builder** | ✅ COMPLETE | - | Orchestrates all embedding components |
 | **3.12 Layer 5 Builder** | ✅ COMPLETE | - | 100-dim world states (7689×745×100) |
 
-**Total Tests:** 413 passing
+**Total Tests:** 443 passing
 
 ---
 
@@ -93,7 +93,7 @@
 ┌─────────────────────────────────────────────────────────────────┐
 │ LAYER 4: Embeddings & Clustering (3.7-3.10)         ✅ COMPLETE │
 │ • FPCA: 10 components × 7 vitals (scikit-fda)                   │
-│ • LSTM-VAE: 32-dim latent representations (PyTorch)             │
+│ • Multi-Scale Conv1D VAE: 32-dim latents (4 temporal branches)  │
 │ • DTW clustering (validation) + HDBSCAN (primary)               │
 │ Output: fpca_scores.parquet (7,689 × 77 features)               │
 │ Output: vae_latents.h5 (7,689 × 32 dims)                        │
@@ -318,7 +318,14 @@ Functional Principal Component Analysis extracts interpretable trajectory shape 
 
 ### VAE Latents (`vae_latents.h5`)
 
-LSTM Variational Autoencoder learns nonlinear temporal embeddings.
+**Multi-Scale Conv1D Variational Autoencoder** learns nonlinear temporal embeddings using 4 parallel convolutional branches that capture patterns at different temporal scales:
+
+| Branch | Kernel Sizes | Temporal Scale | Patterns Captured |
+|--------|--------------|----------------|-------------------|
+| Local | k=3, 5 | Beat-to-beat | Rapid variability |
+| Hourly | k=15, 31 | Hour-scale | Short-term trends |
+| Daily | k=63, 127 | Day-scale | Circadian patterns |
+| Multi-day | k=255 | Multi-day | Long-term trajectories |
 
 ```
 /mu           (7689, 32)       # Patient-level mean embedding
@@ -327,10 +334,17 @@ LSTM Variational Autoencoder learns nonlinear temporal embeddings.
 /patient_index (7689,)         # EMPI mapping
 ```
 
+**Anti-Collapse Measures:**
+- **Multi-scale architecture**: Forces latent to encode all temporal resolutions
+- **Cyclical β-annealing**: Cycles β from 0→0.5 every 40 epochs to escape local minima
+- **Free bits (2.0)**: Per-dimension KL threshold prevents over-compression
+- **Per-branch reconstruction loss**: Each branch must reconstruct from shared latent
+
 **Training Results:**
-- Epochs: 26 (early stopping)
-- Best validation loss: 0.0094
-- Mean reconstruction error: 0.0113
+- Model: MultiScaleConv1DVAE (4 branches, 32-dim latent)
+- Epochs: 150 (with early stopping patience=30)
+- Latent mu std: 0.42 (healthy, not collapsed)
+- Latent logvar mean: -3.9 (proper uncertainty encoding)
 
 ### DTW Clusters (`clusters_dtw.parquet`)
 
@@ -547,7 +561,8 @@ module_3_vitals_processing/
 │   └── layer4/                       # Layer 4 embedding components
 │       ├── __init__.py
 │       ├── fpca_builder.py           # ✅ FPCA (scikit-fda)
-│       ├── vae_model.py              # ✅ LSTM-VAE architecture
+│       ├── vae_model.py              # ✅ LSTM-VAE architecture (legacy)
+│       ├── vae_multiscale.py         # ✅ Multi-Scale Conv1D VAE (primary)
 │       ├── vae_trainer.py            # ✅ VAE training + inference
 │       ├── clustering_dtw.py         # ✅ DTW clustering (tslearn)
 │       └── clustering_embedding.py   # ✅ HDBSCAN clustering
@@ -578,7 +593,10 @@ module_3_vitals_processing/
 │   └── test_layer4/                  # Layer 4 embedding tests
 │       ├── __init__.py
 │       ├── test_fpca_builder.py      # ✅ 4 tests
-│       ├── test_vae_model.py         # ✅ 6 tests
+│       ├── test_vae_model.py         # ✅ 6 tests (LSTM-VAE)
+│       ├── test_vae_multiscale.py    # ✅ 10 tests (Multi-Scale VAE)
+│       ├── test_vae_trainer_fixes.py # ✅ 5 tests (trainer integration)
+│       ├── test_integration_multiscale.py # ✅ 1 test (anti-collapse validation)
 │       └── test_clustering.py        # ✅ 4 tests
 ├── outputs/
 │   ├── discovery/                    # Raw extractions
@@ -638,7 +656,7 @@ pytest module_3_vitals_processing/tests/test_layer4/ -v
 pytest module_3_vitals_processing/tests/ --cov=module_3_vitals_processing
 ```
 
-**Current Test Results:** 413 tests passing
+**Current Test Results:** 443 tests passing
 
 ---
 
@@ -699,6 +717,29 @@ State schema version will increment when treatment slots are populated.
 ---
 
 ## Changelog
+
+### Version 3.5 (2025-12-18)
+- **Multi-Scale Conv1D VAE**: Complete replacement of LSTM-VAE
+  - **Problem**: LSTM-VAE suffered from posterior collapse (mu_std → 0, KL → 0)
+  - **Solution**: Multi-Scale Conv1D architecture with 4 parallel branches:
+    - Local branch (k=3,5): Beat-to-beat variability
+    - Hourly branch (k=15,31): Hour-scale patterns
+    - Daily branch (k=63,127): Circadian rhythms
+    - Multi-day branch (k=255): Long-term trajectories
+  - **Anti-collapse measures**:
+    - Cyclical β-annealing: β cycles 0→0.5 every 40 epochs
+    - Free bits (2.0): Per-dimension KL threshold
+    - Per-branch reconstruction loss: Forces latent to encode all scales
+    - Multi-scale architecture: Prevents ignoring temporal resolutions
+  - **Results**: mu_std=0.42 (vs ~0 with LSTM), logvar_mean=-3.9 (healthy)
+- **16 new tests** for Multi-Scale VAE components
+- **443 total tests** passing
+- **New files**:
+  - `processing/layer4/vae_multiscale.py`: Multi-Scale encoder, decoder, VAE, loss
+  - `tests/test_layer4/test_vae_multiscale.py`: 10 unit tests
+  - `tests/test_layer4/test_vae_trainer_fixes.py`: 5 trainer integration tests
+  - `tests/test_layer4/test_integration_multiscale.py`: Anti-collapse validation
+  - `docs/plans/2025-12-17-multiscale-conv1d-vae-implementation.md`: Implementation plan
 
 ### Version 3.4 (2025-12-15)
 - **SpO2 Pattern Fix**: Major improvement to SpO2 extraction accuracy

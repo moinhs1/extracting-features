@@ -1,5 +1,5 @@
 # Project Progress Tracker
-*Last Updated: 2025-12-17 (Module 6 COMPLETE)*
+*Last Updated: 2025-12-18 (Module 3 Layers 4-5 COMPLETE)*
 
 ## Overall Project Status
 
@@ -26,8 +26,9 @@ gantt
     Vitals 5-Layer Design          :done, m3d, 2025-12-08, 1d
     Extractors (PHY/HNP/PRG)       :done, m3a, 2025-12-02, 3d
     Layer 1-2 Builders             :done, m3b, 2025-12-09, 1d
-    Layer 3 Feature Engineering    :pending, m3c, after m3b, 1d
-    Layers 4-5 Embeddings          :pending, m3e, after m3c, 1d
+    Layer 3 Feature Engineering    :done, m3c, 2025-12-10, 1d
+    Layer 4 Multi-Scale VAE        :done, m3e, 2025-12-18, 1d
+    Layer 5 World States           :done, m3f, 2025-12-10, 1d
 
     section Module 4
     Medications 5-Layer Design     :done, m4d, 2025-12-08, 1d
@@ -64,7 +65,7 @@ gantt
 pie title Module Completion Status
     "Module 1 - Complete" : 100
     "Module 2 - Complete (needs rerun)" : 90
-    "Module 3 - Phase 1 Complete" : 60
+    "Module 3 - COMPLETE" : 100
     "Module 4 - COMPLETE" : 100
     "Module 5 - Not Started" : 0
     "Module 6 - COMPLETE" : 100
@@ -111,7 +112,7 @@ pie title Module Completion Status
 
 **Previous Output:** 3,565 patients, 35 MB features.csv, 646 MB sequences.h5
 
-### Module 3: Vitals Processing - Phase 1 COMPLETE ✅
+### Module 3: Vitals Processing - COMPLETE ✅
 
 | Task | Status | Date | Notes |
 |------|--------|------|-------|
@@ -122,11 +123,28 @@ pie title Module Completion Status
 | Submodule 3.4: Layer 1 Builder | Complete | Dec 9 | 17 tests, canonical records |
 | Submodule 3.5: Layer 2 Builder | Complete | Dec 9 | 17 tests, hourly grid + HDF5 |
 | Processing helpers | Complete | Dec 9 | unit_converter, qc_filters, temporal_aligner |
-| Submodule 3.6: Layer 3 Features | Pending | - | Rolling stats, trends |
-| Submodules 3.7-3.8: Layers 4-5 | Pending | - | Embeddings, world models |
+| Submodule 3.6: Layer 3 Features | Complete | Dec 10 | 71 tests, rolling stats, trends, variability |
+| Submodule 3.7: FPCA Builder | Complete | Dec 10 | 4 tests, 10 components × 7 vitals |
+| Submodule 3.8: Multi-Scale VAE | Complete | Dec 18 | 16 tests, 4 temporal branches, anti-collapse |
+| Submodule 3.9: DTW Clustering | Complete | Dec 10 | 1 test, validation baseline |
+| Submodule 3.10: HDBSCAN Clustering | Complete | Dec 10 | 3 tests, 102-dim embeddings |
+| Submodule 3.11: Layer 4 Builder | Complete | Dec 18 | Orchestrates all Layer 4 components |
+| Submodule 3.12: Layer 5 Builder | Complete | Dec 10 | 5 tests, 100-dim world states |
 
-**Tests:** 252 total (174 extractors + 78 processing)
-**Output:** `canonical_vitals.parquet`, `hourly_grid.parquet`, `hourly_tensors.h5`
+**Multi-Scale Conv1D VAE (Dec 18):**
+- Replaced LSTM-VAE which suffered from posterior collapse
+- 4 parallel convolutional branches for multi-scale temporal patterns
+- Anti-collapse measures: cyclical β-annealing, free bits (2.0), per-branch loss
+- Results: mu_std=0.42 (healthy), logvar_mean=-3.9 (not collapsed)
+
+**Tests:** 443 total
+**Output:**
+- `outputs/layer1/canonical_vitals.parquet` (3.5M records)
+- `outputs/layer2/hourly_grid.parquet`, `hourly_tensors.h5` (7,689 × 745 × 7)
+- `outputs/layer3/timeseries_features.parquet` (5.7M × 315)
+- `outputs/layer3/summary_features.parquet` (7,689 × 4,426)
+- `outputs/layer4/fpca_scores.parquet`, `vae_latents.h5`, clusters
+- `outputs/layer5/world_states.h5` (7,689 × 745 × 100)
 
 ### Module 4: Medication Processing - COMPLETE ✅
 
@@ -243,6 +261,11 @@ timeline
                  : 5-layer procedure encoding
                  : 145 tests passing
                  : World model integration ready
+
+    Dec 18, 2025 : Module 3 VAE Upgrade
+                 : Multi-Scale Conv1D VAE
+                 : Replaced collapsed LSTM-VAE
+                 : 443 tests, anti-collapse verified
 ```
 
 ## Cohort Statistics
@@ -264,10 +287,10 @@ timeline
 |--------|------------|-------|--------|
 | Module 1 | - | - | No formal tests |
 | Module 2 | - | - | No formal tests |
-| Module 3 | 9 files | 252 | ✅ All Pass |
+| Module 3 | 16 files | 443 | ✅ All Pass |
 | Module 4 | 8 files | 67 | ✅ All Pass |
 | Module 6 | 10 files | 145 | ✅ All Pass |
-| **Total** | **27 files** | **464** | **✅ All Pass** |
+| **Total** | **34 files** | **655** | **✅ All Pass** |
 
 ## Technical Debt & Issues
 
@@ -281,11 +304,11 @@ timeline
 
 ## Next Actions
 
-1. **Immediate:** Module 3 Layers 3-5 (Feature Engineering, Embeddings)
+1. **Immediate:** Rerun Module 3 Layer 4 with Multi-Scale VAE (150 epochs) to refresh outputs
 2. **Short-term:** Module 2 Rerun on expanded cohort (8,713 patients)
 3. **Medium-term:** Module 5 - Diagnoses processing
 4. **Long-term:** Module 7, ML model development, World Model training
 
 ---
 
-*Version: 8.0 | Updated: 2025-12-17*
+*Version: 9.0 | Updated: 2025-12-18*
