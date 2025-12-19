@@ -2,6 +2,8 @@
 
 **Purpose:** Quick reference for finding the right vitals data for your analysis task.
 
+**Last Updated:** 2025-12-18
+
 ---
 
 ## Quick Decision Tree
@@ -162,12 +164,20 @@ Functional PCA scores capturing trajectory shapes:
 
 **File:** `outputs/layer4/vae_latents.h5`
 
+Multi-Scale Conv1D VAE embeddings using 4 parallel temporal branches:
+- **Local branch** (k=3,5): Beat-to-beat variability
+- **Hourly branch** (k=15,31): Hour-scale patterns
+- **Daily branch** (k=63,127): Circadian rhythms
+- **Multi-day branch** (k=255): Long-term trajectories
+
 ```
-/mu           (7696, 32)   # Mean latent embedding
-/logvar       (7696, 32)   # Log variance
-/recon_error  (7696,)      # Reconstruction error
-/patient_index (7696,)     # EMPI mapping
+/mu           (7689, 32)   # Mean latent embedding
+/logvar       (7689, 32)   # Log variance (healthy: mean ~ -4)
+/recon_error  (7689,)      # Reconstruction error
+/patient_index (7689,)     # EMPI mapping
 ```
+
+**Anti-collapse verified:** mu_std=0.42 (healthy latent space)
 
 **File:** `outputs/layer4/clusters_embedding.parquet`
 
@@ -177,6 +187,24 @@ Functional PCA scores capturing trajectory shapes:
 | cluster_id | Cluster assignment (-1=outlier) |
 | cluster_prob | Soft probability |
 | is_outlier | Outlier flag |
+
+**File:** `outputs/layer4/vae_model.pt`
+
+Trained Multi-Scale Conv1D VAE model for fine-tuning or transfer learning:
+```python
+import torch
+from processing.layer4.vae_multiscale import MultiScaleConv1DVAE
+
+# Load trained model
+checkpoint = torch.load('outputs/layer4/vae_model.pt')
+model = MultiScaleConv1DVAE(**checkpoint['config'])
+model.load_state_dict(checkpoint['model_state'])
+model.eval()
+
+# Encode new data
+with torch.no_grad():
+    z, mu, logvar = model.encode(new_data)
+```
 
 **Use when:** Phenotype discovery, trajectory clustering, dimensionality reduction, unsupervised learning.
 
@@ -190,7 +218,7 @@ hr_shape = fpca[['HR_fpc1', 'HR_fpc2', 'HR_fpc3']]  # Trajectory shape
 
 # VAE latents
 with h5py.File('outputs/layer4/vae_latents.h5', 'r') as f:
-    latent = f['mu'][:]  # (7696, 32) learned representation
+    latent = f['mu'][:]  # (7689, 32) learned representation
 
 # Clusters
 clusters = pd.read_parquet('outputs/layer4/clusters_embedding.parquet')
@@ -384,12 +412,13 @@ clusters = kmeans.fit_predict(combined)
 |------|------|-------|----------|
 | `canonical_vitals.parquet` | 30 MB | 3.5M rows | Custom aggregation |
 | `hourly_grid.parquet` | 35 MB | 5.7M rows | Pandas time series |
-| `hourly_tensors.h5` | 24 MB | 7696×745×7 | LSTM, TDA |
+| `hourly_tensors.h5` | 24 MB | 7689×745×7 | LSTM, TDA |
 | `timeseries_features.parquet` | 988 MB | 5.7M×315 | Time-varying features |
-| `summary_features.parquet` | 96 MB | 7696×4426 | Traditional ML |
-| `fpca_scores.parquet` | 4.7 MB | 7696×77 | Trajectory shape |
-| `vae_latents.h5` | 2.0 MB | 7696×32 | Learned embedding |
-| `world_states.h5` | 109 MB | 7696×745×100 | World models, RL |
+| `summary_features.parquet` | 96 MB | 7689×4426 | Traditional ML |
+| `fpca_scores.parquet` | 4.7 MB | 7689×77 | Trajectory shape |
+| `vae_latents.h5` | 2.0 MB | 7689×32 | Multi-Scale VAE embedding |
+| `vae_model.pt` | 4.4 MB | - | Pre-trained VAE model |
+| `world_states.h5` | 109 MB | 7689×745×100 | World models, RL |
 
 ---
 
